@@ -1,0 +1,277 @@
+// datasource and generator setup
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------------------------------------
+//  ENUMS
+// ---------------------------------------------------------
+
+enum UserRole {
+  USER
+  BUSINESS_PARTNER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BusinessType {
+  HOTEL_RESERVATION
+  SECURITY_PROTOCOL
+  CAR_RENTAL
+}
+
+enum HotelRoomStatus {
+  AVAILABLE
+  BOOKED
+}
+
+enum PaymentStatus {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+enum PaymentProvider {
+  STRIPE
+}
+
+// ---------------------------------------------------------
+//  MODEL
+// ---------------------------------------------------------
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  fullName      String
+  email         String     @unique
+  password      String
+  profileImage  String     @default("https://i.ibb.co/Ps9gZ8DD/Profile-image.png")
+  contactNumber String?
+  address       String?
+  country       String?
+  role          UserRole   @default(USER)
+  status        UserStatus @default(ACTIVE)
+  isSubscribe   Boolean    @default(false)
+
+  // add for stripe integration
+  stripeCustomerId String?
+
+  otp        String?
+  otpExpiry  DateTime?
+  identifier String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  payment       Payment[]
+  notification  Notification[]
+  business_type Business_type[]
+  review        Review[]
+  booking       Booking[]
+
+  @@map("users")
+}
+
+model Admin {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  email String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Business_type {
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  name             String       @unique
+  business_types   BusinessType @default(HOTEL_RESERVATION)
+  business_address String
+  business_tag     String
+  description      String
+  logo             String       @default("https://i.ibb.co/zWxSgQL8/download.png")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  user   User    @relation(fields: [userId], references: [id])
+  userId String  @db.ObjectId
+  hotel  Hotel[]
+
+  @@map("business_types")
+}
+
+model Hotel {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  // country          String
+  // city             String
+  // address          String
+  pricePerNight    Float
+  description      String
+  location     String
+  image            String
+  status           HotelRoomStatus @default(AVAILABLE)
+  offered_services String[]
+  discount         Float?
+  category         String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  business_type  Business_type @relation(fields: [businessTypeId], references: [id])
+  businessTypeId String        @db.ObjectId
+  review         Review[]
+  booking        Booking[]
+
+  @@map("hotel_rooms")
+}
+
+model Security_Protocol {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  description      String
+  image            String
+  offered_services String[]
+  category         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Personal_details {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  dateOfBirth      String
+  description      String
+  image            String
+  offered_services String[]
+  category         String
+  email            String?
+  contactNo        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("personal_details")
+}
+
+model Booking {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomType   String
+  totalPrice Float
+  checkIn    DateTime
+  checkOut   DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  hotel   Hotel  @relation(fields: [hotelId], references: [id])
+  hotelId String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @db.ObjectId
+
+  @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  hotel   Hotel  @relation(fields: [hotelId], references: [id])
+  hotelId String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @db.ObjectId
+
+  @@map("reviews")
+}
+
+model Notification {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  receiverId Int
+  viewed     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+
+  @@map("notifications")
+}
+
+model Payment {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  amount          Float
+  currency        String          @default("USD")
+  status          PaymentStatus
+  provider        PaymentProvider
+  paymentIntentId String? // Stripe payment intent ID
+  stripeSessionId String?         @unique
+  // userId          String?         @db.ObjectId 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+
+  @@map("payments")
+}
+
+model Terms_Condition {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title                 String
+  acceptance_terms      String
+  app_purpose           String
+  user_responsibilities String
+  data_usage            String
+  intellectual_property String
+  limitation            String
+  updates               String
+  contactUS             String
+  adminId               String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("terms_conditions")
+}
+
+model Privacy_Policy {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title                String
+  introduction         String
+  information_collect  String[]
+  how_useYour_data     String[]
+  data_security        String
+  third_party_services String
+  user_control         String[]
+  children_privacy     String
+  changes_to_policy    String
+  contact_info         String
+  adminId              String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("privacy_policies")
+}
