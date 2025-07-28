@@ -1,5 +1,5 @@
 NODE_ENV=development # do not add this when deploying to production
-DATABASE_URL="mongodb+srv://jabter-backend:xFmU7k0DdFffBZe8@cluster0.wqymbxc.mongodb.net/Jabter_Backend?retryWrites=true&w=majority&appName=Cluster0"
+DATABASE_URL="mongodb+srv://timothy:OWVyMI979ILE0ZQj@cluster0.wqymbxc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 PORT=5000
 
 
