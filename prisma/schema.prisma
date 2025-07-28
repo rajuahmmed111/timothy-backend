@@ -52,7 +52,7 @@ enum PaymentProvider {
 model User {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  fullName      String
+  fullName      String?
   email         String     @unique
   password      String
   profileImage  String     @default("https://i.ibb.co/Ps9gZ8DD/Profile-image.png")
@@ -61,7 +61,6 @@ model User {
   country       String?
   role          UserRole   @default(USER)
   status        UserStatus @default(ACTIVE)
-  isSubscribe   Boolean    @default(false)
 
   // add for stripe integration
   stripeCustomerId String?
@@ -84,8 +83,11 @@ model User {
 }
 
 model Admin {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  email String @unique
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  fullName    String?
+  phoneNumber String?
+  email       String  @unique
+  password    String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -121,7 +123,7 @@ model Hotel {
   // address          String
   pricePerNight    Float
   description      String
-  location     String
+  location         String
   image            String
   status           HotelRoomStatus @default(AVAILABLE)
   offered_services String[]

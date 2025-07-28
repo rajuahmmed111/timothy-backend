@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { Plan, UserRole, UserStatus } from "@prisma/client";
+import {  UserRole, UserStatus } from "@prisma/client";
 
 const createUserZodSchema = z.object({
   body: z.object({
-    fullName: z.string({ required_error: "Full name is required" }),
+    fullName: z.string().optional(),
     email: z.string({ required_error: "Email is required" }),
     password: z
       .string({ required_error: "Password is required" })
@@ -12,11 +12,8 @@ const createUserZodSchema = z.object({
     contactNumber: z.string().optional(),
     address: z.string().optional(),
     country: z.string().optional(),
-
     role: z.nativeEnum(UserRole).optional(),
     status: z.nativeEnum(UserStatus).optional(),
-    plan: z.nativeEnum(Plan).optional(),
-    identifier: z.string().optional(),
   }),
 });
 

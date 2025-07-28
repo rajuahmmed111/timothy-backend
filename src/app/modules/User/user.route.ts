@@ -2,16 +2,20 @@ import express from "express";
 import validateRequest from "../../middlewares/validateRequest";
 import { userValidation } from "./user.validation";
 import auth from "../../middlewares/auth";
-import { parseBodyData } from "../../middlewares/parseNestedJson";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { UserController } from "./user.controller";
-
-// import { parseBodyData } from '../../middlewares/parseBodyData';
+import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
 // get all users
-router.get("/", UserController.getAllUsers);
+router.get("/", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), UserController.getAllUsers);
+
+// get all admins
+router.get("/admins", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), UserController.getAllAdmins);
+
+// get all business partners
+router.get("/business-partners", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), UserController.getAllBusinessPartners);
 
 // get user by id
 router.get("/:id", UserController.getUserById);
@@ -29,7 +33,12 @@ router.post(
 // update user
 router.patch(
   "/update",
-  auth(),
+  auth(
+    // UserRole.ADMIN,
+    // UserRole.SUPER_ADMIN,
+    // UserRole.BUSINESS_PARTNER,
+    // UserRole.USER
+  ),
   validateRequest(userValidation.updateUserZodSchema),
   UserController.updateUser
 );

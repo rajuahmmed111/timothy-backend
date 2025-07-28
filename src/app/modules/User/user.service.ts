@@ -5,7 +5,12 @@ import prisma from "../../../shared/prisma";
 import { Prisma, User, UserRole, UserStatus } from "@prisma/client";
 import { ObjectId } from "mongodb";
 import { IPaginationOptions } from "../../../interfaces/paginations";
-import { IFilterRequest, IProfileImageResponse, IUpdateUser, SafeUser } from "./user.interface";
+import {
+  IFilterRequest,
+  IProfileImageResponse,
+  IUpdateUser,
+  SafeUser,
+} from "./user.interface";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./user.constant";
 import { IGenericResponse } from "../../../interfaces/common";
@@ -42,7 +47,6 @@ const createUser = async (payload: any): Promise<SafeUser | null> => {
       country: true,
       role: true,
       status: true,
-      plan: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -94,7 +98,9 @@ const getAllUsers = async (
   const where: Prisma.UserWhereInput = { AND: filters };
 
   const result = await prisma.user.findMany({
-    where,
+    where: {
+      role: UserRole.USER,
+    },
     skip,
     take: limit,
     orderBy:
@@ -115,7 +121,172 @@ const getAllUsers = async (
       country: true,
       role: true,
       status: true,
-      plan: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  const total = await prisma.user.count({ where });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
+// get all admins
+const getAllAdmins = async (
+  params: IFilterRequest,
+  options: IPaginationOptions
+): Promise<IGenericResponse<SafeUser[]>> => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.UserWhereInput[] = [];
+
+  // Filter for active users and role ADMIN only
+  filters.push({
+    role: UserRole.ADMIN,
+    status: UserStatus.ACTIVE,
+  });
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.UserWhereInput = { AND: filters };
+
+  const result = await prisma.user.findMany({
+    where: {
+      role: UserRole.ADMIN,
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  const total = await prisma.user.count({ where });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
+// get all business partners
+const getAllBusinessPartners = async (
+  params: IFilterRequest,
+  options: IPaginationOptions
+): Promise<IGenericResponse<SafeUser[]>> => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.UserWhereInput[] = [];
+
+  // Filter for active users and role BUSINESS_PARTNER only
+  filters.push({
+    role: UserRole.BUSINESS_PARTNER,
+    status: UserStatus.ACTIVE,
+  });
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.UserWhereInput = { AND: filters };
+
+  const result = await prisma.user.findMany({
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -147,7 +318,6 @@ const getUserById = async (id: string): Promise<SafeUser> => {
       country: true,
       role: true,
       status: true,
-      plan: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -187,7 +357,6 @@ const updateUser = async (
       country: true,
       role: true,
       status: true,
-      plan: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -227,7 +396,10 @@ const deleteUser = async (
 };
 
 // update user profile image
-const updateUserProfileImage = async (id: string, req: Request): Promise<IProfileImageResponse> => {
+const updateUserProfileImage = async (
+  id: string,
+  req: Request
+): Promise<IProfileImageResponse> => {
   console.log(req.file, "req.file in user service");
   const userInfo = await prisma.user.findUnique({
     where: { id, status: UserStatus.ACTIVE },
@@ -271,7 +443,6 @@ const getMyProfile = async (id: string): Promise<IProfileImageResponse> => {
       country: true,
       role: true,
       status: true,
-      plan: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -287,6 +458,8 @@ const getMyProfile = async (id: string): Promise<IProfileImageResponse> => {
 export const UserService = {
   createUser,
   getAllUsers,
+  getAllAdmins,
+  getAllBusinessPartners,
   getUserById,
   updateUser,
   deleteUser,

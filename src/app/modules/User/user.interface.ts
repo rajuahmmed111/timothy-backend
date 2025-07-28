@@ -1,7 +1,7 @@
-import { Plan, UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 
 export type TUser = {
-  fullName: string;
+  fullName?: string;
   email: string;
   password: string;
   profileImage?: string;
@@ -10,8 +10,6 @@ export type TUser = {
   country?: string;
   role: UserRole;
   status: UserStatus;
-  plan?: Plan;
-  identifier?: string;
 };
 
 export type IUpdateUser = {
@@ -31,7 +29,7 @@ export type IFilterRequest = {
 
 export type SafeUser = {
   id: string;
-  fullName: string;
+  fullName: string | null;
   email: string;
   profileImage: string;
   contactNumber: string | null;
@@ -39,15 +37,13 @@ export type SafeUser = {
   country: string | null;
   role: UserRole;
   status: UserStatus;
-  plan: Plan;
   createdAt: Date;
   updatedAt: Date;
 };
 
 export type IProfileImageResponse = {
   id: string;
-  fullName: string;
+  fullName: string | null;
   email: string;
   profileImage: string | null;
 };
-

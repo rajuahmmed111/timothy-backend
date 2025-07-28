@@ -35,6 +35,36 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all admins
+const getAllAdmins = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const result = await UserService.getAllAdmins(filter, options);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Admins fetched successfully",
+    data: result,
+  });
+});
+
+// get all business partners
+const getAllBusinessPartners = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result = await UserService.getAllBusinessPartners(filter, options);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Business Partners fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get user by id
 const getUserById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -48,7 +78,6 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
     data: { ...user, password: undefined },
   });
 });
-
 
 // update user
 const updateUser = catchAsync(async (req: Request, res: Response) => {
@@ -80,19 +109,20 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 // update my  profile image
-const updateUserProfileImage = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  const result = await UserService.updateUserProfileImage(id, req);
+const updateUserProfileImage = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.user;
+    const result = await UserService.updateUserProfileImage(id, req);
 
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.OK,
-    message: "My profile image updated successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "My profile image updated successfully",
+      data: result,
+    });
+  }
+);
 
 // get my profile
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
@@ -110,11 +140,11 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 export const UserController = {
   createUser,
   getAllUsers,
+  getAllAdmins,
+  getAllBusinessPartners,
   getUserById,
   updateUser,
   deleteUser,
   updateUserProfileImage,
   getMyProfile,
 };
-
- 

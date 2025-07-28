@@ -35,6 +35,7 @@ export const initiateSuperAdmin = async () => {
       await TransactionClient.admin.create({
         data: {
           email: payload.email,
+          password: hashedPassword,
         },
       });
     });
