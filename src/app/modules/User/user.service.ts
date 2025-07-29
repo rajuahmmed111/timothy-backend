@@ -342,11 +342,18 @@ const updateUser = async (
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
+  // update fields
+  const allowedFields: Partial<IUpdateUser> = {
+    fullName: updates.fullName,
+    email: updates.email,
+    contactNumber: updates.contactNumber,
+    address: updates.address,
+    country: updates.country,
+  };
+
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
-    data: {
-      ...updates,
-    },
+    data: allowedFields,
     select: {
       id: true,
       fullName: true,
@@ -365,34 +372,30 @@ const updateUser = async (
   return updatedUser;
 };
 
-// delete user
-const deleteUser = async (
-  userId: string,
-  loggedId: string
-): Promise<User | void> => {
-  if (!ObjectId.isValid(userId)) {
-    throw new ApiError(400, "Invalid user ID format");
-  }
-
-  if (userId === loggedId) {
-    throw new ApiError(403, "You can't delete your own account!");
-  }
-
-  // Check if user exists
-  const existingUser = await prisma.user.findUnique({
-    where: { id: userId },
+// get my profile
+const getMyProfile = async (id: string) => {
+  const user = await prisma.user.findFirst({
+    where: { id, status: UserStatus.ACTIVE },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
-  if (!existingUser) {
-    throw new ApiError(404, "User not found");
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  // Delete the user
-  await prisma.user.delete({
-    where: { id: userId },
-  });
-
-  return;
+  return user;
 };
 
 // update user profile image
@@ -429,30 +432,34 @@ const updateUserProfileImage = async (
   return profileInfo;
 };
 
-// get my profile
-const getMyProfile = async (id: string): Promise<IProfileImageResponse> => {
-  const user = await prisma.user.findUnique({
-    where: { id, status: UserStatus.ACTIVE },
-    select: {
-      id: true,
-      fullName: true,
-      email: true,
-      profileImage: true,
-      contactNumber: true,
-      address: true,
-      country: true,
-      role: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+// delete user
+const deleteUser = async (
+  userId: string,
+  loggedId: string
+): Promise<User | void> => {
+  if (!ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid user ID format");
   }
 
-  return user;
+  if (userId === loggedId) {
+    throw new ApiError(403, "You can't delete your own account!");
+  }
+
+  // Check if user exists
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!existingUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Delete the user
+  await prisma.user.delete({
+    where: { id: userId },
+  });
+
+  return;
 };
 
 export const UserService = {
@@ -462,7 +469,7 @@ export const UserService = {
   getAllBusinessPartners,
   getUserById,
   updateUser,
-  deleteUser,
-  updateUserProfileImage,
   getMyProfile,
+  updateUserProfileImage,
+  deleteUser,
 };

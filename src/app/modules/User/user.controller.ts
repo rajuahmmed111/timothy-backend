@@ -7,6 +7,7 @@ import ApiError from "../../../errors/ApiErrors";
 import { pick } from "../../../shared/pick";
 import { filterField } from "./user.constant";
 import { paginationFields } from "../../../constants/pagination";
+import { isValidObjectId } from "../../../utils/validateObjectId";
 
 // create user
 const createUser = catchAsync(async (req: Request, res: Response) => {
@@ -94,18 +95,17 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// delete user
-const deleteUser = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.params.id;
-  const loggedId = req.user.id;
+// get my profile
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
 
-  await UserService.deleteUser(userId, loggedId);
+  const result = await UserService.getMyProfile(id);
 
   sendResponse(res, {
     success: true,
-    statusCode: 200,
-    message: "User deleted successfully",
-    data: undefined,
+    statusCode: httpStatus.OK,
+    message: "My profile retrieved successfully",
+    data: result,
   });
 });
 
@@ -124,16 +124,18 @@ const updateUserProfileImage = catchAsync(
   }
 );
 
-// get my profile
-const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  const result = await UserService.getMyProfile(id);
+// delete user
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.id;
+  const loggedId = req.user.id;
+
+  await UserService.deleteUser(userId, loggedId);
 
   sendResponse(res, {
     success: true,
-    statusCode: httpStatus.OK,
-    message: "My profile retrieved successfully",
-    data: result,
+    statusCode: 200,
+    message: "User deleted successfully",
+    data: undefined,
   });
 });
 
@@ -144,7 +146,7 @@ export const UserController = {
   getAllBusinessPartners,
   getUserById,
   updateUser,
-  deleteUser,
-  updateUserProfileImage,
   getMyProfile,
+  updateUserProfileImage,
+  deleteUser,
 };

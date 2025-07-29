@@ -9,19 +9,40 @@ import { UserRole } from "@prisma/client";
 const router = express.Router();
 
 // get all users
-router.get("/", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), UserController.getAllUsers);
+router.get(
+  "/",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.getAllUsers
+);
 
 // get all admins
-router.get("/admins", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), UserController.getAllAdmins);
+router.get(
+  "/admins",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.getAllAdmins
+);
 
 // get all business partners
-router.get("/business-partners", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), UserController.getAllBusinessPartners);
+router.get(
+  "/business-partners",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.getAllBusinessPartners
+);
+
+//get my profile
+router.get(
+  "/my-profile",
+  auth(
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  UserController.getMyProfile
+);
 
 // get user by id
 router.get("/:id", UserController.getUserById);
-
-//get my profile
-router.get("/my-profile", auth(), UserController.getMyProfile);
 
 // create user
 router.post(
@@ -34,10 +55,10 @@ router.post(
 router.patch(
   "/update",
   auth(
-    // UserRole.ADMIN,
-    // UserRole.SUPER_ADMIN,
-    // UserRole.BUSINESS_PARTNER,
-    // UserRole.USER
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
   ),
   validateRequest(userValidation.updateUserZodSchema),
   UserController.updateUser
@@ -46,12 +67,17 @@ router.patch(
 // update user profile image
 router.patch(
   "/profile-img-update",
-  auth(),
+   auth(
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
   uploadFile.profileImage,
   UserController.updateUserProfileImage
 );
 
 // delete user
-router.delete("/:id", UserController.deleteUser);
+router.delete("/:id", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), UserController.deleteUser);
 
 export const userRoute = router;

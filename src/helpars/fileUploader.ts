@@ -3,6 +3,7 @@ import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import { ICloudinaryUploadResponse, IUploadedFile } from "../interfaces/file";
+import config from "../config";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cd) {
@@ -15,16 +16,14 @@ const storage = multer.diskStorage({
 
 // Configuration
 cloudinary.config({
-  cloud_name: "dugcllznd",
-  api_key: "298919725832732",
-  api_secret: "KQbyyHWCgDOc1uhDgWa1Wl-3bsg",
+  cloud_name: config.cloudinary.cloud_name,
+  api_key: config.cloudinary.api_key,
+  api_secret: config.cloudinary.api_secret,
 });
 
 const upload = multer({ storage: storage });
 
 const profileImage = upload.single("profileImage");
-const timberImage = upload.single("timberImage");
-
 
 const uploadToCloudinary = async (
   file: IUploadedFile
@@ -48,6 +47,5 @@ const uploadToCloudinary = async (
 export const uploadFile = {
   upload,
   profileImage,
-  timberImage,
   uploadToCloudinary,
 };
