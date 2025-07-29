@@ -1,7 +1,7 @@
 import express from "express";
 
 import { authRoutes } from "../modules/Auth/auth.routes";
-import { subscriptionRoute } from "../modules/subscriptions/subscriptions.route";
+// import { subscriptionRoute } from "../modules/subscriptions/subscriptions.route";
 import { userRoute } from "../modules/User/user.route";
 import { privacyPolicyRoute } from "../modules/Privacy_Policy/policy.route";
 import { hotelRoute } from "../modules/Hotel/hotel.route";
@@ -21,10 +21,10 @@ const moduleRoutes = [
     path: "/hotels",
     route: hotelRoute,
   },
-  {
-    path: "/subscription",
-    route: subscriptionRoute,
-  },
+  // {
+  //   path: "/subscription",
+  //   route: subscriptionRoute,
+  // },
   {
     path: "/policy",
     route: privacyPolicyRoute,

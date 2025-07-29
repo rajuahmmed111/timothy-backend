@@ -73,11 +73,11 @@ model User {
   updatedAt DateTime @updatedAt
 
   // relationships
-  payment       Payment[]
-  notification  Notification[]
-  business_type Business_type[]
-  review        Review[]
-  booking       Booking[]
+  payment      Payment[]
+  notification Notification[]
+  hotel        Hotel[]
+  review       Review[]
+  booking      Booking[]
 
   @@map("users")
 }
@@ -95,51 +95,59 @@ model Admin {
   @@map("admins")
 }
 
-model Business_type {
-  id               String       @id @default(auto()) @map("_id") @db.ObjectId
-  name             String       @unique
-  business_types   BusinessType @default(HOTEL_RESERVATION)
-  business_address String
-  business_tag     String
-  description      String
-  logo             String       @default("https://i.ibb.co/zWxSgQL8/download.png")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // relationships
-  user   User    @relation(fields: [userId], references: [id])
-  userId String  @db.ObjectId
-  hotel  Hotel[]
-
-  @@map("business_types")
-}
-
 model Hotel {
-  id               String          @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  // country          String
-  // city             String
-  // address          String
-  pricePerNight    Float
-  description      String
-  location         String
-  image            String
-  status           HotelRoomStatus @default(AVAILABLE)
-  offered_services String[]
-  discount         Float?
-  category         String
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  hotelBusinessName String @unique
+  hotelName         String
+  hotelBusinessType String
+  hotelRegNum       String
+  hotelRegDate      String
+  hotelPhone        String
+  hotelEmail        String
+
+  businessTagline     String
+  businessDescription String
+  businessLogo        String @default("https://i.ibb.co/zWxSgQL8/download.png")
+
+  hotelRoomType       String
+  hotelRoomPriceNight Int
+
+  hotelAC        Boolean
+  hotelParking   Boolean
+  hoitelWifi     Boolean
+  hotelBreakfast Boolean
+  hotelPool      Boolean
+
+  hotelRating String
+
+  hotelSmoking Boolean
+  hotelTv      Boolean
+  hotelWashing Boolean
+
+  hotelBookingCondition  String
+  hotelCancelationPolicy String
+  hotelDocs              String
+  hotelRoomDescription   String
+  hotelAddress           String
+  hotelCity              String
+  hotelPostalCode        String
+  hotelDistrict          String
+  hotelCountry           String
+  hotelRoomImages        String @default("https://i.ibb.co/zWxSgQL8/download.png")
+
+  category String?
+  discount Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // relationships
-  business_type  Business_type @relation(fields: [businessTypeId], references: [id])
-  businessTypeId String        @db.ObjectId
-  review         Review[]
-  booking        Booking[]
+  user    User      @relation(fields: [userId], references: [id])
+  userId  String    @db.ObjectId
+  Booking Booking[]
+  Review  Review[]
 
-  @@map("hotel_rooms")
+  @@map("hotels")
 }
 
 model Security_Protocol {
@@ -170,13 +178,15 @@ model Personal_details {
 }
 
 model Booking {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  roomType   String
-  totalPrice Float
-  checkIn    DateTime
-  checkOut   DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomType  String
+  checkIn   DateTime
+  rooms     Int
+  adults    Int
+  children  Int
+  checkOut  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   hotel   Hotel  @relation(fields: [hotelId], references: [id])
   hotelId String @db.ObjectId
