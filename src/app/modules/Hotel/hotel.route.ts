@@ -4,6 +4,7 @@ import { UserRole } from "@prisma/client";
 import { HotelController } from "./hotel.controller";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { parseBodyData } from "../../middlewares/parseNestedJson";
+// import validateRequest from "../../middlewares/validateRequest";
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.post(
     { name: "hotelDocs", maxCount: 5 },
   ]),
   parseBodyData,
+//   validateRequest(HotelController.createHotelSchema),
   HotelController.createHotel
 );
 
