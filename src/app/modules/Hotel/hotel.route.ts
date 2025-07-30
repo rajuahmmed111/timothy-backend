@@ -9,7 +9,40 @@ import { parseBodyData } from "../../middlewares/parseNestedJson";
 const router = express.Router();
 
 // get all hotels
-router.get("/", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
+router.get(
+  "/",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  HotelController.getAllHotels
+);
+
+// get popular hotels
+router.get(
+  "/popular",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  HotelController.getPopularHotels
+);
+
+// get single hotel
+router.get(
+  "/:id",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  HotelController.getSingleHotel
+);
 
 // create hotel
 router.post(
@@ -21,8 +54,21 @@ router.post(
     { name: "hotelDocs", maxCount: 5 },
   ]),
   parseBodyData,
-//   validateRequest(HotelController.createHotelSchema),
+  //   validateRequest(HotelController.createHotelSchema),
   HotelController.createHotel
+);
+
+// update hotel
+router.patch(
+  "/:id",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "hotelLogo", maxCount: 1 },
+    { name: "hotelRoomImages", maxCount: 5 },
+    { name: "hotelDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
+  HotelController.updateHotel
 );
 
 export const hotelRoute = router;

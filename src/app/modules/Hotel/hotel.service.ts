@@ -2,10 +2,20 @@ import { Request } from "express";
 import prisma from "../../../shared/prisma";
 import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
+import ApiError from "../../../errors/ApiErrors";
+import httpStatus from "http-status";
+import { Hotel } from "@prisma/client";
 
 // create hotel
 const createHotel = async (req: Request) => {
   const partnerId = req.user?.id;
+
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
 
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
@@ -98,7 +108,7 @@ const createHotel = async (req: Request) => {
       hotelWashing: hotelWashing === "true",
       hotelBookingCondition,
       hotelCancelationPolicy,
-      hotelDocs : hotelDocUrls,
+      hotelDocs: hotelDocUrls,
       hotelRoomDescription,
       hotelAddress,
       hotelCity,
@@ -115,4 +125,198 @@ const createHotel = async (req: Request) => {
   return result;
 };
 
-export const HotelService = { createHotel };
+// get all hotels with search filtering and pagination
+const getAllHotels = async () => {
+  const result = await prisma.hotel.findMany();
+  return result;
+};
+
+// get single hotel
+const getSingleHotel = async (hotelId: string) => {
+  const result = await prisma.hotel.findUnique({
+    where: { id: hotelId },
+  });
+
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+  }
+
+  return result;
+};
+
+// get popular hotels
+const getPopularHotels = async (limit: number): Promise<Hotel[]> => {
+  const allHotels = await prisma.hotel.findMany();
+
+  const sorted = allHotels
+    .filter((hotel) => !isNaN(parseFloat(hotel.hotelRating))) // skip invalid ratings
+    .sort((a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating));
+
+  return sorted.slice(0, limit);
+};
+
+// update hotel
+const updateHotel = async (hotelId: string, req: Request) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
+  }
+
+  // Find hotel to update
+  const existingHotel = await prisma.hotel.findUnique({
+    where: { id: hotelId },
+  });
+
+  if (!existingHotel) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+  }
+
+  // Check ownership
+  if (existingHotel.userId !== userId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You do not have permission to update this hotel"
+    );
+  }
+
+  const files = req.files as {
+    [fieldname: string]: Express.Multer.File[];
+  };
+
+  // Handle file uploads
+  let businessLogo = existingHotel.businessLogo;
+  const hotelLogoFile = files?.hotelLogo?.[0];
+  if (hotelLogoFile) {
+    const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
+    businessLogo = logoResult?.secure_url || businessLogo;
+  }
+
+  let roomImageUrls = existingHotel.hotelRoomImages || [];
+  const roomImageFiles = files?.hotelRoomImages || [];
+  if (roomImageFiles.length > 0) {
+    const uploads = await Promise.all(
+      roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    roomImageUrls = uploads.map((img) => img?.secure_url || "").filter(Boolean);
+  }
+
+  let hotelDocUrls = existingHotel.hotelDocs || [];
+  const docsFiles = files?.hotelDocs || [];
+  if (docsFiles.length > 0) {
+    const docUploads = await Promise.all(
+      docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    hotelDocUrls = docUploads
+      .map((img) => img?.secure_url || "")
+      .filter(Boolean);
+  }
+
+  // partial update allowed
+  const {
+    hotelBusinessName,
+    hotelName,
+    hotelBusinessType,
+    hotelRegNum,
+    hotelRegDate,
+    hotelPhone,
+    hotelEmail,
+    businessTagline,
+    businessDescription,
+    hotelRoomType,
+    hotelRoomPriceNight,
+    hotelAC,
+    hotelParking,
+    hoitelWifi,
+    hotelBreakfast,
+    hotelPool,
+    hotelRating,
+    hotelSmoking,
+    hotelTv,
+    hotelWashing,
+    hotelBookingCondition,
+    hotelCancelationPolicy,
+    hotelRoomDescription,
+    hotelAddress,
+    hotelCity,
+    hotelPostalCode,
+    hotelDistrict,
+    hotelCountry,
+    category,
+    discount,
+  } = req.body;
+
+  const updatedHotel = await prisma.hotel.update({
+    where: { id: hotelId },
+    data: {
+      hotelBusinessName: hotelBusinessName ?? existingHotel.hotelBusinessName,
+      hotelName: hotelName ?? existingHotel.hotelName,
+      hotelBusinessType: hotelBusinessType ?? existingHotel.hotelBusinessType,
+      hotelRegNum: hotelRegNum ?? existingHotel.hotelRegNum,
+      hotelRegDate: hotelRegDate ?? existingHotel.hotelRegDate,
+      hotelPhone: hotelPhone ?? existingHotel.hotelPhone,
+      hotelEmail: hotelEmail ?? existingHotel.hotelEmail,
+      businessTagline: businessTagline ?? existingHotel.businessTagline,
+      businessDescription:
+        businessDescription ?? existingHotel.businessDescription,
+      businessLogo,
+      hotelRoomType: hotelRoomType ?? existingHotel.hotelRoomType,
+      hotelRoomPriceNight: hotelRoomPriceNight
+        ? parseInt(hotelRoomPriceNight)
+        : existingHotel.hotelRoomPriceNight,
+      hotelAC:
+        hotelAC !== undefined ? hotelAC === "true" : existingHotel.hotelAC,
+      hotelParking:
+        hotelParking !== undefined
+          ? hotelParking === "true"
+          : existingHotel.hotelParking,
+      hoitelWifi:
+        hoitelWifi !== undefined
+          ? hoitelWifi === "true"
+          : existingHotel.hoitelWifi,
+      hotelBreakfast:
+        hotelBreakfast !== undefined
+          ? hotelBreakfast === "true"
+          : existingHotel.hotelBreakfast,
+      hotelPool:
+        hotelPool !== undefined
+          ? hotelPool === "true"
+          : existingHotel.hotelPool,
+      hotelRating: hotelRating ?? existingHotel.hotelRating,
+      hotelSmoking:
+        hotelSmoking !== undefined
+          ? hotelSmoking === "true"
+          : existingHotel.hotelSmoking,
+      hotelTv:
+        hotelTv !== undefined ? hotelTv === "true" : existingHotel.hotelTv,
+      hotelWashing:
+        hotelWashing !== undefined
+          ? hotelWashing === "true"
+          : existingHotel.hotelWashing,
+      hotelBookingCondition:
+        hotelBookingCondition ?? existingHotel.hotelBookingCondition,
+      hotelCancelationPolicy:
+        hotelCancelationPolicy ?? existingHotel.hotelCancelationPolicy,
+      hotelDocs: hotelDocUrls,
+      hotelRoomDescription:
+        hotelRoomDescription ?? existingHotel.hotelRoomDescription,
+      hotelAddress: hotelAddress ?? existingHotel.hotelAddress,
+      hotelCity: hotelCity ?? existingHotel.hotelCity,
+      hotelPostalCode: hotelPostalCode ?? existingHotel.hotelPostalCode,
+      hotelDistrict: hotelDistrict ?? existingHotel.hotelDistrict,
+      hotelCountry: hotelCountry ?? existingHotel.hotelCountry,
+      hotelRoomImages: roomImageUrls,
+      category: category ?? existingHotel.category,
+      discount: discount ? parseFloat(discount) : existingHotel.discount,
+    },
+  });
+
+  return updatedHotel;
+};
+
+export const HotelService = {
+  createHotel,
+  getAllHotels,
+  getSingleHotel,
+  getPopularHotels,
+  updateHotel,
+};
