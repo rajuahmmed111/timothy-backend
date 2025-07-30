@@ -6,7 +6,8 @@ import { HotelService } from "./hotel.service";
 
 // create hotel
 const createHotel = catchAsync(async (req: Request, res: Response) => {
-    const result = await HotelService.createHotel(req.body);
+    // const adminId = req.user?.id;
+    const result = await HotelService.createHotel(req);
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,

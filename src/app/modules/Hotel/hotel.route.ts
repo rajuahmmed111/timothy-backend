@@ -2,6 +2,8 @@ import express from "express";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
 import { HotelController } from "./hotel.controller";
+import { uploadFile } from "../../../helpars/fileUploader";
+import { parseBodyData } from "../../middlewares/parseNestedJson";
 
 const router = express.Router();
 
@@ -9,6 +11,16 @@ const router = express.Router();
 router.get("/", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
 
 // create hotel
-router.post("/", auth(UserRole.ADMIN, UserRole.SUPER_ADMIN), HotelController.createHotel);
+router.post(
+  "/",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "hotelLogo", maxCount: 1 },
+    { name: "hotelRoomImages", maxCount: 5 },
+    { name: "hotelDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
+  HotelController.createHotel
+);
 
 export const hotelRoute = router;
