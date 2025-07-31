@@ -20,6 +20,13 @@ router.get(
   HotelController.getAllHotels
 );
 
+// get my favorites
+router.get(
+  "/my-favorites",
+  auth(UserRole.USER),
+  HotelController.getAllFavoriteHotels
+);
+
 // get popular hotels
 router.get(
   "/popular",
@@ -42,6 +49,13 @@ router.get(
     UserRole.USER
   ),
   HotelController.getSingleHotel
+);
+
+// add favorite hotel
+router.post(
+  "/favorite/:hotelId",
+  auth(UserRole.USER),
+  HotelController.toggleFavorite
 );
 
 // create hotel

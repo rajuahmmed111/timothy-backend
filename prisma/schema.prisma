@@ -78,6 +78,7 @@ model User {
   hotel        Hotel[]
   review       Review[]
   booking      Booking[]
+  favorite     Favorite[]
 
   @@map("users")
 }
@@ -143,10 +144,11 @@ model Hotel {
   updatedAt DateTime @updatedAt
 
   // relationships
-  user    User      @relation(fields: [userId], references: [id])
-  userId  String    @db.ObjectId
-  Booking Booking[]
-  Review  Review[]
+  user     User       @relation(fields: [userId], references: [id])
+  userId   String     @db.ObjectId
+  booking  Booking[]
+  review   Review[]
+  favorite Favorite[]
 
   @@map("hotels")
 }
@@ -229,7 +231,7 @@ model Booking {
 
 model Review {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  rating    Int
+  rating    Float
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -241,6 +243,19 @@ model Review {
   userId  String @db.ObjectId
 
   @@map("reviews")
+}
+
+model Favorite {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  hotelId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, hotelId])
+  @@map("favorites")
 }
 
 model Notification {

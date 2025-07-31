@@ -209,7 +209,7 @@ const getPopularHotels = async (
 
   const filters: Prisma.HotelWhereInput[] = [];
 
-  // 🔍 Full-text search (on selected fields)
+  // text search
   if (searchTerm) {
     filters.push({
       OR: searchableFields.map((field) => ({
@@ -221,7 +221,7 @@ const getPopularHotels = async (
     });
   }
 
-  // ✅ Exact field match filters
+  // exact field match filters
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
@@ -248,6 +248,61 @@ const getPopularHotels = async (
   });
 
   return result;
+};
+
+// add favorite hotel
+const toggleFavorite = async (userId: string, hotelId: string) => {
+  const existing = await prisma.favorite.findUnique({
+    where: {
+      userId_hotelId: {
+        userId,
+        hotelId,
+      },
+    },
+  });
+
+  if (existing) {
+    await prisma.favorite.delete({
+      where: {
+        userId_hotelId: {
+          userId,
+          hotelId,
+        },
+      },
+    });
+    return { isFavorite: false };
+  } else {
+    await prisma.favorite.create({
+      data: {
+        userId,
+        hotelId,
+      },
+    });
+    return { isFavorite: true };
+  }
+};
+
+// gets all favorite hotels
+const getAllFavoriteHotels = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const favorites = await prisma.favorite.findMany({
+    where: {
+      userId: user.id,
+    },
+    include: {
+      hotel: true,
+    },
+  });
+
+  return favorites;
 };
 
 // update hotel
@@ -413,5 +468,7 @@ export const HotelService = {
   getAllHotels,
   getSingleHotel,
   getPopularHotels,
+  toggleFavorite,
+  getAllFavoriteHotels,
   updateHotel,
 };

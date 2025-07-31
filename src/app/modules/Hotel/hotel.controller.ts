@@ -57,6 +57,34 @@ const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// add favorite hotel
+const toggleFavorite = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+  const hotelId = req.params.hotelId;
+
+  const result = await HotelService.toggleFavorite(userId, hotelId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: result.isFavorite ? "Hotel favorited" : "Hotel unfavorited",
+    data: result,
+  });
+});
+
+// gets all favorite hotels
+const getAllFavoriteHotels = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+  const result = await HotelService.getAllFavoriteHotels(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Favorite hotels fetched successfully",
+    data: result,
+  });
+});
+
 // update hotel
 const updateHotel = catchAsync(async (req: Request, res: Response) => {
   const hotelId = req.params.id;
@@ -74,5 +102,7 @@ export const HotelController = {
   getAllHotels,
   getSingleHotel,
   getPopularHotels,
+  toggleFavorite,
+  getAllFavoriteHotels,
   updateHotel,
 };
