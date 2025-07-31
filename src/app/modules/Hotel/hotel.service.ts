@@ -4,7 +4,11 @@ import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
-import { Hotel } from "@prisma/client";
+import { Hotel, Prisma } from "@prisma/client";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
+import { IPaginationOptions } from "../../../interfaces/paginations";
+import { IHotelFilterRequest } from "./hotel.interface";
+import { searchableFields } from "./hotel.constant";
 
 // create hotel
 const createHotel = async (req: Request) => {
@@ -126,9 +130,62 @@ const createHotel = async (req: Request) => {
 };
 
 // get all hotels with search filtering and pagination
-const getAllHotels = async () => {
-  const result = await prisma.hotel.findMany();
-  return result;
+const getAllHotels = async (
+  params: IHotelFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.HotelWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.HotelWhereInput = { AND: filters };
+
+  const result = await prisma.hotel.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+  });
+  const total = await prisma.hotel.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
 // get single hotel

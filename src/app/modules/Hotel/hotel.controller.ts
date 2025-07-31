@@ -3,6 +3,9 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 import { HotelService } from "./hotel.service";
+import { pick } from "../../../shared/pick";
+import { paginationFields } from "../../../constants/pagination";
+import { filterField } from "./hotel.constant";
 
 // create hotel
 const createHotel = catchAsync(async (req: Request, res: Response) => {
@@ -17,7 +20,10 @@ const createHotel = catchAsync(async (req: Request, res: Response) => {
 
 // get all hotels
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
-  const result = await HotelService.getAllHotels();
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const result = await HotelService.getAllHotels(filter, options);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
