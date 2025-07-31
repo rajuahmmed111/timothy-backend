@@ -6,5 +6,5 @@ export type IHotelFilterRequest = {
   hotelCity?: string | undefined;
   hotelCountry?: string | undefined;
   category?: string | undefined;
-  hotelRoomPriceNight?: string | undefined;
+  // hotelRoomPriceNight?: string | undefined;
 };

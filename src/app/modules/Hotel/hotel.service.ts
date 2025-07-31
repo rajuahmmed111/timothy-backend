@@ -202,14 +202,52 @@ const getSingleHotel = async (hotelId: string) => {
 };
 
 // get popular hotels
-const getPopularHotels = async (limit: number): Promise<Hotel[]> => {
-  const allHotels = await prisma.hotel.findMany();
+const getPopularHotels = async (
+  params: IHotelFilterRequest
+): Promise<Hotel[]> => {
+  const { searchTerm, ...filterData } = params;
 
-  const sorted = allHotels
-    .filter((hotel) => !isNaN(parseFloat(hotel.hotelRating))) // skip invalid ratings
-    .sort((a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating));
+  const filters: Prisma.HotelWhereInput[] = [];
 
-  return sorted.slice(0, limit);
+  // 🔍 Full-text search (on selected fields)
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // ✅ Exact field match filters
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.HotelWhereInput = {
+    AND: filters,
+    // hotelRating: {
+    //   not: null,
+    // },
+  };
+
+  const result = await prisma.hotel.findMany({
+    where,
+    orderBy: {
+      hotelRating: "desc",
+    },
+    take: 10,
+  });
+
+  return result;
 };
 
 // update hotel

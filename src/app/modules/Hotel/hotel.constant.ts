@@ -6,7 +6,7 @@ export const filterField: string[] = [
   "hotelCity",
   "hotelCountry",
   "category",
-  "hotelRoomPriceNight",
+//   "hotelRoomPriceNight",
 ];
 
 export const searchableFields: string[] = [
@@ -15,5 +15,5 @@ export const searchableFields: string[] = [
   "hotelRating",
   "hotelCity",
   "hotelCountry",
-  "hotelRoomPriceNight",
+//   "hotelRoomPriceNight",
 ];
