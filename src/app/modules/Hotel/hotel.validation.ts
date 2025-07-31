@@ -46,6 +46,7 @@ const createHotelSchema = {
     hotelDistrict: z.string().min(1, "hotelDistrict is required"),
     hotelCountry: z.string().min(1, "hotelCountry is required"),
     hotelRoomImages: z.array(z.string().url()),
+    hotelRoomCapacity: z.number().optional(),
 
     category: z.string().optional(),
     discount: z.number().positive().optional(),

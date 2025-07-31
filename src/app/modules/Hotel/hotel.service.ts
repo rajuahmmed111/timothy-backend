@@ -83,6 +83,7 @@ const createHotel = async (req: Request) => {
     hotelPostalCode,
     hotelDistrict,
     hotelCountry,
+    hotelRoomCapacity,
     category,
     discount,
   } = req.body;
@@ -119,6 +120,7 @@ const createHotel = async (req: Request) => {
       hotelPostalCode,
       hotelDistrict,
       hotelCountry,
+      hotelRoomCapacity,
       hotelRoomImages: roomImageUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
@@ -391,6 +393,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
     hotelPostalCode,
     hotelDistrict,
     hotelCountry,
+    hotelRoomCapacity,
     category,
     discount,
   } = req.body;
@@ -454,6 +457,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
       hotelPostalCode: hotelPostalCode ?? existingHotel.hotelPostalCode,
       hotelDistrict: hotelDistrict ?? existingHotel.hotelDistrict,
       hotelCountry: hotelCountry ?? existingHotel.hotelCountry,
+      hotelRoomCapacity: hotelRoomCapacity ?? existingHotel.hotelRoomCapacity,
       hotelRoomImages: roomImageUrls,
       category: category ?? existingHotel.category,
       discount: discount ? parseFloat(discount) : existingHotel.discount,

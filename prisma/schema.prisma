@@ -135,6 +135,7 @@ model Hotel {
   hotelDistrict          String
   hotelCountry           String
   hotelRoomImages        String[] // 5 image
+  hotelRoomCapacity      String
 
   category String?
   discount Float?
