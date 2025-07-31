@@ -73,12 +73,12 @@ model User {
   updatedAt DateTime @updatedAt
 
   // relationships
-  payment      Payment[]
-  notification Notification[]
-  hotel        Hotel[]
-  review       Review[]
-  booking      Booking[]
-  favorite     Favorite[]
+  payment        Payment[]
+  notification   Notification[]
+  hotel          Hotel[]
+  review         Review[]
+  hotel_bookings Hotel_Booking[]
+  favorite       Favorite[]
 
   @@map("users")
 }
@@ -145,11 +145,11 @@ model Hotel {
   updatedAt DateTime @updatedAt
 
   // relationships
-  user     User       @relation(fields: [userId], references: [id])
-  userId   String     @db.ObjectId
-  booking  Booking[]
-  review   Review[]
-  favorite Favorite[]
+  user           User            @relation(fields: [userId], references: [id])
+  userId         String          @db.ObjectId
+  hotel_bookings Hotel_Booking[]
+  review         Review[]
+  favorite       Favorite[]
 
   @@map("hotels")
 }
@@ -211,23 +211,22 @@ model Schedule {
   updatedAt DateTime @updatedAt
 }
 
-model Booking {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  roomType  String
-  checkIn   DateTime
-  rooms     Int
-  adults    Int
-  children  Int
-  checkOut  DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Hotel_Booking {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  rooms          Int
+  adults         Int
+  children       Int
+  bookedFromDate String
+  bookedToDate   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   hotel   Hotel  @relation(fields: [hotelId], references: [id])
   hotelId String @db.ObjectId
   user    User   @relation(fields: [userId], references: [id])
   userId  String @db.ObjectId
 
-  @@map("bookings")
+  @@map("hotel_bookings")
 }
 
 model Review {

@@ -6,6 +6,7 @@ import { userRoute } from "../modules/User/user.route";
 import { privacyPolicyRoute } from "../modules/Privacy_Policy/policy.route";
 import { hotelRoute } from "../modules/Hotel/hotel.route";
 import { reviewRoute } from "../modules/Review/review.route";
+import { hotelBookingRoute } from "../modules/HotelBooking/hotelBooking.route";
 
 const router = express.Router();
 
@@ -25,6 +26,10 @@ const moduleRoutes = [
   {
     path: "/reviews",
     route: reviewRoute,
+  },
+  {
+    path: "/hotel-booking",
+    route: hotelBookingRoute,
   },
   // {
   //   path: "/subscription",
