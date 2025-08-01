@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { differenceInDays, parse } from "date-fns";
+import { HotelRoomStatus } from "@prisma/client";
 
 const createHotelBooking = async (userId: string, data: any) => {
   const { hotelId, rooms, adults, children, bookedFromDate, bookedToDate } =
@@ -26,7 +27,7 @@ const createHotelBooking = async (userId: string, data: any) => {
   }
 
   const hotel = await prisma.hotel.findUnique({
-    where: { id: hotelId },
+    where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
     select: {
       hotelRoomPriceNight: true,
       userId: true,
@@ -42,7 +43,7 @@ const createHotelBooking = async (userId: string, data: any) => {
   const toDate = parse(bookedToDate, "dd-MM-yyyy", new Date());
 
   const numberOfNights = differenceInDays(toDate, fromDate);
-//   console.log(numberOfNights, "numberOfNights");
+  //   console.log(numberOfNights, "numberOfNights");
 
   if (numberOfNights <= 0) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid booking date range");
@@ -50,7 +51,7 @@ const createHotelBooking = async (userId: string, data: any) => {
 
   // calculate total price
   const roomPrice = hotel.hotelRoomPriceNight;
-//   console.log(roomPrice, "roomPrice");
+  //   console.log(roomPrice, "roomPrice");
   const totalPrice = roomPrice * rooms * numberOfNights;
 
   const result = await prisma.hotel_Booking.create({

@@ -4,7 +4,7 @@ import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
-import { Hotel, Prisma } from "@prisma/client";
+import { Hotel, HotelRoomStatus, Prisma } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
@@ -165,6 +165,11 @@ const getAllHotels = async (
     });
   }
 
+  // get only isBooked  AVAILABLE hotels
+  filters.push({
+    isBooked: HotelRoomStatus.AVAILABLE,
+  });
+
   const where: Prisma.HotelWhereInput = { AND: filters };
 
   const result = await prisma.hotel.findMany({
@@ -193,7 +198,7 @@ const getAllHotels = async (
 // get single hotel
 const getSingleHotel = async (hotelId: string) => {
   const result = await prisma.hotel.findUnique({
-    where: { id: hotelId },
+    where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
   });
 
   if (!result) {
@@ -240,6 +245,11 @@ const getPopularHotels = async (
     //   not: null,
     // },
   };
+
+  // get only isBooked  AVAILABLE hotels
+  filters.push({
+    isBooked: HotelRoomStatus.AVAILABLE,
+  });
 
   const result = await prisma.hotel.findMany({
     where,
@@ -316,7 +326,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
 
   // Find hotel to update
   const existingHotel = await prisma.hotel.findUnique({
-    where: { id: hotelId },
+    where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
   });
 
   if (!existingHotel) {
