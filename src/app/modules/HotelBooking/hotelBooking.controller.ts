@@ -5,7 +5,8 @@ import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
 const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
-  const result = await HotelBookingService.createHotelBooking(req.body);
+  const userId = req.user?.id;
+  const result = await HotelBookingService.createHotelBooking(userId, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
