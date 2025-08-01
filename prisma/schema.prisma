@@ -41,6 +41,16 @@ enum PaymentStatus {
   FAILED
 }
 
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 enum PaymentProvider {
   STRIPE
 }
@@ -73,12 +83,13 @@ model User {
   updatedAt DateTime @updatedAt
 
   // relationships
-  payment        Payment[]
-  notification   Notification[]
-  hotel          Hotel[]
-  review         Review[]
-  hotel_bookings Hotel_Booking[]
-  favorite       Favorite[]
+  payment           Payment[]
+  notification      Notification[]
+  hotel             Hotel[]
+  review            Review[]
+  hotel_bookings    Hotel_Booking[]
+  favorite          Favorite[]
+  security_Protocol Security_Protocol[]
 
   @@map("users")
 }
@@ -170,8 +181,8 @@ model Security_Protocol {
   securityDistrict          String
   securityCountry           String
   securityDescription       String
-  securityImages            String @default("https://i.ibb.co/zWxSgQL8/download.png") // 5 image
-  securityServicesOffered   String
+  securityImages            String   @default("https://i.ibb.co/zWxSgQL8/download.png") // 5 image
+  securityServicesOffered   String[]
   securityBookingCondition  String
   securityCancelationPolicy String
   securityDocs              String
@@ -184,6 +195,37 @@ model Security_Protocol {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // relationships
+  user           User             @relation(fields: [partnerId], references: [id])
+  partnerId      String           @db.ObjectId
+  weeklySchedule WeeklySchedule[]
+  // security_bookings Security_Booking[]
+  // review         Review[]
+  // favorite       Favorite[]
+
+  @@map("security_protocols")
+}
+
+model WeeklySchedule {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  day                Weekday
+  securityProtocolId String            @db.ObjectId
+  securityProtocol   Security_Protocol @relation(fields: [securityProtocolId], references: [id])
+
+  slots ScheduleSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ScheduleSlot {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  from String // "10:00:00"
+  to   String // "12:00:00"
+
+  weeklyScheduleId String         @db.ObjectId
+  weeklySchedule   WeeklySchedule @relation(fields: [weeklyScheduleId], references: [id])
 }
 
 model Personal_details {
