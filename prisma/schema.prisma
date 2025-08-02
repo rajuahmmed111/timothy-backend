@@ -51,6 +51,12 @@ enum Weekday {
   SUNDAY
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
 enum PaymentProvider {
   STRIPE
 }
@@ -157,8 +163,8 @@ model Hotel {
   updatedAt DateTime @updatedAt
 
   // relationships
-  user           User            @relation(fields: [userId], references: [id])
-  userId         String          @db.ObjectId //field ar name hobe partnerId
+  user           User            @relation(fields: [partnerId], references: [id])
+  partnerId         String          @db.ObjectId
   hotel_bookings Hotel_Booking[]
   review         Review[]
   favorite       Favorite[]
@@ -167,15 +173,16 @@ model Hotel {
 }
 
 model Hotel_Booking {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
   rooms          Int
   adults         Int
   children       Int
   bookedFromDate String
   bookedToDate   String
   totalPrice     Float
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  bookingStatus  BookingStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   // relationships
   hotel   Hotel  @relation(fields: [hotelId], references: [id])
@@ -220,7 +227,7 @@ model Security_Protocol {
   // relationships
   user             User               @relation(fields: [partnerId], references: [id])
   partnerId        String             @db.ObjectId
-  weeklySchedule   WeeklySchedule[]
+  securitySchedule SecuritySchedule[]
   security_Booking Security_Booking[]
   // review         Review[]
   // favorite       Favorite[]
@@ -229,13 +236,14 @@ model Security_Protocol {
 }
 
 model Security_Booking {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
   number_of_security Int
   bookedFromDate     String
   bookedToDate       String
   totalPrice         Float
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  bookingStatus      BookingStatus @default(PENDING)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   // relationships
   security   Security_Protocol @relation(fields: [securityId], references: [id])
@@ -246,7 +254,7 @@ model Security_Booking {
   @@map("security_bookings")
 }
 
-model WeeklySchedule {
+model SecuritySchedule {
   id                 String            @id @default(auto()) @map("_id") @db.ObjectId
   day                Weekday
   securityProtocolId String            @db.ObjectId
@@ -263,8 +271,8 @@ model ScheduleSlot {
   from String // "10:00:00"
   to   String // "12:00:00"
 
-  weeklyScheduleId String         @db.ObjectId
-  weeklySchedule   WeeklySchedule @relation(fields: [weeklyScheduleId], references: [id])
+  securityScheduleId String           @db.ObjectId
+  weeklySchedule     SecuritySchedule @relation(fields: [securityScheduleId], references: [id])
 }
 
 model Personal_details {

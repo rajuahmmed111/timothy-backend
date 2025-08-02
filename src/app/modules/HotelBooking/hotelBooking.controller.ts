@@ -15,6 +15,57 @@ const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all hotel bookings
+const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const result = await HotelBookingService.getAllHotelBookings(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel bookings fetched successfully",
+    data: result,
+  });
+});
+
+// get hotel booking by id
+const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const bookingId = req.params.id;
+  const result = await HotelBookingService.getHotelBookingById(
+    userId,
+    bookingId
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel booking fetched successfully",
+    data: result,
+  });
+});
+
+// update hotel booking status
+const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
+  const partnerId = req.user?.id;
+  const bookingId = req.params.id;
+  const { status } = req.body;
+
+  const result = await HotelBookingService.updateBookingStatus(
+    partnerId,
+    bookingId,
+    status
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Booking status updated successfully",
+    data: result,
+  });
+});
+
 export const HotelBookingController = {
   createHotelBooking,
+  getAllHotelBookings,
+  getHotelBookingById,
+  updateBookingStatus,
 };

@@ -124,7 +124,7 @@ const createHotel = async (req: Request) => {
       hotelRoomImages: roomImageUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
-      userId: partnerId,
+      partnerId: partnerId,
     },
   });
 
@@ -334,7 +334,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
   }
 
   // Check ownership
-  if (existingHotel.userId !== userId) {
+  if (existingHotel.partnerId !== userId) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       "You do not have permission to update this hotel"

@@ -66,6 +66,62 @@ const createHotelBooking = async (userId: string, data: any) => {
   return result;
 };
 
+// get all hotel bookings
+const getAllHotelBookings = async (userId: string) => {
+  const result = await prisma.hotel_Booking.findMany({
+    where: { userId },
+    include: {
+      hotel: true,
+    },
+  });
+  return result;
+}
+
+// get hotel booking by id
+const getHotelBookingById = async (userId: string, bookingId: string) => {
+  const result = await prisma.hotel_Booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      hotel: true,
+    },
+  });
+  return result;
+}
+
+const updateBookingStatus = async (
+  partnerId: string,
+  bookingId: string,
+  status: "ACCEPTED" | "REJECTED"
+) => {
+  if (!["ACCEPTED", "REJECTED"].includes(status)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid status value");
+  }
+
+  const booking = await prisma.hotel_Booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      hotel: true,
+    },
+  });
+
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  if (booking.hotel.userId !== partnerId) {
+    throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized to update this booking");
+  }
+
+  const updatedBooking = await prisma.hotel_Booking.update({
+    where: { id: bookingId },
+    data: { bookingStatus: status },
+  });
+
+  return updatedBooking;
+};
+
+
 export const HotelBookingService = {
   createHotelBooking,
+  updateBookingStatus,
 };
