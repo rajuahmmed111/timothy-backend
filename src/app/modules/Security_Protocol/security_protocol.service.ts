@@ -93,4 +93,14 @@ const createSecurityProtocol = async (req: Request) => {
   return securityProtocol;
 };
 
+// get all security protocols
+const getAllSecurityProtocols = async () => {
+  const result = await prisma.security_Protocol.findMany({
+    include: {
+      partner: true,
+    },
+  });
+  return result;
+};
+
 export const Security_ProtocolService = { createSecurityProtocol };

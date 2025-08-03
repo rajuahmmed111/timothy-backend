@@ -7,6 +7,19 @@ import { uploadFile } from "../../../helpars/fileUploader";
 
 const router = express.Router();
 
+// get all security protocols
+router.get(
+  "/",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  Security_ProtocolController.getAllSecurityProtocols
+);
+
+
 // create security protocol
 router.post(
   "/",

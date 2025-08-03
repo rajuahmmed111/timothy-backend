@@ -15,5 +15,6 @@ export const searchableFields: string[] = [
   "hotelRating",
   "hotelCity",
   "hotelCountry",
+   "category",
 //   "hotelRoomPriceNight",
 ];

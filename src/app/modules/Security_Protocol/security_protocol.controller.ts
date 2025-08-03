@@ -3,13 +3,13 @@ import catchAsync from "../../../shared/catchAsync";
 import { Security_ProtocolService } from "./security_protocol.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
+import { pick } from "../../../shared/pick";
+import { paginationFields } from "../../../constants/pagination";
 
 // create security protocol
 const createSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await Security_ProtocolService.createSecurityProtocol(
-      req
-    );
+    const result = await Security_ProtocolService.createSecurityProtocol(req);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -20,6 +20,23 @@ const createSecurityProtocol = catchAsync(
   }
 );
 
+// get all security protocols
+const getAllSecurityProtocols = catchAsync(
+  async (req: Request, res: Response) => {
+      const filter = pick(req.query, filterField);
+      const options = pick(req.query, paginationFields);
+    const result = await Security_ProtocolService.getAllSecurityProtocols(filter, options);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security protocols fetched successfully",
+      data: result,
+    });
+  }
+);
+
 export const Security_ProtocolController = {
   createSecurityProtocol,
+  getAllSecurityProtocols,
 };
