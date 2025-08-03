@@ -26,6 +26,18 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocolsForPartner
 );
 
+// get security protocol by id
+router.get(
+  "/:id",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  Security_ProtocolController.getSingleSecurityProtocol
+);
+
 // create security protocol
 router.post(
   "/",

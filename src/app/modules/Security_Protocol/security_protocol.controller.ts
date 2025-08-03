@@ -60,6 +60,20 @@ const getAllSecurityProtocolsForPartner = catchAsync(
   }
 );
 
+// get single security protocol
+const getSingleSecurityProtocol = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await Security_ProtocolService.getSingleSecurityProtocol(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security Protocol fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // update security protocol
 const updateSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
@@ -78,5 +92,6 @@ export const Security_ProtocolController = {
   createSecurityProtocol,
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
+  getSingleSecurityProtocol,
   updateSecurityProtocol,
 };

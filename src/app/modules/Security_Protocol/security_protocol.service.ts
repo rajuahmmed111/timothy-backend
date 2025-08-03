@@ -265,6 +265,22 @@ const getAllSecurityProtocols = async (
   };
 };
 
+// get single security protocol
+const getSingleSecurityProtocol = async (id: string) => {
+  const result = await prisma.security_Protocol.findUnique({
+    where: { id, isBooked: EveryServiceStatus.AVAILABLE },
+    include: {
+      user: true,
+    },
+  });
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Security protocol not found");
+  }
+
+  return result;
+};
+
+// update security protocol
 const updateSecurityProtocol = async (req: Request) => {
   const partnerId = req.user?.id;
   const protocolId = req.params.id;
@@ -376,5 +392,6 @@ export const Security_ProtocolService = {
   createSecurityProtocol,
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
+  getSingleSecurityProtocol,
   updateSecurityProtocol,
 };
