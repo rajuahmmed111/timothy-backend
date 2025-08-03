@@ -33,12 +33,12 @@ router.post(
   HotelBookingController.createHotelBooking
 );
 
-// cancel hotel booking only user
-// router.delete(
-//   "/:id",
-//   auth(UserRole.USER),
-//   HotelBookingController.cancelHotelBooking
-// );
+// cancel my hotel booking only user
+router.patch(
+  "/cancel-my-booking/:id",
+  auth(UserRole.USER),
+  HotelBookingController.cancelMyHotelBooking
+);
 
 // update hotel booking status
 router.patch(

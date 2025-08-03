@@ -133,12 +133,59 @@ const getHotelBookingById = async (partnerId: string, bookingId: string) => {
   return booking;
 };
 
+// cancel my hotel booking only user
+const cancelMyHotelBooking = async (
+  userId: string,
+  bookingId: string,
+  bookingStatus: "CANCELLED"
+) => {
+  const findUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!findUser) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const booking = await prisma.hotel_Booking.findUnique({
+    where: { id: bookingId, userId },
+    include: {
+      hotel: true,
+    },
+  });
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  if (booking.userId !== userId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to update this booking"
+    );
+  }
+
+  const updatedBooking = await prisma.hotel_Booking.update({
+    where: { id: bookingId },
+    data: {
+      bookingStatus,
+    },
+  });
+
+  return updatedBooking;
+};
+
 // update booking status
 const updateBookingStatus = async (
   partnerId: string,
   bookingId: string,
   bookingStatus: "CONFIRMED" | "CANCELLED"
 ) => {
+  const findPartner = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!findPartner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
   const booking = await prisma.hotel_Booking.findUnique({
     where: { id: bookingId, partnerId },
     include: {
@@ -149,7 +196,7 @@ const updateBookingStatus = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
-  if (booking.hotel.partnerId !== partnerId) {
+  if (booking.partnerId !== partnerId) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       "You are not authorized to update this booking"
@@ -171,5 +218,6 @@ export const HotelBookingService = {
   getAllHotelBookings,
   getAllMyHotelBookings,
   getHotelBookingById,
+  cancelMyHotelBooking,
   updateBookingStatus,
 };
