@@ -12,6 +12,13 @@ router.get(
   HotelBookingController.getAllHotelBookings
 );
 
+// get my hotel bookings
+router.get(
+  "/my-bookings",
+  auth(UserRole.USER),
+  HotelBookingController.getAllMyHotelBookings
+);
+
 // get hotel booking by id
 router.get(
   "/:id",
@@ -25,6 +32,13 @@ router.post(
   auth(UserRole.USER),
   HotelBookingController.createHotelBooking
 );
+
+// cancel hotel booking only user
+// router.delete(
+//   "/:id",
+//   auth(UserRole.USER),
+//   HotelBookingController.cancelHotelBooking
+// );
 
 // update hotel booking status
 router.patch(

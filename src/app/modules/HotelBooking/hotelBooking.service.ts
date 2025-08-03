@@ -78,6 +78,40 @@ const getAllHotelBookings = async (partnerId: string) => {
   return result;
 };
 
+// get my hotel bookings
+const getAllMyHotelBookings = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const bookings = await prisma.hotel_Booking.findMany({
+    where: { userId: user.id },
+    include: {
+      hotel: {
+        select: {
+          hotelName: true,
+          hotelRoomPriceNight: true,
+          hotelCountry: true,
+          hotelRating: true,
+        },
+      },
+    },
+  });
+
+  const allBookingsBelongToUser = bookings.every((booking) => {
+    return booking.userId === userId;
+  });
+
+  if (!allBookingsBelongToUser || bookings.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Bookings not found");
+  }
+
+  return bookings;
+};
+
 // get hotel booking by id
 const getHotelBookingById = async (partnerId: string, bookingId: string) => {
   const booking = await prisma.hotel_Booking.findUnique({
@@ -135,6 +169,7 @@ const updateBookingStatus = async (
 export const HotelBookingService = {
   createHotelBooking,
   getAllHotelBookings,
+  getAllMyHotelBookings,
   getHotelBookingById,
   updateBookingStatus,
 };

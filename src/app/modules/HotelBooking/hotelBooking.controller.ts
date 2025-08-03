@@ -30,6 +30,22 @@ const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get my hotel bookings
+const getAllMyHotelBookings = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const result = await HotelBookingService.getAllMyHotelBookings(
+      userId,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My hotel bookings fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get hotel booking by id
 const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
   const partnerId = req.user?.id;
@@ -45,6 +61,8 @@ const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+// cancel hotel booking only user
 
 // update hotel booking status
 const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
@@ -69,6 +87,7 @@ const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
 export const HotelBookingController = {
   createHotelBooking,
   getAllHotelBookings,
+  getAllMyHotelBookings,
   getHotelBookingById,
   updateBookingStatus,
 };
