@@ -8,7 +8,7 @@ import httpStatus from "http-status";
 const createSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
     const result = await Security_ProtocolService.createSecurityProtocol(
-      req.body
+      req
     );
 
     sendResponse(res, {

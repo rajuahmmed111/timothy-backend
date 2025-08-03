@@ -11,12 +11,11 @@ const router = express.Router();
 router.post(
   "/",
   auth(UserRole.BUSINESS_PARTNER),
-    uploadFile.upload.fields([
-      { name: "hotelLogo", maxCount: 1 },
-      { name: "hotelRoomImages", maxCount: 5 },
-      { name: "hotelDocs", maxCount: 5 },
-    ]),
-    parseBodyData,
+  uploadFile.upload.fields([
+    { name: "securityImages", maxCount: 5 },
+    { name: "securityDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
   Security_ProtocolController.createSecurityProtocol
 );
 

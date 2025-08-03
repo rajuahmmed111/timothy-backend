@@ -54,6 +54,10 @@ const hotelLogo = upload.single("hotelLogo");
 const hotelRoomImages = upload.array("hotelRoomImages", 5);
 const hotelDocs = upload.array("hotelDocs", 5);
 
+// const securityLogo = upload.single("securityLogo");
+const securityImages = upload.array("securityImages", 5);
+const securityDocs = upload.array("securityDocs", 5);
+
 // Cloudinary configuration
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
@@ -100,12 +104,15 @@ const uploadToCloudinary = async (
   });
 };
 
-
 export const uploadFile = {
   upload,
   profileImage,
   hotelLogo,
   hotelRoomImages,
   hotelDocs,
+
+  securityImages,
+  securityDocs,
+
   uploadToCloudinary,
 };

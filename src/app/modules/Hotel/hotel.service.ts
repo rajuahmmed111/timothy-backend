@@ -45,6 +45,7 @@ const createHotel = async (req: Request) => {
     roomImageUrls = uploads.map((img) => img?.secure_url || "");
   }
 
+  // Upload multiple docs
   let hotelDocUrls: string[] = [];
   if (docsFiles.length > 0) {
     const docUploads = await Promise.all(
@@ -76,7 +77,7 @@ const createHotel = async (req: Request) => {
     hotelWashing,
     hotelBookingCondition,
     hotelCancelationPolicy,
-    hotelDocs,
+    // hotelDocs,
     hotelRoomDescription,
     hotelAddress,
     hotelCity,
