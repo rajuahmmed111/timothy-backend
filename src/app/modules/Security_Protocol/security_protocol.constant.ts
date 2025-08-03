@@ -1,20 +1,16 @@
 export const filterField: string[] = [
   "searchTerm",
-  "hotelName",
-  "hotelRoomType",
-  "hotelRating",
-  "hotelCity",
-  "hotelCountry",
+  "securityName",
+  "securityCountry",
+  "securityRating",
   "category",
-  //   "hotelRoomPriceNight",
+  //   "securityPriceDay",
 ];
 
 export const searchableFields: string[] = [
-  "hotelName",
-  "hotelRoomType",
-  "hotelRating",
-  "hotelCity",
-  "hotelCountry",
+  "securityName",
+  "securityCountry",
+  "securityRating",
   "category",
-  //   "hotelRoomPriceNight",
+  //   "securityPriceDay",
 ];

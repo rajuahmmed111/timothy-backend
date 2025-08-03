@@ -3,6 +3,11 @@ import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import { uploadFile } from "../../../helpars/fileUploader";
+import { IPaginationOptions } from "../../../interfaces/paginations";
+import { ISecurityFilterRequest } from "./security_protocol.interface";
+import { Prisma } from "@prisma/client";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
+import { searchableFields } from "./security_protocol.constant";
 
 // create security protocol
 const createSecurityProtocol = async (req: Request) => {
@@ -94,13 +99,76 @@ const createSecurityProtocol = async (req: Request) => {
 };
 
 // get all security protocols
-const getAllSecurityProtocols = async () => {
+const getAllSecurityProtocols = async (
+  params: ISecurityFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.Security_ProtocolWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // get only isBooked  AVAILABLE hotels
+  //   filters.push({
+  //     isBooked: HotelRoomStatus.AVAILABLE,
+  //   });
+
+  const where: Prisma.Security_ProtocolWhereInput = { AND: filters };
+
   const result = await prisma.security_Protocol.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
     include: {
-      partner: true,
+      user: true,
     },
   });
-  return result;
+
+  const total = await prisma.security_Protocol.count({
+    where,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
-export const Security_ProtocolService = { createSecurityProtocol };
+export const Security_ProtocolService = {
+  createSecurityProtocol,
+  getAllSecurityProtocols,
+};
