@@ -168,7 +168,115 @@ const getAllSecurityProtocols = async (
   };
 };
 
+const updateSecurityProtocol = async (req: Request) => {
+  const partnerId = req.user?.id;
+  const protocolId = req.params.id;
+
+  const findPartner = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!findPartner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const existingProtocol = await prisma.security_Protocol.findUnique({
+    where: { id: protocolId },
+  });
+
+  if (!existingProtocol) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Security protocol not found");
+  }
+
+  if (existingProtocol.partnerId !== partnerId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "Unauthorized to update this protocol"
+    );
+  }
+
+  const files = req.files as {
+    [fieldname: string]: Express.Multer.File[];
+  };
+
+  const securityFiles = files?.securityImages || [];
+  const docsFiles = files?.securityDocs || [];
+
+  // Upload securityImages to Cloudinary
+  let securityImageUrls: string[] = existingProtocol.securityImages || [];
+  if (securityFiles.length > 0) {
+    const uploads = await Promise.all(
+      securityFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    securityImageUrls = uploads.map((img) => img?.secure_url || "");
+  }
+
+  // Upload securityDocs to Cloudinary
+  let securityDocUrls: string[] = existingProtocol.securityDocs || [];
+  if (docsFiles.length > 0) {
+    const docUploads = await Promise.all(
+      docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    securityDocUrls = docUploads.map((img) => img?.secure_url || "");
+  }
+
+  const {
+    securityBusinessName,
+    securityName,
+    securityBusinessType,
+    securityRegNum,
+    securityRegDate,
+    securityPhone,
+    securityEmail,
+    securityAddress,
+    securityCity,
+    securityPostalCode,
+    securityDistrict,
+    securityCountry,
+    securityDescription,
+    securityServicesOffered,
+    securityBookingCondition,
+    securityCancelationPolicy,
+    securityRating,
+    securityPriceDay,
+    category,
+    discount,
+  } = req.body;
+
+  const updatedProtocol = await prisma.security_Protocol.update({
+    where: { id: protocolId },
+    data: {
+      securityBusinessName,
+      securityName,
+      securityBusinessType,
+      securityRegNum,
+      securityRegDate,
+      securityPhone,
+      securityEmail,
+      securityAddress,
+      securityCity,
+      securityPostalCode,
+      securityDistrict,
+      securityCountry,
+      securityDescription,
+      securityServicesOffered: Array.isArray(securityServicesOffered)
+        ? securityServicesOffered
+        : securityServicesOffered?.split(",").map((s: string) => s.trim()),
+      securityBookingCondition,
+      securityCancelationPolicy,
+      securityRating,
+      securityPriceDay: parseFloat(securityPriceDay),
+      securityImages: securityImageUrls,
+      securityDocs: securityDocUrls,
+      category: category || undefined,
+      discount: discount ? parseFloat(discount) : undefined,
+    },
+  });
+
+  return updatedProtocol;
+};
+
 export const Security_ProtocolService = {
   createSecurityProtocol,
   getAllSecurityProtocols,
+  updateSecurityProtocol,
 };

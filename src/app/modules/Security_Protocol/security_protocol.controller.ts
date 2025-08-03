@@ -40,7 +40,24 @@ const getAllSecurityProtocols = catchAsync(
   }
 );
 
+// update security protocol
+const updateSecurityProtocol = catchAsync(
+  async (req: Request, res: Response) => {
+    
+    const result = await Security_ProtocolService.updateSecurityProtocol(req);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security Protocol updated successfully",
+      data: result,
+    });
+  }
+);
+
+
 export const Security_ProtocolController = {
   createSecurityProtocol,
   getAllSecurityProtocols,
+  updateSecurityProtocol,
 };

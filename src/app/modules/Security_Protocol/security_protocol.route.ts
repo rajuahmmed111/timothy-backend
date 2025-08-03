@@ -19,7 +19,6 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocols
 );
 
-
 // create security protocol
 router.post(
   "/",
@@ -30,6 +29,18 @@ router.post(
   ]),
   parseBodyData,
   Security_ProtocolController.createSecurityProtocol
+);
+
+// update security protocol
+router.patch(
+  "/:id",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "securityImages", maxCount: 5 },
+    { name: "securityDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
+  Security_ProtocolController.updateSecurityProtocol
 );
 
 export const securityProtocolRoute = router;
