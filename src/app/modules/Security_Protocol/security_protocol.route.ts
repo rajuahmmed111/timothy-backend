@@ -19,6 +19,13 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocols
 );
 
+// get all security protocols for partner
+router.get(
+  "/partner",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.getAllSecurityProtocolsForPartner
+);
+
 // create security protocol
 router.post(
   "/",

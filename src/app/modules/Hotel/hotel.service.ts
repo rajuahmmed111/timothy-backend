@@ -4,7 +4,7 @@ import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
-import { Hotel, HotelRoomStatus, Prisma } from "@prisma/client";
+import { Hotel, EveryServiceStatus, Prisma } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
@@ -168,7 +168,7 @@ const getAllHotels = async (
 
   // get only isBooked  AVAILABLE hotels
   filters.push({
-    isBooked: HotelRoomStatus.AVAILABLE,
+    isBooked: EveryServiceStatus.AVAILABLE,
   });
 
   const where: Prisma.HotelWhereInput = { AND: filters };
@@ -199,10 +199,78 @@ const getAllHotels = async (
   };
 };
 
+// get all hotels for partner
+const getAllHotelsForPartner = async (
+  params: IHotelFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.HotelWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.HotelWhereInput = { AND: filters };
+
+  const result = await prisma.hotel.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: true,
+    },
+  });
+  const total = await prisma.hotel.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
+// get all hotels for admin
+const getAllHotelsForAdmin = async () =>
+  prisma.hotel.findMany({
+    where: { isBooked: EveryServiceStatus.AVAILABLE },
+  });
+
 // get single hotel
 const getSingleHotel = async (hotelId: string) => {
   const result = await prisma.hotel.findUnique({
-    where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
+    where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
   });
 
   if (!result) {
@@ -252,7 +320,7 @@ const getPopularHotels = async (
 
   // get only isBooked  AVAILABLE hotels
   filters.push({
-    isBooked: HotelRoomStatus.AVAILABLE,
+    isBooked: EveryServiceStatus.AVAILABLE,
   });
 
   const result = await prisma.hotel.findMany({
@@ -330,7 +398,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
 
   // Find hotel to update
   const existingHotel = await prisma.hotel.findUnique({
-    where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
+    where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
   });
 
   if (!existingHotel) {
@@ -484,6 +552,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
 export const HotelService = {
   createHotel,
   getAllHotels,
+  getAllHotelsForPartner,
   getSingleHotel,
   getPopularHotels,
   toggleFavorite,

@@ -40,10 +40,29 @@ const getAllSecurityProtocols = catchAsync(
   }
 );
 
+// get all security protocols for partner
+const getAllSecurityProtocolsForPartner = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result =
+      await Security_ProtocolService.getAllSecurityProtocolsForPartner(
+        filter,
+        options
+      );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security protocols fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // update security protocol
 const updateSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
-    
     const result = await Security_ProtocolService.updateSecurityProtocol(req);
 
     sendResponse(res, {
@@ -55,9 +74,9 @@ const updateSecurityProtocol = catchAsync(
   }
 );
 
-
 export const Security_ProtocolController = {
   createSecurityProtocol,
   getAllSecurityProtocols,
+  getAllSecurityProtocolsForPartner,
   updateSecurityProtocol,
 };

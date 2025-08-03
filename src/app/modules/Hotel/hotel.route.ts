@@ -20,6 +20,13 @@ router.get(
   HotelController.getAllHotels
 );
 
+// get all hotels for partner
+router.get(
+  "/partner",
+  auth(UserRole.BUSINESS_PARTNER),
+  HotelController.getAllHotelsForPartner
+);
+
 // get my favorites
 router.get(
   "/my-favorites",

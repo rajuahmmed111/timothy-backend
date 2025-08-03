@@ -24,7 +24,7 @@ enum UserStatus {
   INACTIVE
 }
 
-enum HotelRoomStatus {
+enum EveryServiceStatus {
   AVAILABLE
   BOOKED
 }
@@ -151,7 +151,7 @@ model Hotel {
 
   category String?
   discount Float?
-  isBooked HotelRoomStatus @default(AVAILABLE)
+  isBooked EveryServiceStatus @default(AVAILABLE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -215,6 +215,7 @@ model Security_Protocol {
 
   category String?
   discount Float?
+  isBooked EveryServiceStatus @default(AVAILABLE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

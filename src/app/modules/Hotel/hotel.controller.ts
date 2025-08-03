@@ -32,6 +32,22 @@ const getAllHotels = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all hotels for partner
+const getAllHotelsForPartner = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result = await HotelService.getAllHotelsForPartner(filter, options);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Hotels fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get single hotel
 const getSingleHotel = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
@@ -100,6 +116,7 @@ const updateHotel = catchAsync(async (req: Request, res: Response) => {
 export const HotelController = {
   createHotel,
   getAllHotels,
+  getAllHotelsForPartner,
   getSingleHotel,
   getPopularHotels,
   toggleFavorite,
