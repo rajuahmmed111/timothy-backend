@@ -2,7 +2,7 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { differenceInDays, parse } from "date-fns";
-import { HotelRoomStatus } from "@prisma/client";
+import { BookingStatus, HotelRoomStatus } from "@prisma/client";
 
 const createHotelBooking = async (userId: string, data: any) => {
   const { hotelId, rooms, adults, children, bookedFromDate, bookedToDate } =
@@ -30,7 +30,7 @@ const createHotelBooking = async (userId: string, data: any) => {
     where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
     select: {
       hotelRoomPriceNight: true,
-      userId: true,
+      partnerId: true,
     },
   });
 
@@ -60,6 +60,7 @@ const createHotelBooking = async (userId: string, data: any) => {
       totalPrice,
       hotelId,
       userId,
+      partnerId: hotel.partnerId,
     },
   });
 
@@ -67,15 +68,15 @@ const createHotelBooking = async (userId: string, data: any) => {
 };
 
 // get all hotel bookings
-const getAllHotelBookings = async (userId: string) => {
+const getAllHotelBookings = async (partnerId: string) => {
   const result = await prisma.hotel_Booking.findMany({
-    where: { userId },
+    where: { partnerId },
     include: {
       hotel: true,
     },
   });
   return result;
-}
+};
 
 // get hotel booking by id
 const getHotelBookingById = async (userId: string, bookingId: string) => {
@@ -86,42 +87,44 @@ const getHotelBookingById = async (userId: string, bookingId: string) => {
     },
   });
   return result;
-}
+};
 
+// update booking status
 const updateBookingStatus = async (
   partnerId: string,
   bookingId: string,
-  status: "ACCEPTED" | "REJECTED"
+  bookingStatus: "CONFIRMED" | "CANCELLED"
 ) => {
-  if (!["ACCEPTED", "REJECTED"].includes(status)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid status value");
-  }
-
   const booking = await prisma.hotel_Booking.findUnique({
-    where: { id: bookingId },
+    where: { id: bookingId, partnerId },
     include: {
       hotel: true,
     },
   });
-
   if (!booking) {
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
-  if (booking.hotel.userId !== partnerId) {
-    throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized to update this booking");
+  if (booking.hotel.partnerId !== partnerId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to update this booking"
+    );
   }
 
   const updatedBooking = await prisma.hotel_Booking.update({
     where: { id: bookingId },
-    data: { bookingStatus: status },
+    data: {
+      bookingStatus,
+    },
   });
 
   return updatedBooking;
 };
 
-
 export const HotelBookingService = {
   createHotelBooking,
+  getAllHotelBookings,
+  getHotelBookingById,
   updateBookingStatus,
 };

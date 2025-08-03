@@ -28,7 +28,7 @@ router.post(
 
 // update hotel booking status
 router.patch(
-  "/:id/status",
+  "/status/:id",
   auth(UserRole.BUSINESS_PARTNER),
   HotelBookingController.updateBookingStatus
 );

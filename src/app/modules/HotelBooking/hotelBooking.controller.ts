@@ -5,8 +5,11 @@ import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
 const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  const result = await HotelBookingService.createHotelBooking(userId, req.body);
+  const partnerId = req.user?.id;
+  const result = await HotelBookingService.createHotelBooking(
+    partnerId,
+    req.body
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -29,10 +32,10 @@ const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
 
 // get hotel booking by id
 const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
+  const partnerId = req.user?.id;
   const bookingId = req.params.id;
   const result = await HotelBookingService.getHotelBookingById(
-    userId,
+    partnerId,
     bookingId
   );
   sendResponse(res, {
@@ -47,12 +50,12 @@ const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
 const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
   const partnerId = req.user?.id;
   const bookingId = req.params.id;
-  const { status } = req.body;
+  const { bookingStatus } = req.body;
 
   const result = await HotelBookingService.updateBookingStatus(
     partnerId,
     bookingId,
-    status
+    bookingStatus
   );
 
   sendResponse(res, {
