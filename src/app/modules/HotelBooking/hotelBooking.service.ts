@@ -79,14 +79,24 @@ const getAllHotelBookings = async (partnerId: string) => {
 };
 
 // get hotel booking by id
-const getHotelBookingById = async (userId: string, bookingId: string) => {
-  const result = await prisma.hotel_Booking.findUnique({
-    where: { id: bookingId },
+const getHotelBookingById = async (partnerId: string, bookingId: string) => {
+  const booking = await prisma.hotel_Booking.findUnique({
+    where: { id: bookingId, partnerId },
     include: {
       hotel: true,
     },
   });
-  return result;
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  if (booking.hotel.partnerId !== partnerId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to update this booking"
+    );
+  }
+  return booking;
 };
 
 // update booking status

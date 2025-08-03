@@ -20,8 +20,8 @@ const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
 
 // get all hotel bookings
 const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  const result = await HotelBookingService.getAllHotelBookings(userId);
+  const partnerId = req.user?.id;
+  const result = await HotelBookingService.getAllHotelBookings(partnerId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
