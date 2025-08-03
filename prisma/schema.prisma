@@ -255,10 +255,10 @@ model SecuritySchedule {
   securityProtocolId String            @db.ObjectId
   securityProtocol   Security_Protocol @relation(fields: [securityProtocolId], references: [id])
 
+  // relationships
   slots ScheduleSlot[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@map("security_schedules")
 }
 
 model ScheduleSlot {
@@ -266,8 +266,11 @@ model ScheduleSlot {
   from String // "10:00:00"
   to   String // "12:00:00"
 
+  // relationships
   securityScheduleId String           @db.ObjectId
   weeklySchedule     SecuritySchedule @relation(fields: [securityScheduleId], references: [id])
+
+  @@map("schedule_slots")
 }
 
 model Personal_details {
