@@ -230,25 +230,6 @@ model Security_Protocol {
   @@map("security_protocols")
 }
 
-model Security_Booking {
-  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
-  number_of_security Int
-  bookedFromDate     String
-  bookedToDate       String
-  totalPrice         Float
-  bookingStatus      BookingStatus @default(PENDING)
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-
-  // relationships
-  security   Security_Protocol @relation(fields: [securityId], references: [id])
-  securityId String            @db.ObjectId
-  user       User              @relation(fields: [userId], references: [id])
-  userId     String            @db.ObjectId
-
-  @@map("security_bookings")
-}
-
 model SecuritySchedule {
   id                 String            @id @default(auto()) @map("_id") @db.ObjectId
   day                Weekday
@@ -271,6 +252,25 @@ model ScheduleSlot {
   weeklySchedule     SecuritySchedule @relation(fields: [securityScheduleId], references: [id])
 
   @@map("schedule_slots")
+}
+
+model Security_Booking {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  number_of_security Int
+  bookedFromDate     String
+  bookedToDate       String
+  totalPrice         Float
+  bookingStatus      BookingStatus @default(PENDING)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  // relationships
+  security   Security_Protocol @relation(fields: [securityId], references: [id])
+  securityId String            @db.ObjectId
+  user       User              @relation(fields: [userId], references: [id])
+  userId     String            @db.ObjectId
+
+  @@map("security_bookings")
 }
 
 model Personal_details {

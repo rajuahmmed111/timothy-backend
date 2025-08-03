@@ -12,6 +12,7 @@ import { searchableFields } from "./security_protocol.constant";
 // create security protocol
 const createSecurityProtocol = async (req: Request) => {
   const partnerId = req.user?.id;
+
   const findPartner = await prisma.user.findUnique({
     where: { id: partnerId },
   });
@@ -26,23 +27,19 @@ const createSecurityProtocol = async (req: Request) => {
   const securityFiles = files?.securityImages || [];
   const docsFiles = files?.securityDocs || [];
 
-  // Upload multiple security images
-  let securityImageUrls: string[] = [];
-  if (securityFiles.length > 0) {
-    const uploads = await Promise.all(
-      securityFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    securityImageUrls = uploads.map((img) => img?.secure_url || "");
-  }
+  // upload securityImages
+  const securityImageUrls = await Promise.all(
+    securityFiles.map((file) =>
+      uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
+    )
+  );
 
-  // Upload multiple docs
-  let securityDocUrls: string[] = [];
-  if (docsFiles.length > 0) {
-    const docUploads = await Promise.all(
-      docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    securityDocUrls = docUploads.map((img) => img?.secure_url || "");
-  }
+  // upload securityDocs
+  const securityDocUrls = await Promise.all(
+    docsFiles.map((file) =>
+      uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
+    )
+  );
 
   const {
     securityBusinessName,
@@ -58,14 +55,21 @@ const createSecurityProtocol = async (req: Request) => {
     securityDistrict,
     securityCountry,
     securityDescription,
-    securityServicesOffered, // comma-separated string or array
+    securityServicesOffered,
     securityBookingCondition,
     securityCancelationPolicy,
     securityRating,
     securityPriceDay,
     category,
     discount,
+    schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
   } = req.body;
+
+  const parsedServices = Array.isArray(securityServicesOffered)
+    ? securityServicesOffered
+    : securityServicesOffered?.split(",").map((s: string) => s.trim());
+
+  const parsedSchedules = schedules; // assuming schedules sent as JSON string
 
   const securityProtocol = await prisma.security_Protocol.create({
     data: {
@@ -82,16 +86,36 @@ const createSecurityProtocol = async (req: Request) => {
       securityDistrict,
       securityCountry,
       securityDescription,
-      securityServicesOffered,
+      securityServicesOffered: parsedServices,
       securityBookingCondition,
       securityCancelationPolicy,
       securityRating,
-      securityPriceDay: parseFloat(securityPriceDay),
+      securityPriceDay: parseInt(securityPriceDay),
       securityImages: securityImageUrls,
       securityDocs: securityDocUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
       partnerId,
+
+      // Create nested SecuritySchedule & ScheduleSlot
+      securitySchedule: {
+        create: parsedSchedules.map((schedule: any) => ({
+          day: schedule.day,
+          slots: {
+            create: schedule.slots.map((slot: any) => ({
+              from: slot.from,
+              to: slot.to,
+            })),
+          },
+        })),
+      },
+    },
+    include: {
+      securitySchedule: {
+        include: {
+          slots: true,
+        },
+      },
     },
   });
 
