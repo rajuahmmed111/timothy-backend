@@ -71,8 +71,8 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 
   const result = await AuthServices.changePassword(
     userId,
-    newPassword,
-    oldPassword
+    oldPassword,
+    newPassword
   );
 
   sendResponse(res, {
