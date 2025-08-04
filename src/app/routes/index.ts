@@ -8,6 +8,7 @@ import { hotelRoute } from "../modules/Hotel/hotel.route";
 import { reviewRoute } from "../modules/Review/review.route";
 import { hotelBookingRoute } from "../modules/HotelBooking/hotelBooking.route";
 import { securityProtocolRoute } from "../modules/Security_Protocol/security_protocol.route";
+import { security_bookingRoute } from "../modules/Security_booking/security_booking.route";
 
 const router = express.Router();
 
@@ -36,6 +37,10 @@ const moduleRoutes = [
   {
     path: "/security-protocols",
     route: securityProtocolRoute,
+  },
+  {
+    path: "/security-booking",
+    route: security_bookingRoute,
   },
   // {
   //   path: "/subscription",
