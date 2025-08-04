@@ -4,7 +4,9 @@ import { UserRole, UserStatus } from "@prisma/client";
 const createUserZodSchema = z.object({
   body: z.object({
     fullName: z.string().optional(),
-    email: z.string({ required_error: "Email is required" }),
+    email: z
+      .string({ required_error: "Email is required" })
+      .email("Please provide a valid email address"),
     password: z
       .string({ required_error: "Password is required" })
       .min(6, "Password must be at least 6 characters"),
