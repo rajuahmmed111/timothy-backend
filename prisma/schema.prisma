@@ -216,7 +216,7 @@ model Security_Protocol {
   category   String?
   discount   Float?
   isBooked   EveryServiceStatus @default(AVAILABLE)
-  hiredCount Int  @default(0)
+  hiredCount Int                @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -262,6 +262,7 @@ model Security_Booking {
   bookedFromDate     String
   bookedToDate       String
   totalPrice         Float
+  vat                Float         @default(0)
   bookingStatus      BookingStatus @default(PENDING)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
