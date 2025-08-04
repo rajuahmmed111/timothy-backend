@@ -21,7 +21,7 @@ export const corsOptions = {
   origin: [
     "http://localhost:5173",
     "http://localhost:3000",
-    "http://timothy-dashboard.netlify.app",
+    "https://timothy-dashboard.netlify.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
