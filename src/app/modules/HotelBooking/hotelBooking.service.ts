@@ -2,7 +2,7 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { differenceInDays, parse } from "date-fns";
-import { BookingStatus, HotelRoomStatus } from "@prisma/client";
+import { BookingStatus, EveryServiceStatus, } from "@prisma/client";
 
 const createHotelBooking = async (userId: string, data: any) => {
   const { hotelId, rooms, adults, children, bookedFromDate, bookedToDate } =
@@ -27,7 +27,7 @@ const createHotelBooking = async (userId: string, data: any) => {
   }
 
   const hotel = await prisma.hotel.findUnique({
-    where: { id: hotelId, isBooked: HotelRoomStatus.AVAILABLE },
+    where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
     select: {
       hotelRoomPriceNight: true,
       partnerId: true,

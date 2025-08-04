@@ -19,7 +19,7 @@ router.post("/logout", AuthController.logoutUser);
 //change password
 router.put(
   "/change-password",
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.USER),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER, UserRole.BUSINESS_PARTNER),
   validateRequest(authValidation.changePasswordValidationSchema),
   AuthController.changePassword
 );
