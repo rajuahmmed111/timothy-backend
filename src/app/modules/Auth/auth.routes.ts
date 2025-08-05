@@ -19,7 +19,12 @@ router.post("/logout", AuthController.logoutUser);
 //change password
 router.put(
   "/change-password",
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER, UserRole.BUSINESS_PARTNER),
+  auth(
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER
+  ),
   validateRequest(authValidation.changePasswordValidationSchema),
   AuthController.changePassword
 );
@@ -27,7 +32,15 @@ router.put(
 // forgot password
 router.post("/forgot-password", AuthController.forgotPassword);
 
+// verity otp
+router.post("/verify-otp", AuthController.verifyOtp);
+
 // reset password
-router.post("/reset-password", AuthController.resetPassword);
+
+router.post(
+  "/reset-password",
+  validateRequest(authValidation.resetPasswordSchema),
+  AuthController.resetPassword
+);
 
 export const authRoutes = router;

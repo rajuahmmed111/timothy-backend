@@ -95,9 +95,30 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// verify token
+const verifyOtp = catchAsync(async (req: Request, res: Response) => {
+  const { otp } = req.body;
+  const result = await AuthServices.verifyOtp(otp);
+
+  res.cookie("token", result.accessToken, {
+    secure: config.env === "production",
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "OTP verified successfully",
+    data: result,
+  });
+});
+
 // reset password
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
   const token = req.headers.authorization || "";
+  // console.log(token)
 
   await AuthServices.resetPassword(token, req.body);
 
@@ -115,5 +136,6 @@ export const AuthController = {
   logoutUser,
   changePassword,
   forgotPassword,
+  verifyOtp,
   resetPassword,
 };
