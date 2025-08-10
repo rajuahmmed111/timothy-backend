@@ -217,6 +217,7 @@ model Security_Protocol {
   discount   Float?
   isBooked   EveryServiceStatus @default(AVAILABLE)
   hiredCount Int                @default(0)
+  vat                Float         @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -262,12 +263,12 @@ model Security_Booking {
   bookedFromDate     String
   bookedToDate       String
   totalPrice         Float
-  vat                Float         @default(0)
   bookingStatus      BookingStatus @default(PENDING)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
   // relationships
+  partnerId String @db.ObjectId
   security   Security_Protocol @relation(fields: [securityId], references: [id])
   securityId String            @db.ObjectId
   user       User              @relation(fields: [userId], references: [id])

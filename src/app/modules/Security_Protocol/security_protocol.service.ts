@@ -62,6 +62,8 @@ const createSecurityProtocol = async (req: Request) => {
     securityPriceDay,
     category,
     discount,
+    hiredCount,
+    vat, //percentage
     schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
   } = req.body;
 
@@ -95,6 +97,8 @@ const createSecurityProtocol = async (req: Request) => {
       securityDocs: securityDocUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
+      hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
+      vat: vat ? parseFloat(vat) : undefined,
       partnerId,
 
       // Create nested SecuritySchedule & ScheduleSlot
@@ -353,6 +357,8 @@ const updateSecurityProtocol = async (req: Request) => {
     securityPriceDay,
     category,
     discount,
+    hiredCount,
+    vat,
   } = req.body;
 
   const updatedProtocol = await prisma.security_Protocol.update({
@@ -382,6 +388,8 @@ const updateSecurityProtocol = async (req: Request) => {
       securityDocs: securityDocUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
+      hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
+      vat: vat ? parseFloat(vat) : undefined,
     },
   });
 
