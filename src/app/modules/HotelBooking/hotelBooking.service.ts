@@ -2,11 +2,16 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { differenceInDays, parse } from "date-fns";
-import { BookingStatus, EveryServiceStatus, } from "@prisma/client";
+import { BookingStatus, EveryServiceStatus } from "@prisma/client";
+import { IHotelBookingData } from "./hotelBooking.interface";
 
-const createHotelBooking = async (userId: string, data: any) => {
-  const { hotelId, rooms, adults, children, bookedFromDate, bookedToDate } =
-    data;
+// create hotel booking
+const createHotelBooking = async (
+  userId: string,
+  hotelId: string,
+  data: IHotelBookingData
+) => {
+  const { rooms, adults, children, bookedFromDate, bookedToDate } = data;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -15,22 +20,12 @@ const createHotelBooking = async (userId: string, data: any) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  if (
-    !hotelId ||
-    !rooms ||
-    !adults ||
-    !children ||
-    !bookedFromDate ||
-    !bookedToDate
-  ) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
-  }
-
   const hotel = await prisma.hotel.findUnique({
     where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
     select: {
       hotelRoomPriceNight: true,
       partnerId: true,
+      discount: true, // discount in percentage
     },
   });
 
@@ -38,21 +33,28 @@ const createHotelBooking = async (userId: string, data: any) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }
 
+  if (!rooms || !adults || !children || !bookedFromDate || !bookedToDate) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
+  }
+
   // calculate number of nights
   const fromDate = parse(bookedFromDate, "dd-MM-yyyy", new Date());
   const toDate = parse(bookedToDate, "dd-MM-yyyy", new Date());
 
   const numberOfNights = differenceInDays(toDate, fromDate);
-  //   console.log(numberOfNights, "numberOfNights");
 
   if (numberOfNights <= 0) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid booking date range");
   }
 
-  // calculate total price
+  // calculate base price
   const roomPrice = hotel.hotelRoomPriceNight;
-  //   console.log(roomPrice, "roomPrice");
-  const totalPrice = roomPrice * rooms * numberOfNights;
+  let totalPrice = roomPrice * rooms * numberOfNights;
+
+  // apply discount if available
+  if (hotel.discount && hotel.discount > 0) {
+    totalPrice -= (totalPrice * hotel.discount) / 100;
+  }
 
   const result = await prisma.hotel_Booking.create({
     data: {

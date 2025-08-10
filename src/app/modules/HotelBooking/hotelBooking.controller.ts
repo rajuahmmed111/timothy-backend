@@ -5,9 +5,11 @@ import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
 const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
-  const partnerId = req.user?.id;
+  const userId = req.user?.id;
+  const hotelId = req.params.hotelId;
   const result = await HotelBookingService.createHotelBooking(
-    partnerId,
+    userId,
+    hotelId,
     req.body
   );
   sendResponse(res, {

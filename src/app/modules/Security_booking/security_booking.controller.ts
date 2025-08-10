@@ -7,9 +7,13 @@ import httpStatus from "http-status";
 const createSecurityBooking = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const securityId = req.params.id;
+    const securityId = req.params.bookingId;
     const data = req.body;
-    const result = await SecurityBookingService.createSecurityBooking(userId, securityId, data);
+    const result = await SecurityBookingService.createSecurityBooking(
+      userId,
+      securityId,
+      data
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -19,6 +23,7 @@ const createSecurityBooking = catchAsync(
     });
   }
 );
+
 
 export const SecurityBookingController = {
   createSecurityBooking,

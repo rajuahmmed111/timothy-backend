@@ -28,8 +28,8 @@ router.get(
 
 // create hotel booking
 router.post(
-  "/",
-  auth(UserRole.USER),
+  "/:hotelId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
   HotelBookingController.createHotelBooking
 );
 
