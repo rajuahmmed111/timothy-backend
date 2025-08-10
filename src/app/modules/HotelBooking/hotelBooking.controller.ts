@@ -4,6 +4,7 @@ import { HotelBookingService } from "./hotelBooking.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
+// create hotel booking
 const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const hotelId = req.params.hotelId;
@@ -32,7 +33,7 @@ const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// get my hotel bookings
+// get my all (hotel, security, car, attraction) bookings
 const getAllMyHotelBookings = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
@@ -40,7 +41,7 @@ const getAllMyHotelBookings = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "My hotel bookings fetched successfully",
+      message: "My all bookings fetched successfully",
       data: result,
     });
   }
