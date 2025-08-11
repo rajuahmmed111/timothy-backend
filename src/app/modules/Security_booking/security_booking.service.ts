@@ -90,6 +90,81 @@ const createSecurityBooking = async (
   return result;
 };
 
+// get all security bookings
+const getAllSecurityBookings = async (partnerId: string) => {
+  // find partner
+  const partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const result = await prisma.security_Booking.findMany({
+    include: {
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+        },
+      },
+    },
+  });
+  if (result.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No bookings found");
+  }
+
+  return result;
+};
+
+// get single security booking
+const getSingleSecurityBooking = async (id: string) => {
+  const result = await prisma.security_Booking.findUnique({
+    where: { id },
+    include: {
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+          securityPriceDay: true,
+        },
+      },
+    },
+  });
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Security Booking not found");
+  }
+
+  return result;
+};
+
+// get all my security bookings
+const getAllMySecurityBookings = async (userId: string) => {
+  // find user
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.security_Booking.findMany({
+    where: { userId: user.id },
+    include: {
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+          securityPriceDay: true,
+          discount: true,
+          category: true,
+          partnerId: true,
+        },
+      },
+    },
+  });
+  return result;
+};
+
 export const SecurityBookingService = {
   createSecurityBooking,
+  getAllSecurityBookings,
+  getSingleSecurityBooking,
+  getAllMySecurityBookings,
 };
