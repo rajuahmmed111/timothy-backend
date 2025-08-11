@@ -4,12 +4,12 @@ import { ReviewService } from "./review.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
-// create review
-const createReview = catchAsync(async (req: Request, res: Response) => {
+// create hotel review
+const createHotelReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const { hotelId, rating, comment } = req.body;
 
-  const result = await ReviewService.createReview(
+  const result = await ReviewService.createHotelReview(
     userId,
     hotelId,
     rating,
@@ -23,6 +23,26 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create security review
+const createSecurityReview = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { securityId, rating, comment } = req.body;
+
+  const result = await ReviewService.createSecurityReview(
+    userId,
+    securityId,
+    rating,
+    comment
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Review created successfully",
+    data: result,
+  });
+});
+
 export const ReviewController = {
-  createReview,
+  createHotelReview,
+  createSecurityReview,
 };

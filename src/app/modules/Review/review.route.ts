@@ -4,7 +4,10 @@ import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
-// create review
-router.post("/", auth(), ReviewController.createReview);
+// create hotel review
+router.post("/hotel", auth(), ReviewController.createHotelReview);
+
+// create security review
+router.post("/security", auth(), ReviewController.createSecurityReview);
 
 export const reviewRoute = router;

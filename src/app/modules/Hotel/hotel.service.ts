@@ -199,8 +199,9 @@ const getAllHotels = async (
   };
 };
 
-// get all hotels for partner
+// get all my created hotels for partner
 const getAllHotelsForPartner = async (
+  partnerId: string,
   params: IHotelFilterRequest,
   options: IPaginationOptions
 ) => {
@@ -209,6 +210,10 @@ const getAllHotelsForPartner = async (
   const { searchTerm, ...filterData } = params;
 
   const filters: Prisma.HotelWhereInput[] = [];
+
+  filters.push({
+    partnerId,
+  });
 
   // text search
   if (params?.searchTerm) {

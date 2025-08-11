@@ -43,10 +43,12 @@ const getAllSecurityProtocols = catchAsync(
 // get all security protocols for partner
 const getAllSecurityProtocolsForPartner = catchAsync(
   async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result =
       await Security_ProtocolService.getAllSecurityProtocolsForPartner(
+        partnerId,
         filter,
         options
       );

@@ -128,6 +128,7 @@ const createSecurityProtocol = async (req: Request) => {
 
 // get all security protocols for partner
 const getAllSecurityProtocolsForPartner = async (
+  partnerId: string,
   params: ISecurityFilterRequest,
   options: IPaginationOptions
 ) => {
@@ -136,6 +137,10 @@ const getAllSecurityProtocolsForPartner = async (
   const { searchTerm, ...filterData } = params;
 
   const filters: Prisma.Security_ProtocolWhereInput[] = [];
+
+  filters.push({
+    partnerId,
+  });
 
   // text search
   if (params?.searchTerm) {

@@ -20,7 +20,7 @@ router.get(
   HotelController.getAllHotels
 );
 
-// get all hotels for partner
+// get all my created hotels for partner
 router.get(
   "/partner",
   auth(UserRole.BUSINESS_PARTNER),

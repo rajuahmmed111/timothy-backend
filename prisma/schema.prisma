@@ -228,8 +228,7 @@ model Security_Protocol {
   partnerId        String             @db.ObjectId
   securitySchedule SecuritySchedule[]
   security_Booking Security_Booking[]
-  // review         Review[]
-  // favorite       Favorite[]
+  review           Review[]
 
   @@map("security_protocols")
 }
@@ -279,22 +278,6 @@ model Security_Booking {
   @@map("security_bookings")
 }
 
-model Personal_details {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  dateOfBirth      String
-  description      String
-  image            String
-  offered_services String[]
-  category         String
-  email            String?
-  contactNo        String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@map("personal_details")
-}
-
 model Car_Rental {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   carBusinessName String   @unique
@@ -339,10 +322,12 @@ model Review {
   updatedAt DateTime @updatedAt
 
   // relationships
-  hotel   Hotel  @relation(fields: [hotelId], references: [id])
-  hotelId String @db.ObjectId
-  user    User   @relation(fields: [userId], references: [id])
-  userId  String @db.ObjectId
+  hotel      Hotel?             @relation(fields: [hotelId], references: [id])
+  hotelId    String?            @db.ObjectId
+  user       User              @relation(fields: [userId], references: [id])
+  userId     String            @db.ObjectId
+  security   Security_Protocol? @relation(fields: [securityId], references: [id])
+  securityId String?            @db.ObjectId
 
   @@map("reviews")
 }
