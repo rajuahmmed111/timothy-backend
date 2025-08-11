@@ -80,38 +80,110 @@ const getAllHotelBookings = async (partnerId: string) => {
   return result;
 };
 
-// get my hotel bookings
-const getAllMyHotelBookings = async (userId: string) => {
+// get my all (hotel, security, car, attraction) bookings
+const getAllMyBookings = async (authUserId: string) => {
+  // Validate logged-in user exists
   const user = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { id: authUserId },
   });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  const bookings = await prisma.hotel_Booking.findMany({
-    where: { userId: user.id },
-    include: {
-      hotel: {
-        select: {
-          hotelName: true,
-          hotelRoomPriceNight: true,
-          hotelCountry: true,
-          hotelRating: true,
+  // Fetch all booking types in parallel (only for logged-in user)
+  const [
+    hotelBookings,
+    securityBookings /** carBookings, attractionBookings */,
+  ] = await Promise.all([
+    prisma.hotel_Booking.findMany({
+      where: { userId: authUserId },
+      include: {
+        hotel: {
+          select: {
+            id: true,
+            hotelName: true,
+            hotelRoomPriceNight: true,
+            hotelCountry: true,
+            hotelRating: true,
+            hotelRoomImages: true,
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.security_Booking.findMany({
+      where: { userId: authUserId },
+      include: {
+        security: {
+          select: {
+            id: true,
+            securityName: true,
+            securityPriceDay: true,
+            securityCountry: true,
+            securityRating: true,
+            securityImages: true,
+          },
+        },
+      },
+    }),
+    // prisma.car_Booking.findMany({
+    //   where: { userId: authUserId },
+    //   include: {
+    //     car: {
+    //       select: {
+    //         id: true,
+    //         carName: true,
+    //         carPriceDay: true,
+    //         carType: true,
+    //       },
+    //     },
+    //   },
+    // }),
+    // prisma.attraction_Booking.findMany({
+    //   where: { userId: authUserId },
+    //   include: {
+    //     attraction: {
+    //       select: {
+    //         id: true,
+    //         attractionName: true,
+    //         ticketPrice: true,
+    //         location: true,
+    //       },
+    //     },
+    //   },
+    // }),
+  ]);
 
-  const allBookingsBelongToUser = bookings.every((booking) => {
-    return booking.userId === userId;
-  });
+  // Verify all bookings belong to logged-in user
+  const isValidOwner = [
+    ...hotelBookings,
+    ...securityBookings,
+    // ...carBookings,
+    // ...attractionBookings,
+  ].every((booking) => booking.userId === authUserId);
 
-  if (!allBookingsBelongToUser || bookings.length === 0) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Bookings not found");
+  if (!isValidOwner) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You are not allowed to view these bookings"
+    );
   }
 
-  return bookings;
+  // If all bookings are empty
+  if (
+    hotelBookings.length === 0 &&
+    securityBookings.length === 0 /**  &&
+    carBookings.length === 0 &&
+    attractionBookings.length === 0 */
+  ) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No bookings found");
+  }
+
+  return {
+    hotels: hotelBookings,
+    securities: securityBookings,
+    // cars: carBookings,
+    // attractions: attractionBookings,
+  };
 };
 
 // get hotel booking by id
@@ -218,7 +290,7 @@ const updateBookingStatus = async (
 export const HotelBookingService = {
   createHotelBooking,
   getAllHotelBookings,
-  getAllMyHotelBookings,
+  getAllMyBookings,
   getHotelBookingById,
   cancelMyHotelBooking,
   updateBookingStatus,

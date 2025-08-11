@@ -34,10 +34,10 @@ const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
 });
 
 // get my all (hotel, security, car, attraction) bookings
-const getAllMyHotelBookings = catchAsync(
+const getAllMyBookings = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const result = await HotelBookingService.getAllMyHotelBookings(userId);
+    const result = await HotelBookingService.getAllMyBookings(userId);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -63,7 +63,7 @@ const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// cancel my hotel booking only user
+// cancel my (hotel, security, car, attraction) booking only user
 const cancelMyHotelBooking = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const bookingId = req.params.id;
@@ -104,7 +104,7 @@ const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
 export const HotelBookingController = {
   createHotelBooking,
   getAllHotelBookings,
-  getAllMyHotelBookings,
+  getAllMyBookings,
   getHotelBookingById,
   cancelMyHotelBooking,
   updateBookingStatus,

@@ -16,7 +16,7 @@ router.get(
 router.get(
   "/my-bookings",
   auth(UserRole.USER),
-  HotelBookingController.getAllMyHotelBookings
+  HotelBookingController.getAllMyBookings
 );
 
 // get hotel booking by id
@@ -33,7 +33,7 @@ router.post(
   HotelBookingController.createHotelBooking
 );
 
-// cancel my hotel booking only user
+// cancel my (hotel, security, car, attraction) booking only user
 router.patch(
   "/cancel-my-booking/:id",
   auth(UserRole.USER),
