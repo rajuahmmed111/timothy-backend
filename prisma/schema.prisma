@@ -175,6 +175,7 @@ model Hotel_Booking {
   bookedToDate   String
   totalPrice     Float
   bookingStatus  BookingStatus @default(PENDING)
+  category       String
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -217,7 +218,7 @@ model Security_Protocol {
   discount   Float?
   isBooked   EveryServiceStatus @default(AVAILABLE)
   hiredCount Int                @default(0)
-  vat                Float         @default(0)
+  vat        Float              @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -264,11 +265,12 @@ model Security_Booking {
   bookedToDate       String
   totalPrice         Float
   bookingStatus      BookingStatus @default(PENDING)
+  category           String
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
   // relationships
-  partnerId String @db.ObjectId
+  partnerId  String            @db.ObjectId
   security   Security_Protocol @relation(fields: [securityId], references: [id])
   securityId String            @db.ObjectId
   user       User              @relation(fields: [userId], references: [id])
@@ -294,39 +296,39 @@ model Personal_details {
 }
 
 model Car_Rental {
-  id                   String @id @default(auto()) @map("_id") @db.ObjectId
-  carBusinessName      String @unique
-  carName              String
-  carBusinessType      String
-  carRegNum            String
-  carRegDate           String
-  carPhone             String
-  carEmail             String
-  carAddress           String
-  carCity              String
-  carPostalCode        String
-  carDistrict          String
-  carCountry           String
-  carDescription       String
-  carImages            String[] // 5 image
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  carBusinessName String   @unique
+  carName         String
+  carBusinessType String
+  carRegNum       String
+  carRegDate      String
+  carPhone        String
+  carEmail        String
+  carAddress      String
+  carCity         String
+  carPostalCode   String
+  carDistrict     String
+  carCountry      String
+  carDescription  String
+  carImages       String[] // 5 image
 
   carServicesOffered   String[]
   carBookingCondition  String
   carCancelationPolicy String
   carDocs              String[] // 5 image
 
-  carModel String
+  carModel    String
   carCapacity String
-  carColor String
-  fuelType String
-  gearType String
+  carColor    String
+  fuelType    String
+  gearType    String
 
   carRating   String
   carPriceDay Int
 
-  category   String?
-  discount   Float?
-  isBooked   EveryServiceStatus @default(AVAILABLE)
+  category String?
+  discount Float?
+  isBooked EveryServiceStatus @default(AVAILABLE)
 }
 
 model Review {

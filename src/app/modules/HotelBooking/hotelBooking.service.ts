@@ -26,6 +26,7 @@ const createHotelBooking = async (
       hotelRoomPriceNight: true,
       partnerId: true,
       discount: true, // discount in percentage
+      category: true,
     },
   });
 
@@ -63,6 +64,8 @@ const createHotelBooking = async (
       hotelId,
       userId,
       partnerId: hotel.partnerId,
+      bookingStatus: BookingStatus.PENDING,
+      category: hotel.category as string,
     },
   });
 

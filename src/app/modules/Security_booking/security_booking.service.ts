@@ -29,6 +29,7 @@ const createSecurityBooking = async (
       partnerId: true,
       discount: true,
       vat: true,
+      category: true,
     },
   });
   if (!security) {
@@ -82,6 +83,7 @@ const createSecurityBooking = async (
       partnerId: security.partnerId,
       userId,
       securityId,
+      category: security.category as string,
     },
   });
 
