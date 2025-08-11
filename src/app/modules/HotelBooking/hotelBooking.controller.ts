@@ -3,6 +3,7 @@ import catchAsync from "../../../shared/catchAsync";
 import { HotelBookingService } from "./hotelBooking.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
+// import { BookingCategory } from "./hotelBooking.interface";
 
 // create hotel booking
 const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
@@ -33,19 +34,34 @@ const getAllHotelBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// get my all (hotel, security, car, attraction) bookings
-const getAllMyBookings = catchAsync(
+// get all my hotel bookings
+const getAllMyHotelBookings = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const result = await HotelBookingService.getAllMyBookings(userId);
+    const result = await HotelBookingService.getAllMyHotelBookings(userId);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "My all bookings fetched successfully",
+      message: "My hotel bookings fetched successfully",
       data: result,
     });
   }
 );
+
+// // get my all (hotel, security, car, attraction) bookings
+// const getAllMyBookings = catchAsync(async (req: Request, res: Response) => {
+//   const userId = req.user?.id;
+//   const category = req.query.category as BookingCategory | undefined;
+//   const result = await HotelBookingService.getAllMyBookings(userId, {
+//     category,
+//   });
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "My all bookings fetched successfully",
+//     data: result,
+//   });
+// });
 
 // get hotel booking by id
 const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
@@ -104,7 +120,8 @@ const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
 export const HotelBookingController = {
   createHotelBooking,
   getAllHotelBookings,
-  getAllMyBookings,
+  getAllMyHotelBookings,
+  // getAllMyBookings,
   getHotelBookingById,
   cancelMyHotelBooking,
   updateBookingStatus,

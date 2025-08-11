@@ -5,3 +5,10 @@ export interface IHotelBookingData {
   bookedFromDate: string; // date format: "dd-MM-yyyy"
   bookedToDate: string; // date format: "dd-MM-yyyy"
 }
+
+export type BookingCategory = "hotel" | "security" | "car" | "attraction";
+
+export interface IBookingFilterRequest {
+  category?: BookingCategory;
+}
+

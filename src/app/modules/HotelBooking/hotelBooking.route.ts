@@ -12,12 +12,19 @@ router.get(
   HotelBookingController.getAllHotelBookings
 );
 
-// get my all (hotel, security, car, attraction) bookings
+// get all my hotel bookings
 router.get(
   "/my-bookings",
   auth(UserRole.USER),
-  HotelBookingController.getAllMyBookings
+  HotelBookingController.getAllMyHotelBookings
 );
+
+// get my all (hotel, security, car, attraction) bookings
+// router.get(
+//   "/my-bookings",
+//   auth(UserRole.USER),
+//   HotelBookingController.getAllMyBookings
+// );
 
 // get hotel booking by id
 router.get(
