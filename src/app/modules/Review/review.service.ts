@@ -133,6 +133,7 @@ const createSecurityReview = async (
     where: { id: securityId },
     data: {
       securityRating: averageRating.toFixed(1),
+      securityReviewCount: ratings.length,
     },
   });
 
@@ -194,6 +195,7 @@ const createCarReview = async (
   //   where: { id: carId },
   //   data: {
   //     carRating: averageRating.toFixed(1),
+  //     carReviewCount: ratings.length,
   //   },
   // });
   // return review;
@@ -254,6 +256,7 @@ const createAttractionReview = async (
   //   where: { id: attractionId },
   //   data: {
   //     attractionRating: averageRating.toFixed(1),
+  //     attractionReviewCount: ratings.length,
   //   },
   // });
   // return review;

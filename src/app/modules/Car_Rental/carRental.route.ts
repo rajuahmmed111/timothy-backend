@@ -1,0 +1,66 @@
+import express from "express";
+import auth from "../../middlewares/auth";
+import { UserRole } from "@prisma/client";
+import { uploadFile } from "../../../helpars/fileUploader";
+import { CarRentalController } from "./carRental.controller";
+import { parseBodyData } from "../../middlewares/parseNestedJson";
+
+const router = express.Router();
+
+// get all car rentals
+router.get(
+    "/",
+    auth(
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+        UserRole.BUSINESS_PARTNER,
+        UserRole.USER
+    ),
+    CarRentalController.getAllCarRentals
+);
+
+// get all my created car rentals for partner
+router.get(
+    "/partner",
+    auth(UserRole.BUSINESS_PARTNER),
+    CarRentalController.getAllCarRentalsForPartner
+);
+
+// get car rental by id
+router.get(
+    "/:id",
+    auth(
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+        UserRole.BUSINESS_PARTNER,
+        UserRole.USER
+    ),
+    CarRentalController.getSingleCarRental
+);
+
+// create car rental
+router.post(
+  "/",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "carImages", maxCount: 5 },
+    { name: "carDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
+  CarRentalController.createCarRental
+);
+
+
+// update car rental
+router.patch(
+  "/:id",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "carImages", maxCount: 5 },
+    { name: "carDocs", maxCount: 5 },
+  ]),
+  CarRentalController.updateCarRental
+);
+
+
+export const CarRentalRoutes = router;
