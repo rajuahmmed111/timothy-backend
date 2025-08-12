@@ -138,7 +138,143 @@ const createSecurityReview = async (
   return review;
 };
 
+// create car review
+const createCarReview = async (
+  userId: string,
+  carId: string,
+  rating: number,
+  comment?: string
+) => {
+  // const todayStart = startOfDay(new Date());
+  // const todayEnd = endOfDay(new Date());
+
+  // const user = await prisma.user.findUnique({
+  //   where: { id: userId },
+  // });
+  // if (!user) {
+  //   throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  // }
+
+  // // check if user has already rated this security
+  // const existingDailyRating = await prisma.review.findFirst({
+  //   where: {
+  //     userId: user.id,
+  //     carId,
+  //     createdAt: {
+  //       gte: todayStart,
+  //       lte: todayEnd,
+  //     },
+  //   },
+  // });
+  // if (existingDailyRating) {
+  //   throw new ApiError(
+  //     httpStatus.CONFLICT,
+  //     "You have already rated this security today."
+  //   );
+  // }
+
+  // const review = await prisma.review.create({
+  //   data: {
+  //     userId: user.id,
+  //     carId,
+  //     rating,
+  //     comment,
+  //   },
+  // });
+
+  // const ratings = await prisma.review.findMany({
+  //   where: {
+  //     carId,
+  //   },
+  //   select: {
+  //     rating: true,
+  //   },
+  // });
+
+  // // average rating calculation
+  // const averageRating =
+  //   ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+
+  // await prisma.car.update({
+  //   where: { id: carId },
+  //   data: {
+  //     carRating: averageRating.toFixed(1),
+  //   },
+  // });
+
+  // return review;
+};
+
+// create attraction review
+const createAttractionReview = async (
+  userId: string,
+  attractionId: string,
+  rating: number,
+  comment?: string
+) => {
+  // const todayStart = startOfDay(new Date());
+  // const todayEnd = endOfDay(new Date());
+
+  // const user = await prisma.user.findUnique({
+  //   where: { id: userId },
+  // });
+  // if (!user) {
+  //   throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  // }
+
+  // // check if user has already rated this security
+  // const existingDailyRating = await prisma.review.findFirst({
+  //   where: {
+  //     userId: user.id,
+  //     attractionId,
+  //     createdAt: {
+  //       gte: todayStart,
+  //       lte: todayEnd,
+  //     },
+  //   },
+  // });
+  // if (existingDailyRating) {
+  //   throw new ApiError(
+  //     httpStatus.CONFLICT,
+  //     "You have already rated this security today."
+  //   );
+  // }
+
+  // const review = await prisma.review.create({
+  //   data: {
+  //     userId,
+  //     attractionId,
+  //     rating,
+  //     comment,
+  //   },
+  // });
+
+  // const ratings = await prisma.review.findMany({
+  //   where: {
+  //     attractionId,
+  //   },
+  //   select: {
+  //     rating: true,
+  //   },
+  // });
+
+  // // average rating calculation
+  // const averageRating =
+  //   ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+
+  // await prisma.attraction.update({
+  //   where: { id: attractionId },
+  //   data: {
+  //     attractionRating: averageRating.toFixed(1),
+  //   },
+  // });
+
+  // return review;
+};
+
 export const ReviewService = {
   createHotelReview,
   createSecurityReview,
+  createCarReview,
+  createAttractionReview,
 };
