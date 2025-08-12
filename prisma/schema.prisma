@@ -120,7 +120,7 @@ model Hotel {
 
   businessTagline     String
   businessDescription String
-  businessLogo        String @default("https://i.ibb.co/zWxSgQL8/download.png")
+  businessLogo        String // @default("https://i.ibb.co/zWxSgQL8/download.png")
 
   hotelRoomType       String
   hotelRoomPriceNight Int // price  float korte hobe
