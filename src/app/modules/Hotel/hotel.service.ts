@@ -25,7 +25,7 @@ const createHotel = async (req: Request) => {
     [fieldname: string]: Express.Multer.File[];
   };
 
-  const hotelLogoFile = files?.hotelLogo?.[0];
+  const hotelLogoFile = files?.businessLogo?.[0];
   const roomImageFiles = files?.hotelRoomImages || [];
   const docsFiles = files?.hotelDocs || [];
 

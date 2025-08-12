@@ -50,7 +50,8 @@ const upload = multer({ storage, fileFilter });
 
 const profileImage = upload.single("profileImage");
 
-const hotelLogo = upload.single("hotelLogo");
+const hotelLogo = upload.single("businessLogo");
+// const hotelLogo = upload.single("hotelLogo");
 const hotelRoomImages = upload.array("hotelRoomImages", 5);
 const hotelDocs = upload.array("hotelDocs", 5);
 
