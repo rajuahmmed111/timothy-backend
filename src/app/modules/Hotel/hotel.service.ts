@@ -254,6 +254,8 @@ const getAllHotelsForPartner = async (
       user: true,
     },
   });
+
+
   const total = await prisma.hotel.count({ where });
 
   return {
@@ -396,6 +398,7 @@ const getAllFavoriteHotels = async (userId: string) => {
 
 // update hotel
 const updateHotel = async (hotelId: string, req: Request) => {
+
   const userId = req.user?.id;
   if (!userId) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
