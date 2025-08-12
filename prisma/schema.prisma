@@ -91,6 +91,8 @@ model User {
   favorite          Favorite[]
   security_Protocol Security_Protocol[]
   security_Booking  Security_Booking[]
+  car_Rental        Car_Rental[]
+  car_Booking       Car_Booking[]
 
   @@map("users")
 }
@@ -149,10 +151,10 @@ model Hotel {
   hotelRoomImages        String[] // 5 image
   hotelRoomCapacity      String
 
-  category String?
-  discount Float?
-  isBooked EveryServiceStatus @default(AVAILABLE)
-  hotelReviewCount  Int      @default(0)
+  category         String?
+  discount         Float?
+  isBooked         EveryServiceStatus @default(AVAILABLE)
+  hotelReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -215,12 +217,12 @@ model Security_Protocol {
   securityRating   String
   securityPriceDay Int
 
-  category   String?
-  discount   Float?
-  isBooked   EveryServiceStatus @default(AVAILABLE)
-  hiredCount Int                @default(0)
-  vat        Float              @default(0)
-  hotelReviewCount  Int      @default(0)
+  category         String?
+  discount         Float?
+  isBooked         EveryServiceStatus @default(AVAILABLE)
+  hiredCount       Int                @default(0)
+  vat              Float              @default(0)
+  hotelReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -302,26 +304,60 @@ model Car_Rental {
   carCancelationPolicy String
   carDocs              String[] // 5 image
 
+  carType    String
+  carSeats   String
+  carOilType String
+
+  carEngineType   String
+  carTransmission String
+  carPower        String
+  carDrivetrain   String
+  carMileage      String
+
   carModel    String
   carCapacity String
   carColor    String
   fuelType    String
   gearType    String
 
-  carRating   String
-  carPriceDay Int
+  carRating       String
+  carPriceDay     Int
+  bookingAbleDays String[]
 
-  category String?
-  discount Float?
-  isBooked EveryServiceStatus @default(AVAILABLE)
-  hotelReviewCount  Int      @default(0)
+  category         String?
+  discount         Float?
+  isBooked         EveryServiceStatus @default(AVAILABLE)
+  hotelReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // relationships
+  user        User          @relation(fields: [partnerId], references: [id])
+  partnerId   String        @db.ObjectId
+  car_Booking Car_Booking[]
+  review      Review[]
 
   @@map("car_rentals")
+}
+
+model Car_Booking {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  number_of_car  Int
+  bookedFromDate String
+  bookedToDate   String
+  totalPrice     Float
+  bookingStatus  BookingStatus @default(PENDING)
+  category       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // relationships
+  partnerId String     @db.ObjectId
+  car       Car_Rental @relation(fields: [carId], references: [id])
+  carId     String     @db.ObjectId
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @db.ObjectId
 }
 
 model Review {
@@ -334,10 +370,12 @@ model Review {
   // relationships
   hotel      Hotel?             @relation(fields: [hotelId], references: [id])
   hotelId    String?            @db.ObjectId
-  user       User              @relation(fields: [userId], references: [id])
-  userId     String            @db.ObjectId
+  user       User               @relation(fields: [userId], references: [id])
+  userId     String             @db.ObjectId
   security   Security_Protocol? @relation(fields: [securityId], references: [id])
   securityId String?            @db.ObjectId
+  car_Rental Car_Rental?        @relation(fields: [carId], references: [id])
+  carId      String?            @db.ObjectId
 
   @@map("reviews")
 }
