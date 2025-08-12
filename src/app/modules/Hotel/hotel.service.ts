@@ -424,7 +424,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
 
   // Handle file uploads
   let businessLogo = existingHotel.businessLogo;
-  const hotelLogoFile = files?.hotelLogo?.[0];
+  const hotelLogoFile = files?.businessLogo?.[0];
   if (hotelLogoFile) {
     const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
     businessLogo = logoResult?.secure_url || businessLogo;

@@ -222,7 +222,7 @@ model Security_Protocol {
   isBooked         EveryServiceStatus @default(AVAILABLE)
   hiredCount       Int                @default(0)
   vat              Float              @default(0)
-  hotelReviewCount Int                @default(0)
+  securityReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -327,7 +327,7 @@ model Car_Rental {
   category         String?
   discount         Float?
   isBooked         EveryServiceStatus @default(AVAILABLE)
-  hotelReviewCount Int                @default(0)
+  carReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

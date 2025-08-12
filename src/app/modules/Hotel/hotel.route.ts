@@ -84,7 +84,7 @@ router.patch(
   "/:id",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "hotelLogo", maxCount: 1 },
+    { name: "businessLogo", maxCount: 1 },
     { name: "hotelRoomImages", maxCount: 5 },
     { name: "hotelDocs", maxCount: 5 },
   ]),
