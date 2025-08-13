@@ -217,11 +217,11 @@ model Security_Protocol {
   securityRating   String
   securityPriceDay Int
 
-  category         String?
-  discount         Float?
-  isBooked         EveryServiceStatus @default(AVAILABLE)
-  hiredCount       Int                @default(0)
-  vat              Float              @default(0)
+  category            String?
+  discount            Float?
+  isBooked            EveryServiceStatus @default(AVAILABLE)
+  hiredCount          Int                @default(0)
+  vat                 Float              @default(0)
   securityReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
@@ -324,9 +324,10 @@ model Car_Rental {
   carPriceDay     Int
   bookingAbleDays String[]
 
-  category         String?
-  discount         Float?
-  isBooked         EveryServiceStatus @default(AVAILABLE)
+  category       String?
+  discount       Float?
+  isBooked       EveryServiceStatus @default(AVAILABLE)
+  vat            Float              @default(0)
   carReviewCount Int                @default(0)
 
   createdAt DateTime @default(now())
@@ -343,7 +344,7 @@ model Car_Rental {
 
 model Car_Booking {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  number_of_car  Int
+  // number_of_car  Int
   bookedFromDate String
   bookedToDate   String
   totalPrice     Float
