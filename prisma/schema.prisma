@@ -372,7 +372,7 @@ model Attraction {
 
   attractionBusinessTagline     String
   attractionBusinessDescription String
-  attractionBusinessLogo        String
+  attractionBusinessLogo        String // 1 image
   attractionBookingCondition    String
   attractionCancelationPolicy   String
   attractionDocs                String[] // 5 image
