@@ -65,7 +65,7 @@ const createSecurityProtocol = async (req: Request) => {
     securityReviewCount,
     hiredCount,
     vat, //percentage
-    bookingAbleDays,
+    securityBookingAbleDays,
     // schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
   } = req.body;
 
@@ -104,9 +104,9 @@ const createSecurityProtocol = async (req: Request) => {
         : undefined,
       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
       vat: vat ? parseFloat(vat) : undefined,
-      bookingAbleDays: Array.isArray(bookingAbleDays)
-        ? bookingAbleDays
-        : bookingAbleDays?.split(",") || [],
+      securityBookingAbleDays: Array.isArray(securityBookingAbleDays)
+        ? securityBookingAbleDays
+        : securityBookingAbleDays?.split(",") || [],
       partnerId,
 
       // Create nested SecuritySchedule & ScheduleSlot
@@ -386,7 +386,7 @@ const updateSecurityProtocol = async (req: Request) => {
     securityReviewCount,
     hiredCount,
     vat, //percentage
-    bookingAbleDays,
+    securityBookingAbleDays,
   } = req.body;
 
   const updatedProtocol = await prisma.security_Protocol.update({
@@ -421,9 +421,9 @@ const updateSecurityProtocol = async (req: Request) => {
         : undefined,
       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
       vat: vat ? parseFloat(vat) : undefined,
-      bookingAbleDays: Array.isArray(bookingAbleDays)
-        ? bookingAbleDays
-        : bookingAbleDays?.split(",") || [],
+      securityBookingAbleDays: Array.isArray(securityBookingAbleDays)
+        ? securityBookingAbleDays
+        : securityBookingAbleDays?.split(",") || [],
       partnerId,
     },
   });

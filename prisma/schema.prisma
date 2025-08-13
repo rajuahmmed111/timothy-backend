@@ -223,7 +223,7 @@ model Security_Protocol {
   hiredCount          Int                @default(0)
   vat                 Float              @default(0)
   securityReviewCount Int                @default(0)
-  bookingAbleDays String[]
+  securityBookingAbleDays String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -323,7 +323,7 @@ model Car_Rental {
 
   carRating       String
   carPriceDay     Int
-  bookingAbleDays String[]
+  carBookingAbleDays String[]
 
   category       String?
   discount       Float?

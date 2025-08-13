@@ -77,7 +77,7 @@ const createCarRental = async (req: Request) => {
     gearType,
     carRating,
     carPriceDay,
-    bookingAbleDays,
+    carBookingAbleDays,
     category,
     discount,
   } = req.body;
@@ -119,9 +119,9 @@ const createCarRental = async (req: Request) => {
       gearType,
       carRating: carRating ? carRating.toString() : undefined,
       carPriceDay: parseInt(carPriceDay),
-      bookingAbleDays: Array.isArray(bookingAbleDays)
-        ? bookingAbleDays
-        : bookingAbleDays?.split(",") || [],
+      carBookingAbleDays: Array.isArray(carBookingAbleDays)
+        ? carBookingAbleDays
+        : carBookingAbleDays?.split(",") || [],
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
       partnerId,
@@ -361,7 +361,7 @@ const updateCarRental = async (carId: string, req: Request) => {
     gearType,
     carRating,
     carPriceDay,
-    bookingAbleDays,
+    carBookingAbleDays,
     category,
     discount,
   } = req.body;
@@ -404,9 +404,9 @@ const updateCarRental = async (carId: string, req: Request) => {
       gearType,
       carRating: carRating ? carRating.toString() : undefined,
       carPriceDay: carPriceDay ? parseInt(carPriceDay) : undefined,
-      bookingAbleDays: Array.isArray(bookingAbleDays)
-        ? bookingAbleDays
-        : bookingAbleDays?.split(",") || [],
+      carBookingAbleDays: Array.isArray(carBookingAbleDays)
+        ? carBookingAbleDays
+        : carBookingAbleDays?.split(",") || [],
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
     },
