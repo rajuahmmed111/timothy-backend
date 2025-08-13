@@ -83,16 +83,18 @@ model User {
   updatedAt DateTime @updatedAt
 
   // relationships
-  payment           Payment[]
-  notification      Notification[]
-  hotel             Hotel[]
-  review            Review[]
-  hotel_bookings    Hotel_Booking[]
-  favorite          Favorite[]
-  security_Protocol Security_Protocol[]
-  security_Booking  Security_Booking[]
-  car_Rental        Car_Rental[]
-  car_Booking       Car_Booking[]
+  payment            Payment[]
+  notification       Notification[]
+  hotel              Hotel[]
+  review             Review[]
+  hotel_bookings     Hotel_Booking[]
+  favorite           Favorite[]
+  security_Protocol  Security_Protocol[]
+  security_Booking   Security_Booking[]
+  car_Rental         Car_Rental[]
+  car_Booking        Car_Booking[]
+  attraction         Attraction[]
+  attraction_Booking Attraction_Booking[]
 
   @@map("users")
 }
@@ -401,7 +403,34 @@ model Attraction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // relationships
+  user               User                 @relation(fields: [partnerId], references: [id])
+  partnerId          String               @db.ObjectId
+  attraction_Booking Attraction_Booking[]
+  review             Review[]
+
   @@map("attractions")
+}
+
+model Attraction_Booking {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  // number_of_car  Int
+  bookedFromDate String
+  bookedToDate   String
+  totalPrice     Float
+  bookingStatus  BookingStatus @default(PENDING)
+  category       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // relationships
+  partnerId    String     @db.ObjectId
+  attraction   Attraction @relation(fields: [attractionId], references: [id])
+  attractionId String     @db.ObjectId
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String     @db.ObjectId
+
+  @@map("attraction_bookings")
 }
 
 model Review {
@@ -412,14 +441,16 @@ model Review {
   updatedAt DateTime @updatedAt
 
   // relationships
-  hotel      Hotel?             @relation(fields: [hotelId], references: [id])
-  hotelId    String?            @db.ObjectId
-  user       User               @relation(fields: [userId], references: [id])
-  userId     String             @db.ObjectId
-  security   Security_Protocol? @relation(fields: [securityId], references: [id])
-  securityId String?            @db.ObjectId
-  car_Rental Car_Rental?        @relation(fields: [carId], references: [id])
-  carId      String?            @db.ObjectId
+  hotel        Hotel?             @relation(fields: [hotelId], references: [id])
+  hotelId      String?            @db.ObjectId
+  user         User               @relation(fields: [userId], references: [id])
+  userId       String             @db.ObjectId
+  security     Security_Protocol? @relation(fields: [securityId], references: [id])
+  securityId   String?            @db.ObjectId
+  car_Rental   Car_Rental?        @relation(fields: [carId], references: [id])
+  carId        String?            @db.ObjectId
+  attraction   Attraction?        @relation(fields: [attractionId], references: [id])
+  attractionId String?            @db.ObjectId
 
   @@map("reviews")
 }

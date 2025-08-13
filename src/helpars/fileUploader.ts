@@ -63,6 +63,10 @@ const securityDocs = upload.array("securityDocs", 5);
 const carImages = upload.array("carImages", 5);
 const carDocs = upload.array("carDocs", 5);
 
+const attractionBusinessLogo = upload.single("attractionBusinessLogo");
+const attractionImages = upload.array("attractionImages", 5);
+const attractionDocs = upload.array("attractionDocs", 5);
+
 // Cloudinary configuration
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
@@ -121,6 +125,10 @@ export const uploadFile = {
 
   carImages,
   carDocs,
+
+  attractionBusinessLogo,
+  attractionImages,
+  attractionDocs,
 
   uploadToCloudinary,
 };

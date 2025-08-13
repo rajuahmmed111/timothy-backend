@@ -399,8 +399,8 @@ const getAllFavoriteHotels = async (userId: string) => {
 
 // update hotel
 const updateHotel = async (hotelId: string, req: Request) => {
-  const userId = req.user?.id;
-  if (!userId) {
+  const partnerId = req.user?.id;
+  if (!partnerId) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
   }
 
@@ -414,7 +414,7 @@ const updateHotel = async (hotelId: string, req: Request) => {
   }
 
   // Check ownership
-  if (existingHotel.partnerId !== userId) {
+  if (existingHotel.partnerId !== partnerId) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       "You do not have permission to update this hotel"
