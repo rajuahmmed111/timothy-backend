@@ -10,6 +10,7 @@ import { hotelBookingRoute } from "../modules/HotelBooking/hotelBooking.route";
 import { securityProtocolRoute } from "../modules/Security_Protocol/security_protocol.route";
 import { security_bookingRoute } from "../modules/Security_booking/security_booking.route";
 import { CarRentalRoutes } from "../modules/Car_Rental/carRental.route";
+import { attractionRoute } from "../modules/Attraction/attraction.route";
 
 const router = express.Router();
 
@@ -51,6 +52,11 @@ const moduleRoutes = [
   //   path: "/security-booking",
   //   route: security_bookingRoute,
   // },
+  {
+    path: "/attractions",
+    route: attractionRoute,
+  },
+
   // {
   //   path: "/subscription",
   //   route: subscriptionRoute,
