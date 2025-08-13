@@ -152,7 +152,7 @@ model Hotel {
   hotelRoomCapacity      String
 
   category         String?
-  discount         Float?
+  discount         Float? @default(0)
   isBooked         EveryServiceStatus @default(AVAILABLE)
   hotelReviewCount Int                @default(0)
 

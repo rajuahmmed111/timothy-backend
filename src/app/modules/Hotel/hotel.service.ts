@@ -87,6 +87,7 @@ const createHotel = async (req: Request) => {
     hotelRoomCapacity,
     category,
     discount,
+    hotelReviewCount,
   } = req.body;
 
   const result = await prisma.hotel.create({
@@ -125,6 +126,7 @@ const createHotel = async (req: Request) => {
       hotelRoomImages: roomImageUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
+      hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
       partnerId: partnerId,
     },
   });
@@ -254,7 +256,6 @@ const getAllHotelsForPartner = async (
       user: true,
     },
   });
-
 
   const total = await prisma.hotel.count({ where });
 
@@ -398,7 +399,6 @@ const getAllFavoriteHotels = async (userId: string) => {
 
 // update hotel
 const updateHotel = async (hotelId: string, req: Request) => {
-
   const userId = req.user?.id;
   if (!userId) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
