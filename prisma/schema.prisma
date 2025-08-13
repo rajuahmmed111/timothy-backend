@@ -223,6 +223,7 @@ model Security_Protocol {
   hiredCount          Int                @default(0)
   vat                 Float              @default(0)
   securityReviewCount Int                @default(0)
+  bookingAbleDays String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -230,36 +231,36 @@ model Security_Protocol {
   // relationships
   user             User               @relation(fields: [partnerId], references: [id])
   partnerId        String             @db.ObjectId
-  securitySchedule SecuritySchedule[]
+  // securitySchedule SecuritySchedule[]
   security_Booking Security_Booking[]
   review           Review[]
 
   @@map("security_protocols")
 }
 
-model SecuritySchedule {
-  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
-  day                Weekday
-  securityProtocolId String            @db.ObjectId
-  securityProtocol   Security_Protocol @relation(fields: [securityProtocolId], references: [id])
+// model SecuritySchedule {
+//   id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+//   day                Weekday
+//   securityProtocolId String            @db.ObjectId
+//   securityProtocol   Security_Protocol @relation(fields: [securityProtocolId], references: [id])
 
-  // relationships
-  slots ScheduleSlot[]
+//   // relationships
+//   slots ScheduleSlot[]
 
-  @@map("security_schedules")
-}
+//   @@map("security_schedules")
+// }
 
-model ScheduleSlot {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  from String // "10:00:00"
-  to   String // "12:00:00"
+// model ScheduleSlot {
+//   id   String @id @default(auto()) @map("_id") @db.ObjectId
+//   from String // "10:00:00"
+//   to   String // "12:00:00"
 
-  // relationships
-  securityScheduleId String           @db.ObjectId
-  weeklySchedule     SecuritySchedule @relation(fields: [securityScheduleId], references: [id])
+//   // relationships
+//   securityScheduleId String           @db.ObjectId
+//   weeklySchedule     SecuritySchedule @relation(fields: [securityScheduleId], references: [id])
 
-  @@map("schedule_slots")
-}
+//   @@map("schedule_slots")
+// }
 
 model Security_Booking {
   id                 String        @id @default(auto()) @map("_id") @db.ObjectId

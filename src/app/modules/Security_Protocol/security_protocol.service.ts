@@ -62,16 +62,18 @@ const createSecurityProtocol = async (req: Request) => {
     securityPriceDay,
     category,
     discount,
+    securityReviewCount,
     hiredCount,
     vat, //percentage
-    schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
+    bookingAbleDays,
+    // schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
   } = req.body;
 
   const parsedServices = Array.isArray(securityServicesOffered)
     ? securityServicesOffered
     : securityServicesOffered?.split(",").map((s: string) => s.trim());
 
-  const parsedSchedules = schedules; // assuming schedules sent as JSON string
+  // const parsedSchedules = schedules; // assuming schedules sent as JSON string
 
   const securityProtocol = await prisma.security_Protocol.create({
     data: {
@@ -97,30 +99,36 @@ const createSecurityProtocol = async (req: Request) => {
       securityDocs: securityDocUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
+      securityReviewCount: securityReviewCount
+        ? parseInt(securityReviewCount)
+        : undefined,
       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
       vat: vat ? parseFloat(vat) : undefined,
+      bookingAbleDays: Array.isArray(bookingAbleDays)
+        ? bookingAbleDays
+        : bookingAbleDays?.split(",") || [],
       partnerId,
 
       // Create nested SecuritySchedule & ScheduleSlot
-      securitySchedule: {
-        create: parsedSchedules.map((schedule: any) => ({
-          day: schedule.day,
-          slots: {
-            create: schedule.slots.map((slot: any) => ({
-              from: slot.from,
-              to: slot.to,
-            })),
-          },
-        })),
-      },
+      // securitySchedule: {
+      //   create: parsedSchedules.map((schedule: any) => ({
+      //     day: schedule.day,
+      //     slots: {
+      //       create: schedule.slots.map((slot: any) => ({
+      //         from: slot.from,
+      //         to: slot.to,
+      //       })),
+      //     },
+      //   })),
+      // },
     },
-    include: {
-      securitySchedule: {
-        include: {
-          slots: true,
-        },
-      },
-    },
+    // include: {
+    //   securitySchedule: {
+    //     include: {
+    //       slots: true,
+    //     },
+    //   },
+    // },
   });
 
   return securityProtocol;
@@ -171,7 +179,13 @@ const getAllSecurityProtocolsForPartner = async (
   const result = await prisma.security_Protocol.findMany({
     where: whereConditions,
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
     },
     skip,
     take: limit,
@@ -251,10 +265,11 @@ const getAllSecurityProtocols = async (
             createdAt: "desc",
           },
     include: {
-      user: true,
-      securitySchedule: {
-        include: {
-          slots: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
         },
       },
     },
@@ -279,7 +294,13 @@ const getSingleSecurityProtocol = async (id: string) => {
   const result = await prisma.security_Protocol.findUnique({
     where: { id, isBooked: EveryServiceStatus.AVAILABLE },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
     },
   });
   if (!result) {
@@ -362,8 +383,10 @@ const updateSecurityProtocol = async (req: Request) => {
     securityPriceDay,
     category,
     discount,
+    securityReviewCount,
     hiredCount,
-    vat,
+    vat, //percentage
+    bookingAbleDays,
   } = req.body;
 
   const updatedProtocol = await prisma.security_Protocol.update({
@@ -393,8 +416,15 @@ const updateSecurityProtocol = async (req: Request) => {
       securityDocs: securityDocUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
+      securityReviewCount: securityReviewCount
+        ? parseInt(securityReviewCount)
+        : undefined,
       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
       vat: vat ? parseFloat(vat) : undefined,
+      bookingAbleDays: Array.isArray(bookingAbleDays)
+        ? bookingAbleDays
+        : bookingAbleDays?.split(",") || [],
+      partnerId,
     },
   });
 

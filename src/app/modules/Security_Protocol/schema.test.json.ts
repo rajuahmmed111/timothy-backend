@@ -1,58 +1,35 @@
 // {
-//   "securityBusinessName": "Eagle Security Services",
-//   "securityName": "Eagle Force",
-//   "securityBusinessType": "Private Security",
-//   "securityRegNum": "SEC-20250801",
-//   "securityRegDate": "2025-08-01",
-//   "securityPhone": "+8801780000000",
-//   "securityEmail": "eagleforce@email.com",
-
-//   "securityAddress": "Road 12, Gulshan",
-//   "securityCity": "Dhaka",
-//   "securityPostalCode": "1212",
-//   "securityDistrict": "Dhaka",
-//   "securityCountry": "Bangladesh",
-
-//   "securityDescription": "Premium security services with trained personnel.",
-//   "securityImages": "https://i.ibb.co/zWxSgQL8/download.png",
-//   "securityDocs": "https://docs.example.com/eagle-force-license.pdf",
-
-//   "securityServicesOffered": [
-//     "Event Security",
-//     "24/7 Surveillance",
-//     "VIP Escort"
-//   ],
-//   "securityBookingCondition": "Minimum 3 days notice required.",
-//   "securityCancelationPolicy": "Full refund if canceled 48 hours before service.",
-//   "securityRating": "4.9",
-//   "securityPriceDay": 1500,
-
-//   "category": "Armed",
-//   "discount": 10.0,
-
-//   "month": "2025-08",
-//   "date": "2025-08-01",
-
-//   "weeklySchedules": [
-//     {
-//       "day": "Friday",
-//       "slots": [
-//         { "from": "09:00:00", "to": "11:00:00" },
-//         { "from": "14:00:00", "to": "16:00:00" }
-//       ]
-//     },
-//     {
-//       "day": "Monday",
-//       "slots": [
-//         { "from": "10:00:00", "to": "13:00:00" }
-//       ]
-//     },
-//     {
-//       "day": "Saturday",
-//       "slots": [
-//         { "from": "08:00:00", "to": "12:00:00" },
-//         { "from": "15:00:00", "to": "17:00:00" }
-//       ]
-//     }
-//   ]
-// }
+//     "securityBusinessName": "SecureLine Services",
+//     "securityName": "SLine",
+//     "securityBusinessType": "Corporate",
+//     "securityRegNum": "REG-SL-2023-07",
+//     "securityRegDate": "2023-07-20",
+//     "securityPhone": "01755667788",
+//     "securityEmail": "info@secureline.com",
+//     "securityAddress": "88 Corporate Ave, Banani",
+//     "securityCity": "Dhaka",
+//     "securityPostalCode": "1213",
+//     "securityDistrict": "Dhaka",
+//     "securityCountry": "Bangladesh",
+//     "securityDescription": "Trusted security for businesses and events.",
+//     "securityServicesOffered": [
+//       "Access Control",
+//       "Emergency Response",
+//       "Night Watch"
+//     ],
+//     "securityBookingCondition": "Bookings accepted up to 48 hours prior.",
+//     "securityCancelationPolicy": "No refund on same-day cancellations.",
+//     "securityRating": "4.5",
+//     "securityPriceDay": 1400,
+//     "category": "Corporate",
+//     "discount": 10,
+//     "schedules": [
+//       { "day": "SUNDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] },
+//       { "day": "MONDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] },
+//       { "day": "TUESDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] },
+//       { "day": "WEDNESDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] },
+//       { "day": "THURSDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] },
+//       { "day": "FRIDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] },
+//       { "day": "SATURDAY", "slots": [{ "from": "20:00:00", "to": "06:00:00" }] }
+//     ]
+//   }
