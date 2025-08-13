@@ -152,7 +152,7 @@ model Hotel {
   hotelRoomCapacity      String
 
   category         String?
-  discount         Float? @default(0)
+  discount         Float?             @default(0)
   isBooked         EveryServiceStatus @default(AVAILABLE)
   hotelReviewCount Int                @default(0)
 
@@ -217,12 +217,12 @@ model Security_Protocol {
   securityRating   String
   securityPriceDay Int
 
-  category            String?
-  discount            Float?
-  isBooked            EveryServiceStatus @default(AVAILABLE)
-  hiredCount          Int                @default(0)
-  vat                 Float              @default(0)
-  securityReviewCount Int                @default(0)
+  category                String?
+  discount                Float?
+  isBooked                EveryServiceStatus @default(AVAILABLE)
+  hiredCount              Int                @default(0)
+  vat                     Float              @default(0)
+  securityReviewCount     Int                @default(0)
   securityBookingAbleDays String[]
 
   createdAt DateTime @default(now())
@@ -321,8 +321,8 @@ model Car_Rental {
   fuelType    String
   gearType    String
 
-  carRating       String
-  carPriceDay     Int
+  carRating          String
+  carPriceDay        Int
   carBookingAbleDays String[]
 
   category       String?
@@ -360,6 +360,48 @@ model Car_Booking {
   carId     String     @db.ObjectId
   user      User       @relation(fields: [userId], references: [id])
   userId    String     @db.ObjectId
+}
+
+model Attraction {
+  id                     String @id @default(auto()) @map("_id") @db.ObjectId
+  attractionBusinessName String @unique
+  attractionName         String
+  attractionBusinessType String
+  attractionRegNum       String
+  attractionRegDate      String
+
+  attractionBusinessTagline     String
+  attractionBusinessDescription String
+  attractionBusinessLogo        String
+  attractionBookingCondition    String
+  attractionCancelationPolicy   String
+  attractionDocs                String[] // 5 image
+
+  attractionServicesOffered String[]
+  attractionRating          String
+  attractionDestinationType String
+  attractionPriceDay        Int
+  attractionDescription     String
+  attractionPhone           String
+  attractionEmail           String
+  attractionAddress         String
+  attractionCity            String
+  attractionPostalCode      String
+  attractionDistrict        String
+  attractionCountry         String
+  attractionImages          String[] // 5 image
+  attractionBookingAble     String[]
+
+  category              String?
+  discount              Float?
+  isBooked              EveryServiceStatus @default(AVAILABLE)
+  vat                   Float              @default(0)
+  attractionReviewCount Int                @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("attractions")
 }
 
 model Review {
