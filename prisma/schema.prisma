@@ -240,30 +240,6 @@ model Security_Protocol {
   @@map("security_protocols")
 }
 
-// model SecuritySchedule {
-//   id                 String            @id @default(auto()) @map("_id") @db.ObjectId
-//   day                Weekday
-//   securityProtocolId String            @db.ObjectId
-//   securityProtocol   Security_Protocol @relation(fields: [securityProtocolId], references: [id])
-
-//   // relationships
-//   slots ScheduleSlot[]
-
-//   @@map("security_schedules")
-// }
-
-// model ScheduleSlot {
-//   id   String @id @default(auto()) @map("_id") @db.ObjectId
-//   from String // "10:00:00"
-//   to   String // "12:00:00"
-
-//   // relationships
-//   securityScheduleId String           @db.ObjectId
-//   weeklySchedule     SecuritySchedule @relation(fields: [securityScheduleId], references: [id])
-
-//   @@map("schedule_slots")
-// }
-
 model Security_Booking {
   id                 String        @id @default(auto()) @map("_id") @db.ObjectId
   number_of_security Int
@@ -408,8 +384,34 @@ model Attraction {
   partnerId          String               @db.ObjectId
   attraction_Booking Attraction_Booking[]
   review             Review[]
+  attractionSchedule AttractionSchedule[]
 
   @@map("attractions")
+}
+
+model AttractionSchedule {
+  id   String  @id @default(auto()) @map("_id") @db.ObjectId
+  day  Weekday
+  date String
+
+  // relationships
+  attractionId String         @db.ObjectId
+  attraction   Attraction     @relation(fields: [attractionId], references: [id])
+  slots        ScheduleSlot[]
+
+  @@map("attraction_schedules")
+}
+
+model ScheduleSlot {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  from String // "10:00:00"
+  to   String // "12:00:00"
+
+  // relationships
+  attractionScheduleId String             @db.ObjectId
+  weeklySchedule       AttractionSchedule @relation(fields: [attractionScheduleId], references: [id])
+
+  @@map("schedule_slots")
 }
 
 model Attraction_Booking {
