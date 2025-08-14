@@ -277,6 +277,15 @@ const getAllAttractionsForPartner = async (
 const getSingleAttraction = async (id: string) => {
   const result = await prisma.attraction.findUnique({
     where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    }
   });
 
   if (!result) {
