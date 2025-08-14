@@ -398,7 +398,8 @@ const getAllFavoriteHotels = async (userId: string) => {
 };
 
 // update hotel
-const updateHotel = async (hotelId: string, req: Request) => {
+const updateHotel = async (req: Request) => {
+  const hotelId = req.params.id;
   const partnerId = req.user?.id;
   if (!partnerId) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");

@@ -7,6 +7,37 @@ import { uploadFile } from "../../../helpars/fileUploader";
 
 const router = express.Router();
 
+// get all attractions
+router.get(
+  "/",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  AttractionController.getAllAttractions
+);
+
+// get all my created attractions for partner
+router.get(
+  "/partner",
+  auth(UserRole.BUSINESS_PARTNER),
+  AttractionController.getAllAttractionsForPartner
+);
+
+// get attraction by id
+router.get(
+  "/:id",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  AttractionController.getSingleAttraction
+);
+
 // create attraction
 router.post(
   "/",
@@ -18,6 +49,19 @@ router.post(
   ]),
   parseBodyData,
   AttractionController.createAttraction
+);
+
+// update attraction
+router.patch(
+  "/:id",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "attractionBusinessLogo", maxCount: 1 },
+    { name: "attractionImages", maxCount: 5 },
+    { name: "attractionDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
+  AttractionController.updateAttraction
 );
 
 export const attractionRoute = router;

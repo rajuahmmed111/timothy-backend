@@ -38,7 +38,11 @@ const getAllHotelsForPartner = catchAsync(
     const partnerId = req.user?.id;
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
-    const result = await HotelService.getAllHotelsForPartner(partnerId, filter, options);
+    const result = await HotelService.getAllHotelsForPartner(
+      partnerId,
+      filter,
+      options
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -104,8 +108,8 @@ const getAllFavoriteHotels = catchAsync(async (req: Request, res: Response) => {
 
 // update hotel
 const updateHotel = catchAsync(async (req: Request, res: Response) => {
-  const hotelId = req.params.id;
-  const updatedHotel = await HotelService.updateHotel(hotelId, req);
+  // const hotelId = req.params.id;
+  const updatedHotel = await HotelService.updateHotel(req);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
