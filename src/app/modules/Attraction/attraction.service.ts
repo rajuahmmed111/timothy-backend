@@ -187,7 +187,18 @@ const getAllAttractions = async (
       },
     },
   });
+
   const total = await prisma.attraction.count({ where });
+
+  // Step 2: Group by attractionCountry
+  const grouped = result.reduce((acc, attraction) => {
+    const country = attraction.attractionCountry || "Unknown";
+    if (!acc[country]) {
+      acc[country] = [];
+    }
+    acc[country].push(attraction);
+    return acc;
+  }, {} as Record<string, typeof result>);
 
   return {
     meta: {
@@ -195,7 +206,7 @@ const getAllAttractions = async (
       page,
       limit,
     },
-    data: result,
+    data: grouped,
   };
 };
 
@@ -285,7 +296,7 @@ const getSingleAttraction = async (id: string) => {
           email: true,
         },
       },
-    }
+    },
   });
 
   if (!result) {
