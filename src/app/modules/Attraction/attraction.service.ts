@@ -178,7 +178,13 @@ const getAllAttractions = async (
             createdAt: "desc",
           },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
     },
   });
   const total = await prisma.attraction.count({ where });
