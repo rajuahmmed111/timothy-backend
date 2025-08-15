@@ -335,6 +335,9 @@ const getSingleAttraction = async (id: string) => {
           email: true,
         },
       },
+      attractionSchedule: {
+        include: { slots: true },
+      },
     },
   });
 
