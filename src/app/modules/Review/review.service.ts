@@ -210,12 +210,14 @@ const createAttractionReview = async (
 ) => {
   const todayStart = startOfDay(new Date());
   const todayEnd = endOfDay(new Date());
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
+
   // check if user has already rated this security
   const existingDailyRating = await prisma.review.findFirst({
     where: {
@@ -233,14 +235,36 @@ const createAttractionReview = async (
       "You have already rated this security today."
     );
   }
+
+  // generate subRatings
+  const subRatings = {
+    goodValue: parseFloat((rating + (Math.random() * 0.2 - 0.1)).toFixed(1)),
+    quality: parseFloat((rating + (Math.random() * 0.2 - 0.1)).toFixed(1)),
+    facilities: parseFloat((rating + (Math.random() * 0.2 - 0.1)).toFixed(1)),
+    easeOfAccess: parseFloat((rating + (Math.random() * 0.2 - 0.1)).toFixed(1)),
+  };
+
+  // create review
   const review = await prisma.review.create({
     data: {
       userId,
       attractionId,
       rating,
       comment,
+      subRatings,
+    },
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      userId: true,
+      attractionId: true,
+      subRatings: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
+
   const ratings = await prisma.review.findMany({
     where: {
       attractionId,
@@ -249,6 +273,7 @@ const createAttractionReview = async (
       rating: true,
     },
   });
+
   // average rating calculation
   const averageRating =
     ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
@@ -259,6 +284,7 @@ const createAttractionReview = async (
       attractionReviewCount: ratings.length,
     },
   });
+
   return review;
 };
 

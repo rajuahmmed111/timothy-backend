@@ -389,7 +389,7 @@ model Attraction {
 }
 
 model AttractionSchedule {
-  id   String  @id @default(auto()) @map("_id") @db.ObjectId
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
   day  String
   date String
 
@@ -435,11 +435,12 @@ model Attraction_Booking {
 }
 
 model Review {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  rating    Float
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating     Float
+  subRatings Json?
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // relationships
   hotel        Hotel?             @relation(fields: [hotelId], references: [id])
