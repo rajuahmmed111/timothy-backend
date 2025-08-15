@@ -11,6 +11,7 @@ import { securityProtocolRoute } from "../modules/Security_Protocol/security_pro
 import { security_bookingRoute } from "../modules/Security_booking/security_booking.route";
 import { CarRentalRoutes } from "../modules/Car_Rental/carRental.route";
 import { attractionRoute } from "../modules/Attraction/attraction.route";
+import { attractionBookingRoutes } from "../modules/Attraction_Booking/attraction_booking.route";
 
 const router = express.Router();
 
@@ -55,6 +56,10 @@ const moduleRoutes = [
   {
     path: "/attractions",
     route: attractionRoute,
+  },
+  {
+    path: "/attraction-booking",
+    route: attractionBookingRoutes,
   },
 
   // {
