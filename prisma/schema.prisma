@@ -368,7 +368,6 @@ model Attraction {
   attractionDistrict        String
   attractionCountry         String
   attractionImages          String[] // 5 image
-  attractionBookingAble     String[]
 
   category              String?
   discount              Float?
@@ -391,7 +390,7 @@ model Attraction {
 
 model AttractionSchedule {
   id   String  @id @default(auto()) @map("_id") @db.ObjectId
-  day  Weekday
+  day  String
   date String
 
   // relationships

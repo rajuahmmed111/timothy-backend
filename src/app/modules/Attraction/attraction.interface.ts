@@ -7,3 +7,8 @@ export interface IAttractionFilter {
   category?: string | undefined;
   // attractionPriceDay?: number | undefined;
 }
+
+export interface ISlot {
+  from: string;
+  to: string;
+}
