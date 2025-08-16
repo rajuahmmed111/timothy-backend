@@ -57,6 +57,7 @@ const createHotelBooking = async (
   // calculate base price
   const roomPrice = hotel.hotelRoomPriceNight;
   let totalPrice = roomPrice * rooms * numberOfNights;
+  console.log(totalPrice, "totalPrice");
 
   // apply discount if available
   if (hotel.discount && hotel.discount > 0) {
