@@ -180,7 +180,7 @@ model Hotel_Booking {
   bookedToDate   String
   totalPrice     Float
   bookingStatus  BookingStatus @default(PENDING)
-  category       String
+  category       String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
