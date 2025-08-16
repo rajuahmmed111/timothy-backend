@@ -415,11 +415,14 @@ model ScheduleSlot {
 
 model Attraction_Booking {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  // number_of_car  Int
   bookedFromDate String
   bookedToDate   String
   totalPrice     Float
   bookingStatus  BookingStatus @default(PENDING)
+  adults         Int
+  children       Int
+  date           String
+  time           String
   category       String
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
