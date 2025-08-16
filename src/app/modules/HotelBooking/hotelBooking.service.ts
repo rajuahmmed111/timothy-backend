@@ -15,7 +15,6 @@ const createHotelBooking = async (
   data: IHotelBookingData
 ) => {
   const { rooms, adults, children, bookedFromDate, bookedToDate } = data;
-  console.log(data, "data", hotelId);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -27,14 +26,12 @@ const createHotelBooking = async (
   const hotel = await prisma.hotel.findUnique({
     where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
     select: {
-      id: true,
       hotelRoomPriceNight: true,
       partnerId: true,
       discount: true, // discount in percentage
       category: true,
     },
   });
-  console.log(hotel, "hotel");
 
   if (!hotel) {
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
@@ -45,8 +42,8 @@ const createHotelBooking = async (
   }
 
   // calculate number of nights
-  const fromDate = parse(bookedFromDate, "dd-MM-yyyy", new Date());
-  const toDate = parse(bookedToDate, "dd-MM-yyyy", new Date());
+  const fromDate = parse(bookedFromDate, "yyyy-MM-dd", new Date());
+  const toDate = parse(bookedToDate, "yyyy-MM-dd", new Date());
 
   const numberOfNights = differenceInDays(toDate, fromDate);
 
@@ -57,7 +54,6 @@ const createHotelBooking = async (
   // calculate base price
   const roomPrice = hotel.hotelRoomPriceNight;
   let totalPrice = roomPrice * rooms * numberOfNights;
-  console.log(totalPrice, "totalPrice");
 
   // apply discount if available
   if (hotel.discount && hotel.discount > 0) {
@@ -75,7 +71,6 @@ const createHotelBooking = async (
       category: hotel.category as string,
     },
   });
-  console.log(result, "result");
 
   return result;
 };
