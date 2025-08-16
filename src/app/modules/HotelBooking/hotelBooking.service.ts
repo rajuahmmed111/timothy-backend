@@ -74,6 +74,7 @@ const createHotelBooking = async (
       category: hotel.category as string,
     },
   });
+  console.log(result, "result");
 
   return result;
 };
