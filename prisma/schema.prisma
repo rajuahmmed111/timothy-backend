@@ -358,7 +358,8 @@ model Attraction {
   attractionServicesOffered String[]
   attractionRating          String
   attractionDestinationType String
-  attractionPriceDay        Int
+  attractionAdultPrice      Int
+  attractionChildPrice      Int
   attractionDescription     String
   attractionPhone           String
   attractionEmail           String
@@ -422,7 +423,8 @@ model Attraction_Booking {
   adults         Int
   children       Int
   date           String
-  time           String
+  day            String
+  timeSlot       String
   category       String
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

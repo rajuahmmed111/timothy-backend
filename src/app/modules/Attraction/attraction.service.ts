@@ -60,7 +60,8 @@ const createAttraction = async (req: Request) => {
     attractionServicesOffered,
     attractionRating,
     attractionDestinationType,
-    attractionPriceDay,
+    attractionAdultPrice,
+    attractionChildPrice,
     attractionDescription,
     attractionPhone,
     attractionEmail,
@@ -69,91 +70,122 @@ const createAttraction = async (req: Request) => {
     attractionPostalCode,
     attractionDistrict,
     attractionCountry,
-    attractionBookingAble,
     category,
     discount,
     attractionReviewCount,
     schedules, // [{ date: "2025-08-12", slots: [{ from, to }] }]
   } = req.body;
 
-  // transaction: Attraction + Schedule + Slots
-  const { attractionId } = await prisma.$transaction(async (tx) => {
-    // create Attraction
-    const attraction = await tx.attraction.create({
-      data: {
-        attractionBusinessName,
-        attractionName,
-        attractionBusinessType,
-        attractionRegNum,
-        attractionRegDate,
-        attractionBusinessTagline,
-        attractionBusinessDescription,
-        attractionBusinessLogo,
-        attractionBookingCondition,
-        attractionCancelationPolicy,
-        attractionDocs,
-        attractionServicesOffered: Array.isArray(attractionServicesOffered)
-          ? attractionServicesOffered
-          : attractionServicesOffered?.split(","),
-        attractionRating: attractionRating?.toString(),
-        attractionDestinationType,
-        attractionPriceDay: parseInt(attractionPriceDay),
-        attractionDescription,
-        attractionPhone,
-        attractionEmail,
-        attractionAddress,
-        attractionCity,
-        attractionPostalCode,
-        attractionDistrict,
-        attractionCountry,
-        attractionImages,
-        category: category || undefined,
-        discount: discount ? parseFloat(discount) : undefined,
-        attractionReviewCount: attractionReviewCount
-          ? parseInt(attractionReviewCount)
-          : 0,
-        partnerId,
+  // check same schedule exists
+  if (!schedules || schedules.length === 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "At least one schedule with slots is required"
+    );
+  }
+
+  for (const schedule of schedules) {
+    const existingSchedule = await prisma.attractionSchedule.findFirst({
+      where: {
+        attraction: {
+          partnerId,
+        },
+        date: schedule.date,
+        day: schedule.day,
       },
     });
-
-    //  create Schedules + Slots
-    if (!schedules || schedules.length === 0) {
+    if (existingSchedule) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        "At least one schedule with slots is required"
+        `Schedule already exists for ${schedule.date} (${schedule.day})`
       );
     }
+  }
 
-    for (const schedule of schedules) {
-      // date as string
-      const attractionSchedule = await tx.attractionSchedule.create({
+  // transaction: Attraction + Schedule + Slots
+  const { attractionId } = await prisma.$transaction(
+    async (tx) => {
+      // create Attraction
+      const attraction = await tx.attraction.create({
         data: {
-          attractionId: attraction.id,
-          date: schedule.date,
-          day: schedule.day,
+          attractionBusinessName,
+          attractionName,
+          attractionBusinessType,
+          attractionRegNum,
+          attractionRegDate,
+          attractionBusinessTagline,
+          attractionBusinessDescription,
+          attractionBusinessLogo,
+          attractionBookingCondition,
+          attractionCancelationPolicy,
+          attractionDocs,
+          attractionServicesOffered: Array.isArray(attractionServicesOffered)
+            ? attractionServicesOffered
+            : attractionServicesOffered?.split(","),
+          attractionRating: attractionRating?.toString(),
+          attractionDestinationType,
+          attractionAdultPrice: parseInt(attractionAdultPrice),
+          attractionChildPrice: parseInt(attractionChildPrice),
+          attractionDescription,
+          attractionPhone,
+          attractionEmail,
+          attractionAddress,
+          attractionCity,
+          attractionPostalCode,
+          attractionDistrict,
+          attractionCountry,
+          attractionImages,
+          category: category || undefined,
+          discount: discount ? parseFloat(discount) : undefined,
+          attractionReviewCount: attractionReviewCount
+            ? parseInt(attractionReviewCount)
+            : 0,
+          partnerId,
         },
       });
 
-      // remove duplicate slots for same date
-      const uniqueSlots = Array.from(
-        new Map(
-          schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
-        ).values()
-      ) as ISlot[];
+      //  create Schedules + Slots
+      if (!schedules || schedules.length === 0) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          "At least one schedule with slots is required"
+        );
+      }
 
-      for (const slot of uniqueSlots) {
-        await tx.scheduleSlot.create({
+      for (const schedule of schedules) {
+        // date as string
+        const attractionSchedule = await tx.attractionSchedule.create({
           data: {
-            attractionScheduleId: attractionSchedule.id,
-            from: slot.from,
-            to: slot.to,
+            attractionId: attraction.id,
+            date: schedule.date,
+            day: schedule.day,
           },
         });
-      }
-    }
 
-    return { attractionId: attraction.id };
-  });
+        // remove duplicate slots for same date
+        const uniqueSlots = Array.from(
+          new Map(
+            schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
+          ).values()
+        ) as ISlot[];
+
+        for (const slot of uniqueSlots) {
+          await tx.scheduleSlot.create({
+            data: {
+              attractionScheduleId: attractionSchedule.id,
+              from: slot.from,
+              to: slot.to,
+            },
+          });
+        }
+      }
+
+      return { attractionId: attraction.id };
+    },
+    {
+      timeout: 20000, // 20 seconds
+    }
+  );
 
   return await prisma.attraction.findUnique({
     where: { id: attractionId },
@@ -422,7 +454,8 @@ const updateAttraction = async (req: Request) => {
     attractionServicesOffered,
     attractionRating,
     attractionDestinationType,
-    attractionPriceDay,
+    attractionAdultPrice,
+    attractionChildPrice,
     attractionDescription,
     attractionPhone,
     attractionEmail,
@@ -457,7 +490,8 @@ const updateAttraction = async (req: Request) => {
         : attractionServicesOffered?.split(","),
       attractionRating: attractionRating?.toString(),
       attractionDestinationType,
-      attractionPriceDay: parseInt(attractionPriceDay),
+      attractionAdultPrice: parseInt(attractionAdultPrice),
+      attractionChildPrice: parseInt(attractionChildPrice),
       attractionDescription,
       attractionPhone,
       attractionEmail,

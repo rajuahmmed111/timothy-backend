@@ -186,7 +186,13 @@ const getAllHotels = async (
             createdAt: "desc",
           },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
     },
   });
   const total = await prisma.hotel.count({ where });
@@ -253,7 +259,13 @@ const getAllHotelsForPartner = async (
             createdAt: "desc",
           },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
     },
   });
 

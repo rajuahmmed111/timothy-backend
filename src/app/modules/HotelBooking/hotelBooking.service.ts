@@ -15,6 +15,7 @@ const createHotelBooking = async (
   data: IHotelBookingData
 ) => {
   const { rooms, adults, children, bookedFromDate, bookedToDate } = data;
+  console.log(data, "data", hotelId);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -26,12 +27,14 @@ const createHotelBooking = async (
   const hotel = await prisma.hotel.findUnique({
     where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
     select: {
+      id: true,
       hotelRoomPriceNight: true,
       partnerId: true,
       discount: true, // discount in percentage
       category: true,
     },
   });
+  console.log(hotel, "hotel");
 
   if (!hotel) {
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
