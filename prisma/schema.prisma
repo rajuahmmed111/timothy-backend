@@ -55,6 +55,17 @@ enum PaymentProvider {
   STRIPE
 }
 
+enum PromoStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FLAT
+}
+
 // ---------------------------------------------------------
 //  MODEL
 // ---------------------------------------------------------
@@ -321,6 +332,28 @@ model Car_Rental {
   @@map("car_rentals")
 }
 
+model PromoCode {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  code          String       @unique
+  discountType  DiscountType @default(PERCENTAGE) // PERCENTAGE | FLAT
+  discountValue Float
+
+  validFrom     DateTime
+  validTo       DateTime
+  usageLimit    Int
+  usedCount     Int      @default(0)
+  perUserLimit  Int
+  minimumAmount Float? // minimum order amount
+
+  status PromoStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  carBookings Car_Booking[]
+}
+
 model Car_Booking {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
   // number_of_car  Int
@@ -333,11 +366,13 @@ model Car_Booking {
   updatedAt      DateTime      @updatedAt
 
   // relationships
-  partnerId String     @db.ObjectId
-  car       Car_Rental @relation(fields: [carId], references: [id])
-  carId     String     @db.ObjectId
-  user      User       @relation(fields: [userId], references: [id])
-  userId    String     @db.ObjectId
+  partnerId   String     @db.ObjectId
+  car         Car_Rental @relation(fields: [carId], references: [id])
+  carId       String     @db.ObjectId
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @db.ObjectId
+  promoCode   PromoCode? @relation(fields: [promoCodeId], references: [id])
+  promoCodeId String?    @db.ObjectId
 }
 
 model Attraction {

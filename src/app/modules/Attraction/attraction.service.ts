@@ -256,6 +256,9 @@ const getAllAttractions = async (
           profileImage: true,
         },
       },
+      attractionSchedule: {
+        include: { slots: true },
+      },
     },
   });
 

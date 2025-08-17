@@ -14,7 +14,6 @@ const createAttractionBooking = async (
     day: string; // "THURSDAY"
     from: string; // "10:00:00"
     to: string; // "12:00:00"
-    // category?: string | null;
   }
 ) => {
   const { adults, children, date, day, from, to } = data;
@@ -26,7 +25,7 @@ const createAttractionBooking = async (
     );
   }
 
-  // 1️⃣ Get attraction
+  // get attraction
   const attraction = await prisma.attraction.findUnique({
     where: { id: attractionId },
     include: {
@@ -41,7 +40,7 @@ const createAttractionBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  // 2️⃣ Check schedule exists
+  // check schedule exists
   if (
     !attraction.attractionSchedule ||
     attraction.attractionSchedule.length === 0
@@ -54,7 +53,7 @@ const createAttractionBooking = async (
 
   const schedule = attraction.attractionSchedule[0];
 
-  // 3️⃣ Check slot exists
+  // check slot exists
   const slotExists = schedule.slots.some((s) => s.from === from && s.to === to);
   if (!slotExists) {
     throw new ApiError(
@@ -63,7 +62,7 @@ const createAttractionBooking = async (
     );
   }
 
-  // 4️⃣ Calculate total price
+  // calculate total price
   let totalPrice =
     adults * (attraction.attractionAdultPrice || 0) +
     children * (attraction.attractionChildPrice || 0);
@@ -72,7 +71,7 @@ const createAttractionBooking = async (
   if (attraction.discount)
     totalPrice -= (totalPrice * attraction.discount) / 100;
 
-  // 5️⃣ Create booking
+  // create booking
   const booking = await prisma.attraction_Booking.create({
     data: {
       userId,
@@ -92,6 +91,76 @@ const createAttractionBooking = async (
   return booking;
 };
 
+// get all attraction bookings
+const getAllAttractionBookings = async (partnerId: string) => {
+  const partner = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const result = await prisma.attraction_Booking.findMany({
+    where: { partnerId: partner.id },
+  });
+  return result;
+};
+
+// get single attraction booking
+const getAttractionBookingById = async (bookingId: string, userId: string) => {
+  const findUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!findUser) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.attraction_Booking.findUnique({
+    where: { id: bookingId, userId },
+    include: {
+      attraction: {
+        select: {
+          id: true,
+          attractionName: true,
+          attractionAdultPrice: true,
+          attractionChildPrice: true,
+          discount: true,
+          category: true,
+          partnerId: true,
+        },
+      },
+    },
+  });
+  return result;
+};
+
+// get all my attraction bookings
+const getAllMyAttractionBookings = async (userId: string) => {
+  const findUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!findUser) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.attraction_Booking.findMany({
+    where: { userId: findUser.id },
+    include: {
+      attraction: {
+        select: {
+          id: true,
+          attractionName: true,
+          attractionAdultPrice: true,
+          attractionChildPrice: true,
+          discount: true,
+          category: true,
+          partnerId: true,
+        },
+      },
+    },
+  });
+  return result;
+};
+
 export const AttractionBookingService = {
   createAttractionBooking,
+  getAllAttractionBookings,
+  getAttractionBookingById,
+  getAllMyAttractionBookings,
 };
