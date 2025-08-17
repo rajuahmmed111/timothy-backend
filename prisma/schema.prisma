@@ -241,15 +241,15 @@ model Security_Protocol {
 }
 
 model Security_Booking {
-  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
-  number_of_security Int
-  bookedFromDate     String
-  bookedToDate       String
-  totalPrice         Float
-  bookingStatus      BookingStatus @default(PENDING)
-  category           String
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                     String        @id @default(auto()) @map("_id") @db.ObjectId
+  number_of_security     Int
+  securityBookedFromDate String
+  securityBookedToDate   String
+  totalPrice             Float
+  bookingStatus          BookingStatus @default(PENDING)
+  category               String
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
 
   // relationships
   partnerId  String            @db.ObjectId
@@ -415,19 +415,17 @@ model ScheduleSlot {
 }
 
 model Attraction_Booking {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  bookedFromDate String
-  bookedToDate   String
-  totalPrice     Float
-  bookingStatus  BookingStatus @default(PENDING)
-  adults         Int
-  children       Int
-  date           String
-  day            String
-  timeSlot       String
-  category       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  totalPrice    Float
+  bookingStatus BookingStatus @default(PENDING)
+  adults        Int
+  children      Int
+  date          String
+  day           String
+  timeSlot      Json // { "from": "10:00:00", "to": "12:00:00" }
+  category      String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   // relationships
   partnerId    String     @db.ObjectId

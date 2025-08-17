@@ -5,9 +5,9 @@ import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
-// create attraction booking
+// create attraction booking by attraction id
 router.post(
-  "/",
+  "/:attractionId",
   auth(UserRole.USER),
   AttractionBookingController.createAttractionBooking
 );

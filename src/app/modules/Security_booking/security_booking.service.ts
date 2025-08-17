@@ -11,7 +11,8 @@ const createSecurityBooking = async (
   securityId: string,
   data: ISecurityBookingData
 ) => {
-  const { number_of_security, bookedFromDate, bookedToDate } = data;
+  const { number_of_security, securityBookedFromDate, securityBookedToDate } =
+    data;
 
   // validate user
   const user = await prisma.user.findUnique({
@@ -40,7 +41,7 @@ const createSecurityBooking = async (
   }
 
   // Validate required fields
-  if (!number_of_security || !bookedFromDate || !bookedToDate) {
+  if (!number_of_security || !securityBookedFromDate || !securityBookedToDate) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
   }
 
@@ -52,8 +53,8 @@ const createSecurityBooking = async (
   }
 
   // Calculate booking days
-  const fromDate = parse(bookedFromDate, "dd-MM-yyyy", new Date());
-  const toDate = parse(bookedToDate, "dd-MM-yyyy", new Date());
+  const fromDate = parse(securityBookedFromDate, "yyyy-MM-dd", new Date());
+  const toDate = parse(securityBookedToDate, "yyyy-MM-dd", new Date());
   const numberOfDays = differenceInDays(toDate, fromDate);
 
   if (numberOfDays <= 0) {
