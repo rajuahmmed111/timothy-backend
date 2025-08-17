@@ -13,6 +13,7 @@ import { carRentalRoutes } from "../modules/Car_Rental/carRental.route";
 import { attractionRoute } from "../modules/Attraction/attraction.route";
 import { attractionBookingRoutes } from "../modules/Attraction_Booking/attraction_booking.route";
 import { promoCodeRoute } from "../modules/Car_booking/Promo_code/promoCode.route";
+import { carBookingRoute } from "../modules/Car_booking/carBooking.route";
 
 const router = express.Router();
 
@@ -54,10 +55,10 @@ const moduleRoutes = [
     path: "/promo-codes",
     route: promoCodeRoute,
   },
-  // {
-  //   path: "/security-booking",
-  //   route: security_bookingRoute,
-  // },
+  {
+    path: "/car-booking",
+    route: carBookingRoute,
+  },
   {
     path: "/attractions",
     route: attractionRoute,

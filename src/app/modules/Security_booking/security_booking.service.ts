@@ -39,7 +39,6 @@ const createSecurityBooking = async (
       "Security service not found or unavailable"
     );
   }
-  console.log(security, "security");
 
   // Validate required fields
   if (!number_of_security || !securityBookedFromDate || !securityBookedToDate) {

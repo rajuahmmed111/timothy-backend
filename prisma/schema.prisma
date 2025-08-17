@@ -341,7 +341,7 @@ model PromoCode {
   validFrom     String
   validTo       String
   usageLimit    Int
-  usedCount     Int      @default(0)
+  usedCount     Int    @default(0)
   perUserLimit  Int
   minimumAmount Float? // minimum order amount
 
@@ -359,8 +359,9 @@ model PromoCode {
 model Car_Booking {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
   // number_of_car  Int
-  bookedFromDate String
-  bookedToDate   String
+  carBookedFromDate String
+  carBookedToDate   String
+  promo_code     String
   totalPrice     Float
   bookingStatus  BookingStatus @default(PENDING)
   category       String

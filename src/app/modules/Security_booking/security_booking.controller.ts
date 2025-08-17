@@ -8,7 +8,7 @@ import httpStatus from "http-status";
 const createSecurityBooking = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const securityId = req.params.bookingId;
+    const securityId = req.params.securityId;
     const data = req.body;
     const result = await SecurityBookingService.createSecurityBooking(
       userId,

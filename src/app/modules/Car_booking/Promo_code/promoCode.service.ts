@@ -84,6 +84,12 @@ const createPromoCode = async (data: ICreatePromoCode) => {
 const getAllPromoCodes = async () => {
   const result = await prisma.promoCode.findMany({
     where: { status: PromoStatus.ACTIVE },
+     select: {
+      id: true,
+      code: true,
+      discountValue: true,
+      minimumAmount: true,
+    },
   });
 
   if (result.length === 0) {
@@ -97,6 +103,12 @@ const getAllPromoCodes = async () => {
 const getPromoCodeById = async (id: string) => {
   const result = await prisma.promoCode.findUnique({
     where: { id, status: PromoStatus.ACTIVE },
+    select: {
+      id: true,
+      code: true,
+      discountValue: true,
+      minimumAmount: true,
+    },
   });
   if (!result) {
     throw new ApiError(httpStatus.NOT_FOUND, "Promo code not found");
