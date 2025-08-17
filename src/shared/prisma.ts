@@ -10,7 +10,7 @@ async function connectPrisma() {
     console.log("Prisma connected to the database successfully!");
 
     // initiate super admin
-    initiateSuperAdmin();
+    // initiateSuperAdmin();
   } catch (error) {
     console.error("Prisma connection failed:", error);
     process.exit(1); // Exit process with failure
