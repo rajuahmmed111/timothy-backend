@@ -63,4 +63,4 @@ router.patch(
 );
 
 
-export const CarRentalRoutes = router;
+export const carRentalRoutes = router;

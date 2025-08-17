@@ -338,8 +338,8 @@ model PromoCode {
   discountType  DiscountType @default(PERCENTAGE) // PERCENTAGE | FLAT
   discountValue Float
 
-  validFrom     DateTime
-  validTo       DateTime
+  validFrom     String
+  validTo       String
   usageLimit    Int
   usedCount     Int      @default(0)
   perUserLimit  Int

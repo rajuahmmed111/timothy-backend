@@ -9,9 +9,10 @@ import { reviewRoute } from "../modules/Review/review.route";
 import { hotelBookingRoute } from "../modules/HotelBooking/hotelBooking.route";
 import { securityProtocolRoute } from "../modules/Security_Protocol/security_protocol.route";
 import { security_bookingRoute } from "../modules/Security_booking/security_booking.route";
-import { CarRentalRoutes } from "../modules/Car_Rental/carRental.route";
+import { carRentalRoutes } from "../modules/Car_Rental/carRental.route";
 import { attractionRoute } from "../modules/Attraction/attraction.route";
 import { attractionBookingRoutes } from "../modules/Attraction_Booking/attraction_booking.route";
+import { promoCodeRoute } from "../modules/Car_booking/Promo_code/promoCode.route";
 
 const router = express.Router();
 
@@ -47,7 +48,11 @@ const moduleRoutes = [
   },
   {
     path: "/car-rentals",
-    route: CarRentalRoutes,
+    route: carRentalRoutes,
+  },
+  {
+    path: "/promo-codes",
+    route: promoCodeRoute,
   },
   // {
   //   path: "/security-booking",
