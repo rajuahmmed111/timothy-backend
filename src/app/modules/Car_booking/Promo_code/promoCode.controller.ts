@@ -15,6 +15,31 @@ const createPromoCode = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+// get all promo codes
+const getAllPromoCodes = catchAsync(async (req: Request, res: Response) => {
+    const result = await PromoCodeService.getAllPromoCodes();
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Promo codes fetched successfully",
+      data: result,
+    });
+})
+
+// get single promo code 
+const getPromoCodeById = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await PromoCodeService.getPromoCodeById(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Promo code fetched successfully",
+      data: result,
+    });
+})
+
 export const PromoCodeController = {
-    createPromoCode
+    createPromoCode,
+    getAllPromoCodes,
+    getPromoCodeById
 }

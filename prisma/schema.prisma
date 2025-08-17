@@ -352,6 +352,8 @@ model PromoCode {
 
   // relationships
   carBookings Car_Booking[]
+
+  @@map("promo_codes")
 }
 
 model Car_Booking {

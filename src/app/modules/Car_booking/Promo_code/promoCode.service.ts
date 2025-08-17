@@ -80,6 +80,32 @@ const createPromoCode = async (data: ICreatePromoCode) => {
   return promo;
 };
 
+// get all promo codes
+const getAllPromoCodes = async () => {
+  const result = await prisma.promoCode.findMany({
+    where: { status: PromoStatus.ACTIVE },
+  });
+
+  if (result.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No promo codes found");
+  }
+
+  return result;
+};
+
+// get single promo code
+const getPromoCodeById = async (id: string) => {
+  const result = await prisma.promoCode.findUnique({
+    where: { id, status: PromoStatus.ACTIVE },
+  });
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Promo code not found");
+  }
+  return result;
+};
+
 export const PromoCodeService = {
   createPromoCode,
+  getAllPromoCodes,
+  getPromoCodeById,
 };
