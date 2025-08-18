@@ -338,10 +338,10 @@ model PromoCode {
   discountType  DiscountType @default(PERCENTAGE) // PERCENTAGE | FLAT
   discountValue Float
 
-  validFrom     String
-  validTo       String
+  validFrom     DateTime
+  validTo       DateTime
   usageLimit    Int
-  usedCount     Int    @default(0)
+  usedCount     Int      @default(0)
   perUserLimit  Int
   minimumAmount Float? // minimum order amount
 
@@ -357,16 +357,16 @@ model PromoCode {
 }
 
 model Car_Booking {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
   // number_of_car  Int
   carBookedFromDate String
   carBookedToDate   String
-  promo_code     String
-  totalPrice     Float
-  bookingStatus  BookingStatus @default(PENDING)
-  category       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  promo_code        String
+  totalPrice        Float
+  bookingStatus     BookingStatus @default(PENDING)
+  category          String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   // relationships
   partnerId   String     @db.ObjectId
@@ -376,6 +376,8 @@ model Car_Booking {
   userId      String     @db.ObjectId
   promoCode   PromoCode? @relation(fields: [promoCodeId], references: [id])
   promoCodeId String?    @db.ObjectId
+
+  @@map("car_bookings")
 }
 
 model Attraction {

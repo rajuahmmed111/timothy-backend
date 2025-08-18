@@ -62,14 +62,16 @@ const createPromoCode = async (data: ICreatePromoCode) => {
   if (existing)
     throw new ApiError(httpStatus.CONFLICT, "Promo code already exists");
 
+  
+
   // Create promo code
   const promo = await prisma.promoCode.create({
     data: {
       code,
       discountType,
       discountValue,
-      validFrom,
-      validTo,
+     validFrom: fromDate,
+      validTo: toDate,
       usageLimit,
       perUserLimit,
       minimumAmount,

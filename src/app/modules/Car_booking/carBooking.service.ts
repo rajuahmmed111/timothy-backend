@@ -61,10 +61,14 @@ const createCarBooking = async (
 
   // promo code discount (if provided)
   if (promo_code) {
+  const bookingStartDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
+
     const promo = await prisma.promoCode.findFirst({
       where: {
         code: promo_code,
         status: PromoStatus.ACTIVE,
+        validFrom: { lte: bookingStartDate },
+      validTo: { gte: bookingStartDate },
       },
     });
     if (!promo) {
@@ -73,18 +77,6 @@ const createCarBooking = async (
         "Promo code not found or expired"
       );
     }
-
-    // check validFrom and validTo
-    // const now = new Date();
-    // const validFrom = new Date(promo.validFrom);
-    // const validTo = new Date(promo.validTo);
-
-    // if (now < validFrom || now > validTo) {
-    //   throw new ApiError(
-    //     httpStatus.BAD_REQUEST,
-    //     "Promo code not found or expired"
-    //   );
-    // }
 
     // check minimum amount
     if (promo.minimumAmount && basePrice < promo.minimumAmount)
