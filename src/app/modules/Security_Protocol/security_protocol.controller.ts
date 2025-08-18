@@ -75,6 +75,18 @@ const getPopularSecurityProtocols = catchAsync(async (req: Request, res: Respons
   });
 });
 
+const getProtocolsGroupedByCategory = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await Security_ProtocolService.getProtocolsGroupedByCategory();
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security protocols grouped by category",
+      data: result,
+    });
+  }
+);
+
 // get single security protocol
 const getSingleSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
@@ -108,6 +120,7 @@ export const Security_ProtocolController = {
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
   getPopularSecurityProtocols,
+  getProtocolsGroupedByCategory,
   getSingleSecurityProtocol,
   updateSecurityProtocol,
 };

@@ -1,3 +1,5 @@
+import { Security_Protocol } from "@prisma/client";
+
 export type ISecurityFilterRequest = {
   searchTerm?: string | undefined;
   securityName?: string | undefined;
@@ -17,3 +19,6 @@ export interface PopularSecurityProtocol {
     profileImage: string;
   };
 }
+
+export type GroupedProtocols = Record<string, Security_Protocol[]>;
+

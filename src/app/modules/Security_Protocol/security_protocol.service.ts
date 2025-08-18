@@ -4,7 +4,11 @@ import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { IPaginationOptions } from "../../../interfaces/paginations";
-import { ISecurityFilterRequest, PopularSecurityProtocol } from "./security_protocol.interface";
+import {
+  GroupedProtocols,
+  ISecurityFilterRequest,
+  PopularSecurityProtocol,
+} from "./security_protocol.interface";
 import { EveryServiceStatus, Prisma, Security_Protocol } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./security_protocol.constant";
@@ -355,6 +359,28 @@ const getPopularSecurityProtocols = async (
   return result;
 };
 
+// get protocols grouped by category
+const getProtocolsGroupedByCategory = async (): Promise<GroupedProtocols> => {
+  const groupedData = await prisma.security_Protocol.groupBy({
+    by: ["category"],
+    _count: { id: true },
+  });
+
+  // fetch protocols per category
+  const grouped: GroupedProtocols = {};
+
+  for (const group of groupedData) {
+    const protocols = await prisma.security_Protocol.findMany({
+      where: { category: group.category },
+      orderBy: { securityRating: "desc" },
+    });
+    const category = group.category || "Uncategorized";
+    grouped[category] = protocols;
+  }
+
+  return grouped;
+};
+
 // get single security protocol
 const getSingleSecurityProtocol = async (id: string) => {
   const result = await prisma.security_Protocol.findUnique({
@@ -502,6 +528,7 @@ export const Security_ProtocolService = {
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
   getPopularSecurityProtocols,
+  getProtocolsGroupedByCategory,
   getSingleSecurityProtocol,
   updateSecurityProtocol,
 };

@@ -38,6 +38,14 @@ router.get(
   Security_ProtocolController.getPopularSecurityProtocols
 );
 
+// get security protocols grouped by category
+router.get(
+  "/grouped-by-category",
+  auth(UserRole.USER),
+  Security_ProtocolController.getProtocolsGroupedByCategory
+);
+
+
 // get security protocol by id
 router.get(
   "/:id",
