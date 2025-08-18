@@ -21,4 +21,3 @@ export interface PopularSecurityProtocol {
 }
 
 export type GroupedProtocols = Record<string, Security_Protocol[]>;
-

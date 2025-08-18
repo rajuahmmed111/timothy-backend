@@ -136,7 +136,7 @@ const createAttraction = async (req: Request) => {
           attractionCountry,
           attractionImages,
           category: category || undefined,
-          discount: discount ? parseFloat(discount) : undefined,
+          discount: discount ? parseFloat(discount) : 0,
           attractionReviewCount: attractionReviewCount
             ? parseInt(attractionReviewCount)
             : 0,

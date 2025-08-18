@@ -125,7 +125,7 @@ const createHotel = async (req: Request) => {
       hotelRoomCapacity,
       hotelRoomImages: roomImageUrls,
       category: category || undefined,
-      discount: discount ? parseFloat(discount) : undefined,
+      discount: discount ? parseFloat(discount) : 0,
       hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
       partnerId: partnerId,
     },

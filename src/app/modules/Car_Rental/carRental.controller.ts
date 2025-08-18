@@ -66,8 +66,7 @@ const getSingleCarRental = catchAsync(async (req: Request, res: Response) => {
 
 // Update Car Rental
 const updateCarRental = catchAsync(async (req, res) => {
-  const carId = req.params.id;
-  const result = await CarRentalService.updateCarRental(carId, req);
+  const result = await CarRentalService.updateCarRental(req);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

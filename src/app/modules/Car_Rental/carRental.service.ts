@@ -123,7 +123,7 @@ const createCarRental = async (req: Request) => {
         ? carBookingAbleDays
         : carBookingAbleDays?.split(",") || [],
       category: category || undefined,
-      discount: discount ? parseFloat(discount) : undefined,
+      discount: discount ? parseFloat(discount) : 0,
       partnerId,
     },
   });
@@ -278,7 +278,7 @@ const getSingleCarRental = async (carRentalId: string) => {
 };
 
 // Update Car Rental
-const updateCarRental = async (carId: string, req: Request) => {
+const updateCarRental = async (req: Request) => {
   const partnerId = req.user?.id;
   const carRentalId = req.params.id;
 
