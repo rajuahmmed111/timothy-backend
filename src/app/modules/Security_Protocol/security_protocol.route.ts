@@ -26,6 +26,18 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocolsForPartner
 );
 
+// get popular security protocols
+router.get(
+  "/popular",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  Security_ProtocolController.getPopularSecurityProtocols
+);
+
 // get security protocol by id
 router.get(
   "/:id",

@@ -4,8 +4,8 @@ import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { IPaginationOptions } from "../../../interfaces/paginations";
-import { ISecurityFilterRequest } from "./security_protocol.interface";
-import { EveryServiceStatus, Prisma } from "@prisma/client";
+import { ISecurityFilterRequest, PopularSecurityProtocol } from "./security_protocol.interface";
+import { EveryServiceStatus, Prisma, Security_Protocol } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./security_protocol.constant";
 
@@ -289,6 +289,72 @@ const getAllSecurityProtocols = async (
   };
 };
 
+// get popular security protocols
+const getPopularSecurityProtocols = async (
+  params: ISecurityFilterRequest
+): Promise<PopularSecurityProtocol[]> => {
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.Security_ProtocolWhereInput[] = [];
+
+  // text search
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // exact field match filters
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.Security_ProtocolWhereInput = {
+    AND: filters,
+    // hotelRating: {
+    //   not: null,
+    // },
+  };
+
+  // get only isBooked  AVAILABLE hotels
+  filters.push({
+    isBooked: EveryServiceStatus.AVAILABLE,
+  });
+
+  const result = await prisma.security_Protocol.findMany({
+    where,
+    orderBy: {
+      securityRating: "desc",
+    },
+    take: 10,
+    select: {
+      id: true,
+      securityName: true,
+      securityRating: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+    },
+  });
+
+  return result;
+};
+
 // get single security protocol
 const getSingleSecurityProtocol = async (id: string) => {
   const result = await prisma.security_Protocol.findUnique({
@@ -435,6 +501,7 @@ export const Security_ProtocolService = {
   createSecurityProtocol,
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
+  getPopularSecurityProtocols,
   getSingleSecurityProtocol,
   updateSecurityProtocol,
 };

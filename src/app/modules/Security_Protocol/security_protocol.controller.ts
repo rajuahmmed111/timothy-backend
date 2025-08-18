@@ -62,6 +62,19 @@ const getAllSecurityProtocolsForPartner = catchAsync(
   }
 );
 
+// get popular security protocols
+const getPopularSecurityProtocols = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const result = await Security_ProtocolService.getPopularSecurityProtocols(filter);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Popular security protocols fetched successfully",
+    data: result,
+  });
+});
+
 // get single security protocol
 const getSingleSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
@@ -94,6 +107,7 @@ export const Security_ProtocolController = {
   createSecurityProtocol,
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
+  getPopularSecurityProtocols,
   getSingleSecurityProtocol,
   updateSecurityProtocol,
 };
