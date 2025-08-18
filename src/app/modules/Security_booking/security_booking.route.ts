@@ -12,12 +12,12 @@ router.get(
   SecurityBookingController.getAllSecurityBookings
 );
 
-// get security booking by id
-router.get(
-  "/:id",
-  auth(UserRole.BUSINESS_PARTNER),
-  SecurityBookingController.getSingleSecurityBooking
-);
+// // get security booking by id
+// router.get(
+//   "/:id",
+//   auth(UserRole.BUSINESS_PARTNER),
+//   SecurityBookingController.getSingleSecurityBooking
+// );
 
 // get all my security bookings
 router.get(
@@ -29,7 +29,7 @@ router.get(
 // create security booking
 router.post(
   "/:securityId",
-  auth(UserRole.BUSINESS_PARTNER, UserRole.USER),
+  auth(UserRole.USER),
   SecurityBookingController.createSecurityBooking
 );
 
