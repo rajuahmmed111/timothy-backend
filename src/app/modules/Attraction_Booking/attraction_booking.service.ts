@@ -100,6 +100,14 @@ const createAttractionBooking = async (
 const getAllAttractionBookings = async (partnerId: string) => {
   const partner = await prisma.user.findUnique({
     where: { id: partnerId },
+    include: {
+      attraction:{
+        select: {
+          id: true,
+          attractionName: true,
+        },
+      }
+    }
   });
   if (!partner) {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");

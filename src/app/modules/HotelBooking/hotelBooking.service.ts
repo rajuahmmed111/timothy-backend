@@ -187,7 +187,16 @@ const getHotelBookingById = async (partnerId: string, bookingId: string) => {
   const booking = await prisma.hotel_Booking.findUnique({
     where: { id: bookingId, partnerId },
     include: {
-      hotel: true,
+      hotel: {
+        select: {
+          id: true,
+          hotelName: true,
+          hotelRoomPriceNight: true,
+          discount: true,
+          category: true,
+          partnerId: true,
+        },
+      },
     },
   });
   if (!booking) {

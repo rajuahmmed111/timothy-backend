@@ -70,6 +70,7 @@ const sendNotifications = async (req: any) => {
   };
 
   const response = await admin.messaging().sendEachForMulticast(message as any);
+//   const response = await admin.messaging().sendEachForMulticast(message as any);
 
   // Find indices of successful responses
   const successIndices = response.responses

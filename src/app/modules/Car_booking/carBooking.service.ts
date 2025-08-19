@@ -134,14 +134,15 @@ const getAllCarBookings = async (partnerId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  const result = await prisma.security_Booking.findMany({
+  const result = await prisma.car_Booking.findMany({
+    where: { partnerId },
     include: {
-      security: {
-        select: {
-          id: true,
-          securityName: true,
-        },
+     car:{
+      select: {
+        id: true,
+        carName: true,
       },
+     }
     },
   });
   if (result.length === 0) {
@@ -153,14 +154,17 @@ const getAllCarBookings = async (partnerId: string) => {
 
 // get single car rental booking
 const getSingleCarBooking = async (id: string) => {
-  const result = await prisma.security_Booking.findUnique({
+  const result = await prisma.car_Booking.findUnique({
     where: { id },
     include: {
-      security: {
+      car: {
         select: {
           id: true,
-          securityName: true,
-          securityPriceDay: true,
+          carName: true,
+          carPriceDay: true,
+          discount: true,
+          category: true,
+          partnerId: true,
         },
       },
     },
@@ -180,14 +184,14 @@ const getAllMyCarBookings = async (userId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  const result = await prisma.security_Booking.findMany({
+  const result = await prisma.car_Booking.findMany({
     where: { userId: user.id },
     include: {
-      security: {
+      car: {
         select: {
           id: true,
-          securityName: true,
-          securityPriceDay: true,
+          carName: true,
+          carPriceDay: true,
           discount: true,
           category: true,
           partnerId: true,
@@ -195,6 +199,10 @@ const getAllMyCarBookings = async (userId: string) => {
       },
     },
   });
+  if (result.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No bookings found");
+  }
+
   return result;
 };
 

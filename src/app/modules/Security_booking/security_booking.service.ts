@@ -100,6 +100,7 @@ const getAllSecurityBookings = async (partnerId: string) => {
   }
 
   const result = await prisma.security_Booking.findMany({
+    where: { partnerId },
     include: {
       security: {
         select: {
