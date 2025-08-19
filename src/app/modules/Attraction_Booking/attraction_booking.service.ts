@@ -13,25 +13,27 @@ const createAttractionBooking = async (
     date: string; // "2025-08-12"
     day: string; // "THURSDAY"
     from: string; // "10:00:00"
-    to: string; // "12:00:00"
   }
 ) => {
-  const { adults, children, date, day, from, to } = data;
+  const { adults, children, date, day, from } = data;
 
-  if (!adults || !children || !date || !day || !from || !to) {
+  // validate required fields
+  if (adults == null || children == null || !date || !day || !from) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       "Missing required booking fields"
     );
   }
 
-  // get attraction
+  // get attraction with schedules & slots
   const attraction = await prisma.attraction.findUnique({
     where: { id: attractionId },
     include: {
       attractionSchedule: {
         where: { date, day },
-        include: { slots: true },
+        include: {
+          slots: true, // load all slots
+        },
       },
     },
   });
@@ -53,12 +55,12 @@ const createAttractionBooking = async (
 
   const schedule = attraction.attractionSchedule[0];
 
-  // check slot exists
-  const slotExists = schedule.slots.some((s) => s.from === from && s.to === to);
-  if (!slotExists) {
+  // find matching slot
+  const slot = schedule.slots.find((s) => s.from === from);
+  if (!slot) {
     throw new ApiError(
       httpStatus.NOT_FOUND,
-      `Selected slot ${from}-${to} not available`
+      `Selected slot ${from} not available`
     );
   }
 
@@ -67,9 +69,12 @@ const createAttractionBooking = async (
     adults * (attraction.attractionAdultPrice || 0) +
     children * (attraction.attractionChildPrice || 0);
 
-  if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
-  if (attraction.discount)
+  if (attraction.vat) {
+    totalPrice += (totalPrice * attraction.vat) / 100;
+  }
+  if (attraction.discount) {
     totalPrice -= (totalPrice * attraction.discount) / 100;
+  }
 
   // create booking
   const booking = await prisma.attraction_Booking.create({
@@ -81,7 +86,7 @@ const createAttractionBooking = async (
       children,
       date,
       day,
-      timeSlot: { from, to }, // Json column
+      timeSlot: { from: slot.from, to: slot.to }, // use slot object directly
       category: attraction.category as string,
       totalPrice,
       bookingStatus: "PENDING",
