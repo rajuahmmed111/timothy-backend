@@ -82,6 +82,7 @@ model User {
   country       String?
   role          UserRole   @default(USER)
   status        UserStatus @default(ACTIVE)
+  fcmToken      String?
 
   // add for stripe integration
   stripeCustomerId String?
@@ -95,7 +96,7 @@ model User {
 
   // relationships
   payment            Payment[]
-  notification       Notification[]
+  notifications      Notifications[]
   hotel              Hotel[]
   review             Review[]
   hotel_bookings     Hotel_Booking[]
@@ -513,17 +514,17 @@ model Favorite {
   @@map("favorites")
 }
 
-model Notification {
-  id         String  @id @default(auto()) @map("_id") @db.ObjectId
-  receiverId Int
-  viewed     Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // relationships
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
+model Notifications {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  receiverId String?  @db.ObjectId
+  title      String
+  message    String?
+  body       String
+  read       Boolean  @default(false)
+  isClicked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User?    @relation(fields: [receiverId], references: [id])
 
   @@map("notifications")
 }
