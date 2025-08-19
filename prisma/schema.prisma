@@ -362,7 +362,7 @@ model Car_Booking {
   // number_of_car  Int
   carBookedFromDate String
   carBookedToDate   String
-  promo_code        String
+  promo_code        String?
   totalPrice        Float
   bookingStatus     BookingStatus @default(PENDING)
   category          String
