@@ -432,6 +432,22 @@ const updateUserProfileImage = async (
   return profileInfo;
 };
 
+// delete my account
+const deleteMyAccount = async (userId: string) => {
+  const result = await prisma.user.findUnique({
+    where: { id: userId, status: UserStatus.ACTIVE },
+  });
+
+  if (!result) {
+    throw new Error("User not found");
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { status: UserStatus.INACTIVE },
+  });
+};
+
 // delete user
 const deleteUser = async (
   userId: string,
@@ -455,8 +471,9 @@ const deleteUser = async (
   }
 
   // Delete the user
-  await prisma.user.delete({
-    where: { id: userId },
+  await prisma.user.update({
+    where: { id: userId, status: UserStatus.ACTIVE },
+    data: { status: UserStatus.INACTIVE },
   });
 
   return;
@@ -471,5 +488,6 @@ export const UserService = {
   updateUser,
   getMyProfile,
   updateUserProfileImage,
+  deleteMyAccount,
   deleteUser,
 };

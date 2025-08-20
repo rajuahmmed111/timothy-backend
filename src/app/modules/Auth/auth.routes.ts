@@ -14,7 +14,16 @@ router.post("/login", AuthController.loginUser);
 router.post("/    ", AuthController.refreshToken);
 
 // user logout route
-router.post("/logout", AuthController.logoutUser);
+router.post(
+  "/logout",
+  auth(
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN
+  ),
+  AuthController.logoutUser
+);
 
 //change password
 router.put(

@@ -5,10 +5,12 @@ import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
-// delete my account
-router.delete("/my-account", auth(UserRole.USER, UserRole.BUSINESS_PARTNER), SettingController.deleteMyAccount);
+
 
 // verify email and phone number
 router.put("/verify", auth(UserRole.USER, UserRole.BUSINESS_PARTNER), SettingController.verifyEmailAndPhoneNumber);
+
+// app about
+// router.post("/about", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), SettingController.updateAppAbout);
 
 export const settingRoute = router;

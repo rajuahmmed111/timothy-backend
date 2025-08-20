@@ -124,6 +124,26 @@ const updateUserProfileImage = catchAsync(
   }
 );
 
+// delete my account
+const deleteMyAccount = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const result = await UserService.deleteMyAccount(userId);
+
+  // clear the token cookie
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "My account deleted successfully",
+    data: result,
+  });
+});
+
 // delete user
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.params.id;
@@ -148,5 +168,6 @@ export const UserController = {
   updateUser,
   getMyProfile,
   updateUserProfileImage,
+  deleteMyAccount,
   deleteUser,
 };

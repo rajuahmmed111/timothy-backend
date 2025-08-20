@@ -67,7 +67,7 @@ router.patch(
 // update user profile image
 router.patch(
   "/profile-img-update",
-   auth(
+  auth(
     UserRole.SUPER_ADMIN,
     UserRole.ADMIN,
     UserRole.BUSINESS_PARTNER,
@@ -77,7 +77,18 @@ router.patch(
   UserController.updateUserProfileImage
 );
 
+// delete my account
+router.patch(
+  "/my-account",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  UserController.deleteMyAccount
+);
+
 // delete user
-router.delete("/:id", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), UserController.deleteUser);
+router.delete(
+  "/:id",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  UserController.deleteUser
+);
 
 export const userRoute = router;
