@@ -20,9 +20,20 @@ const createTerms = catchAsync(async (req: Request, res: Response) => {
 
 // get terms and conditions
 const getTerms = catchAsync(async (req: Request, res: Response) => {
-  const adminId = req.user.id; // Assuming `auth` middleware sets req.user
-  const result = await TermsServices.getTermsByAdminId(adminId);
+  const result = await TermsServices.getTerms();
 
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Terms and Conditions fetched successfully",
+    data: result,
+  });
+});
+
+// get single terms and conditions
+const getSingleTerms = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const result = await TermsServices.getSingleTerms(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -33,8 +44,9 @@ const getTerms = catchAsync(async (req: Request, res: Response) => {
 
 // update terms and conditions
 const updateTerms = catchAsync(async (req: Request, res: Response) => {
-  const adminId = req.user.id;
-  const result = await TermsServices.updateTermsByAdminId(adminId, req.body);
+  const adminId = req.user?.id;
+  const termId = req.params.id;
+  const result = await TermsServices.updateTermsByAdminId(adminId, termId, req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -47,5 +59,6 @@ const updateTerms = catchAsync(async (req: Request, res: Response) => {
 export const TermsController = {
   createTerms,
   getTerms,
+  getSingleTerms,
   updateTerms,
 };

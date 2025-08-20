@@ -46,11 +46,8 @@ const createTerms = async (
 };
 
 // get terms
-const getTermsByAdminId = async (
-  adminId: string
-): Promise<Omit<Terms_Condition, "adminId"> | null> => {
+const getTerms = async (): Promise<Omit<Terms_Condition, "adminId"> | null> => {
   const result = await prisma.terms_Condition.findFirst({
-    where: { adminId },
     select: {
       id: true,
       title: true,
@@ -74,22 +71,44 @@ const getTermsByAdminId = async (
   return result;
 };
 
+// get single terms
+const getSingleTerms = async (id: string): Promise<Terms_Condition> => {
+  const result = await prisma.terms_Condition.findUnique({
+    where: { id },
+  });
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Terms and Conditions not found");
+  }
+  return result;
+};
+
 // update terms
 const updateTermsByAdminId = async (
   adminId: string,
+  termId: string,
   payload: Partial<Terms_Condition>
 ): Promise<Omit<Terms_Condition, "adminId">> => {
-  const result = await prisma.terms_Condition.updateMany({
-    where: { adminId },
-    data: {
-      ...payload,
-      updatedAt: new Date(),
+  const admin = await prisma.user.findUnique({
+    where: {
+      id: adminId,
     },
   });
+  if (!admin) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+  }
+
+  const result = await prisma.terms_Condition.findUnique({
+    where: { id: termId },
+  });
+
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Terms and Conditions not found");
+  }
 
   // terms and condition updated
-  const updatedTerms = await prisma.terms_Condition.findFirst({
-    where: { adminId },
+  const updatedTerms = await prisma.terms_Condition.update({
+    where: { id: termId },
+    data: payload,
     select: {
       id: true,
       title: true,
@@ -111,6 +130,7 @@ const updateTermsByAdminId = async (
 
 export const TermsServices = {
   createTerms,
-  getTermsByAdminId,
+  getTerms,
+  getSingleTerms,
   updateTermsByAdminId,
 };

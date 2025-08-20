@@ -10,7 +10,12 @@ const router = express.Router();
 // get terms and conditions
 router.get(
   "/",
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER
+  ),
   TermsController.getTerms
 );
 
@@ -22,8 +27,20 @@ router.post(
   TermsController.createTerms
 );
 
+// get single terms and conditions
+router.get(
+  "/:id",
+    auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER
+  ),
+  TermsController.getSingleTerms
+);
+
 router.patch(
-  "/update",
+  "/update/:id",
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   validateRequest(termsConditionValidation.updateTermsConditionSchema),
   TermsController.updateTerms
