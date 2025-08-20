@@ -41,8 +41,39 @@ const getAbout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create or update customer contact info
+const createOrUpdateCustomerContactInfo = catchAsync(
+  async (req: Request, res: Response) => {
+    const data = req.body;
+    const result = await SettingService.createOrUpdateCustomerContactInfo(data);
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Customer contact info saved successfully",
+      data: result,
+    });
+  }
+);
+
+// get customer contact info
+const getCustomerContactInfo = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await SettingService.getCustomerContactInfo();
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Customer contact info fetched successfully",
+      data: result,
+    });
+  }
+);
+
 export const SettingController = {
   verifyEmailAndPhoneNumber,
   createOrUpdateAbout,
   getAbout,
+  createOrUpdateCustomerContactInfo,
+  getCustomerContactInfo,
 };

@@ -549,8 +549,19 @@ model Payment {
   @@map("payments")
 }
 
+model CustomerContact {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  email String
+  phone String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customer_contacts")
+}
+
 model About_App {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   appName       String
   description   String
   ourServices   String[]
