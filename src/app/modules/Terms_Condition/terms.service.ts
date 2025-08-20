@@ -45,7 +45,7 @@ const createTerms = async (
   return result;
 };
 
-// get terms
+// get all terms
 const getTerms = async (): Promise<Omit<Terms_Condition, "adminId"> | null> => {
   const result = await prisma.terms_Condition.findFirst({
     select: {

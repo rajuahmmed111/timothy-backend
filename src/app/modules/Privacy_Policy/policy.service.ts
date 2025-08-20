@@ -37,12 +37,12 @@ const createPolicy = async (
   return result;
 };
 
-// get privacy policy           
-const getPolicyByAdminId = async (
-  adminId: string
-): Promise<Omit<Privacy_Policy, "adminId"> | null> => {
+// get all privacy policy
+const getAllPolicy = async (): Promise<Omit<
+  Privacy_Policy,
+  "adminId"
+> | null> => {
   const policy = await prisma.privacy_Policy.findFirst({
-    where: { adminId },
     select: {
       id: true,
       title: true,
@@ -65,18 +65,41 @@ const getPolicyByAdminId = async (
   return policy;
 };
 
+// get privacy policy by id
+const getSinglePolicy = async (id: string): Promise<Privacy_Policy> => {
+  const policy = await prisma.privacy_Policy.findUnique({ where: { id } });
+  if (!policy)
+    throw new ApiError(httpStatus.NOT_FOUND, "Privacy Policy not found");
+  return policy;
+};
+
 // update privacy policy
 const updatePolicyByAdminId = async (
   adminId: string,
+  policyId: string,
   payload: Partial<Privacy_Policy>
 ): Promise<Omit<Privacy_Policy, "adminId">> => {
-  await prisma.privacy_Policy.updateMany({
-    where: { adminId },
-    data: { ...payload, updatedAt: new Date() },
+  const admin = await prisma.user.findUnique({
+    where: {
+      id: adminId,
+    },
   });
+  if (!admin) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+  }
 
-  const updated = await prisma.privacy_Policy.findFirst({
-    where: { adminId },
+  const policy = await prisma.privacy_Policy.findUnique({
+    where: {
+      id: policyId,
+    },
+  });
+  if (!policy) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Privacy Policy not found");
+  }
+
+  const updated = await prisma.privacy_Policy.update({
+    where: { id: policy.id },
+    data: payload,
     select: {
       id: true,
       title: true,
@@ -99,6 +122,7 @@ const updatePolicyByAdminId = async (
 
 export const PrivacyServices = {
   createPolicy,
-  getPolicyByAdminId,
+  getAllPolicy,
+  getSinglePolicy,
   updatePolicyByAdminId,
 };

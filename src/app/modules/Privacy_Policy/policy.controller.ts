@@ -16,11 +16,21 @@ const createPolicy = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all privacy policy
+const getAllPolicy = catchAsync(async (req: Request, res: Response) => {
+  const result = await PrivacyServices.getAllPolicy();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Privacy Policy fetched successfully",
+    data: result,
+  });
+});
 
-// get privacy policy
-const getPolicy = catchAsync(async (req: Request, res: Response) => {
-  const adminId = req.user?.id;
-  const result = await PrivacyServices.getPolicyByAdminId(adminId);
+// get privacy policy by id
+const getSinglePolicy = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const result = await PrivacyServices.getSinglePolicy(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -32,7 +42,13 @@ const getPolicy = catchAsync(async (req: Request, res: Response) => {
 // update privacy policy
 const updatePolicy = catchAsync(async (req: Request, res: Response) => {
   const adminId = req.user?.id;
-  const result = await PrivacyServices.updatePolicyByAdminId(adminId, req.body);
+  const policyId = req.params.id;
+
+  const result = await PrivacyServices.updatePolicyByAdminId(
+    adminId,
+    policyId,
+    req.body
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -43,6 +59,7 @@ const updatePolicy = catchAsync(async (req: Request, res: Response) => {
 
 export const PrivacyController = {
   createPolicy,
-  getPolicy,
+  getAllPolicy,
+  getSinglePolicy,
   updatePolicy,
 };
