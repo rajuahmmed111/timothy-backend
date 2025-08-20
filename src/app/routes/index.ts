@@ -16,6 +16,7 @@ import { promoCodeRoute } from "../modules/Car_booking/Promo_code/promoCode.rout
 import { carBookingRoute } from "../modules/Car_booking/carBooking.route";
 import { notificationsRoute } from "../modules/Notification/notification.route";
 import { settingRoute } from "../modules/Setting/setting.route";
+import { termsConditionRoute } from "../modules/Terms_Condition/terms.route";
 
 const router = express.Router();
 
@@ -77,6 +78,10 @@ const moduleRoutes = [
   {
     path: "/notifications",
     route: notificationsRoute,
+  },
+  {
+    path: "/terms-conditions",
+    route: termsConditionRoute,
   },
   {
     path: "/policy",
