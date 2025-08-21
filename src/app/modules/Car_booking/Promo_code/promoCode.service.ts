@@ -91,6 +91,8 @@ const getAllPromoCodes = async () => {
       code: true,
       discountValue: true,
       minimumAmount: true,
+      validFrom: true,
+      validTo: true
     },
   });
 
@@ -110,6 +112,8 @@ const getPromoCodeById = async (id: string) => {
       code: true,
       discountValue: true,
       minimumAmount: true,
+      validFrom: true,
+      validTo: true
     },
   });
   if (!result) {
