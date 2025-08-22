@@ -231,6 +231,75 @@ const getAllAdmins = async (
   };
 };
 
+// update admin status (inactive to active)
+const updateAdminStatusInActiveToActive = async (id: string) => {
+  // find admin
+  const admin = await prisma.user.findUnique({
+    where: { id, status: UserStatus.INACTIVE },
+  });
+  if (!admin) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+  }
+
+  const result = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+  return result;
+};
+
+// update admin status rejected
+const updateAdminStatusRejected = async (id: string) => {
+  // find admin
+  const admin = await prisma.user.findUnique({
+    where: { id, status: UserStatus.INACTIVE },
+  });
+  if (!admin) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+  }
+
+  const result = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      status: UserStatus.REJECTED,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+  return result;
+};
+  
+
 // get all business partners
 const getAllBusinessPartners = async (
   params: IFilterRequest,
@@ -419,7 +488,7 @@ const getAllNeededApprovedPartners = async (
   };
 };
 
-// update partner status (inactive or active)
+// update partner status (inactive to active)
 const updatePartnerStatusInActiveToActive = async (id: string) => {
   // find partner
   const partner = await prisma.user.findUnique({
@@ -662,6 +731,8 @@ export const UserService = {
   createUser,
   getAllUsers,
   getAllAdmins,
+  updateAdminStatusInActiveToActive,
+  updateAdminStatusRejected,
   getAllBusinessPartners,
   getAllNeededApprovedPartners,
   updatePartnerStatusInActiveToActive,

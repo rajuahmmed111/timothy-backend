@@ -58,18 +58,32 @@ router.post(
   UserController.createUser
 );
 
-// update partner status (inactive or active)
+// update partner status (inactive to active)
 router.patch(
-  "/update-status-active/:id",
+  "/update-partner-status-active/:id",
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   UserController.updatePartnerStatusInActiveToActive
 );
 
 // update partner status rejected
 router.patch(
-  "/update-status-reject/:id",
+  "/update-partner-status-reject/:id",
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   UserController.updatePartnerStatusRejected
+);
+
+// update admin status (inactive to active)
+router.patch(
+  "/update-admin-status-active/:id",
+  auth(UserRole.SUPER_ADMIN),
+  UserController.updateAdminStatusInActiveToActive
+);
+
+// update admin status rejected
+router.patch(
+  "/update-admin-status-reject/:id",
+  auth(UserRole.SUPER_ADMIN),
+  UserController.updateAdminStatusRejected
 );
 
 // update user

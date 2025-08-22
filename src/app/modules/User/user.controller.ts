@@ -50,6 +50,34 @@ const getAllAdmins = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update admin status (inactive to active)
+const updateAdminStatusInActiveToActive = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await UserService.updateAdminStatusInActiveToActive(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin status updated successfully",
+      data: result,
+    });
+  }
+);
+
+// update admin status rejected
+const updateAdminStatusRejected = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await UserService.updateAdminStatusRejected(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin status updated successfully",
+      data: result,
+    });
+  }
+);
+
 // get all business partners
 const getAllBusinessPartners = catchAsync(
   async (req: Request, res: Response) => {
@@ -85,7 +113,7 @@ const getAllNeededApprovedPartners = catchAsync(
   }
 );
 
-// update partner status (inactive or active)
+// update partner status (inactive to active)
 const updatePartnerStatusInActiveToActive = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -97,7 +125,7 @@ const updatePartnerStatusInActiveToActive = catchAsync(
       data: result,
     });
   }
-)
+);
 
 // update partner status rejected
 const updatePartnerStatusRejected = catchAsync(
@@ -111,7 +139,7 @@ const updatePartnerStatusRejected = catchAsync(
       data: result,
     });
   }
-)
+);
 
 // get user by id
 const getUserById = catchAsync(async (req: Request, res: Response) => {
@@ -210,6 +238,8 @@ export const UserController = {
   createUser,
   getAllUsers,
   getAllAdmins,
+  updateAdminStatusInActiveToActive,
+  updateAdminStatusRejected,
   getAllBusinessPartners,
   getAllNeededApprovedPartners,
   updatePartnerStatusInActiveToActive,
