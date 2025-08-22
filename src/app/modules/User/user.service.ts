@@ -152,7 +152,6 @@ const getAllAdmins = async (
   // Filter for active users and role ADMIN only
   filters.push({
     role: UserRole.ADMIN,
-    status: UserStatus.ACTIVE,
   });
 
   // text search

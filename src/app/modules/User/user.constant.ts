@@ -4,6 +4,7 @@ export const filterField: string[] = [
   "email",
   "contactNumber",
   "country",
+  "status",
 ];
 export const searchableFields: string[] = [
   "fullName",
