@@ -65,6 +65,13 @@ router.patch(
   UserController.updatePartnerStatusInActiveToActive
 );
 
+// update partner status rejected
+router.patch(
+  "/update-status-reject/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.updatePartnerStatusRejected
+);
+
 // update user
 router.patch(
   "/update",

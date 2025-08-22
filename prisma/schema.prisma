@@ -22,6 +22,7 @@ enum UserRole {
 enum UserStatus {
   ACTIVE
   INACTIVE
+  REJECTED
 }
 
 enum EveryServiceStatus {

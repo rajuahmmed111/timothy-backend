@@ -403,6 +403,51 @@ const updatePartnerStatusInActiveToActive = async (id: string) => {
     data: {
       status: UserStatus.ACTIVE,
     },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  });
+  return result;
+};
+
+// update partner status rejected
+const updatePartnerStatusRejected = async (id: string) => {
+  // find partner
+  const partner = await prisma.user.findUnique({
+    where: { id, status: UserStatus.INACTIVE },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const result = await prisma.user.update({
+    where: { id },
+    data: {
+      status: UserStatus.REJECTED,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    }
   });
   return result;
 };
@@ -589,6 +634,7 @@ export const UserService = {
   getAllBusinessPartners,
   getAllNeededApprovedPartners,
   updatePartnerStatusInActiveToActive,
+  updatePartnerStatusRejected,
   getUserById,
   updateUser,
   getMyProfile,

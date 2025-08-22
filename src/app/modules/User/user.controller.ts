@@ -99,6 +99,20 @@ const updatePartnerStatusInActiveToActive = catchAsync(
   }
 )
 
+// update partner status rejected
+const updatePartnerStatusRejected = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updatePartnerStatusRejected(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Partner status updated successfully",
+      data: result,
+    });
+  }
+)
+
 // get user by id
 const getUserById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -199,6 +213,7 @@ export const UserController = {
   getAllBusinessPartners,
   getAllNeededApprovedPartners,
   updatePartnerStatusInActiveToActive,
+  updatePartnerStatusRejected,
   getUserById,
   updateUser,
   getMyProfile,
