@@ -265,6 +265,7 @@ const getAllBusinessPartners = async (
   const result = await prisma.user.findMany({
     where: {
       role: UserRole.BUSINESS_PARTNER,
+      status: UserStatus.ACTIVE,
     },
     skip,
     take: limit,
@@ -301,6 +302,109 @@ const getAllBusinessPartners = async (
     },
     data: result,
   };
+};
+
+// get all needed approved partners
+const getAllNeededApprovedPartners = async (
+  params: IFilterRequest,
+  options: IPaginationOptions
+): Promise<IGenericResponse<SafeUser[]>> => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.UserWhereInput[] = [];
+
+  // Filter for inactive users and role BUSINESS_PARTNER only
+  filters.push({
+    role: UserRole.BUSINESS_PARTNER,
+    status: UserStatus.INACTIVE,
+  });
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.UserWhereInput = { AND: filters };
+
+  const result = await prisma.user.findMany({
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+      status: UserStatus.INACTIVE,
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  const total = await prisma.user.count({ where });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
+// update partner status (inactive or active)
+const updatePartnerStatusInActiveToActive = async (id: string) => {
+  // find partner
+  const partner = await prisma.user.findUnique({
+    where: { id, status: UserStatus.INACTIVE },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const result = await prisma.user.update({
+    where: { id },
+    data: {
+      status: UserStatus.ACTIVE,
+    },
+  });
+  return result;
 };
 
 // get user by id
@@ -483,6 +587,8 @@ export const UserService = {
   getAllUsers,
   getAllAdmins,
   getAllBusinessPartners,
+  getAllNeededApprovedPartners,
+  updatePartnerStatusInActiveToActive,
   getUserById,
   updateUser,
   getMyProfile,

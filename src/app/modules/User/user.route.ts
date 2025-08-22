@@ -29,6 +29,13 @@ router.get(
   UserController.getAllBusinessPartners
 );
 
+// get all needed approved partners
+router.get(
+  "/approved-partners",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.getAllNeededApprovedPartners
+);
+
 //get my profile
 router.get(
   "/my-profile",
@@ -49,6 +56,13 @@ router.post(
   "/",
   validateRequest(userValidation.createUserZodSchema),
   UserController.createUser
+);
+
+// update partner status (inactive or active)
+router.patch(
+  "/update-status-active/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  UserController.updatePartnerStatusInActiveToActive
 );
 
 // update user

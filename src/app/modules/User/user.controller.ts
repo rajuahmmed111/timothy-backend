@@ -66,6 +66,39 @@ const getAllBusinessPartners = catchAsync(
   }
 );
 
+// get all needed approved partners
+const getAllNeededApprovedPartners = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result = await UserService.getAllNeededApprovedPartners(
+      filter,
+      options
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Business Partners fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// update partner status (inactive or active)
+const updatePartnerStatusInActiveToActive = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updatePartnerStatusInActiveToActive(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Partner status updated successfully",
+      data: result,
+    });
+  }
+)
+
 // get user by id
 const getUserById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -164,6 +197,8 @@ export const UserController = {
   getAllUsers,
   getAllAdmins,
   getAllBusinessPartners,
+  getAllNeededApprovedPartners,
+  updatePartnerStatusInActiveToActive,
   getUserById,
   updateUser,
   getMyProfile,
