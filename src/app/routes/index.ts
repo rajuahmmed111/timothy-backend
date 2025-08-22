@@ -17,6 +17,7 @@ import { carBookingRoute } from "../modules/Car_booking/carBooking.route";
 import { notificationsRoute } from "../modules/Notification/notification.route";
 import { settingRoute } from "../modules/Setting/setting.route";
 import { termsConditionRoute } from "../modules/Terms_Condition/terms.route";
+import { contractRoutes } from "../modules/Contracts/contract.route";
 
 const router = express.Router();
 
@@ -69,6 +70,10 @@ const moduleRoutes = [
   {
     path: "/attraction-booking",
     route: attractionBookingRoutes,
+  },
+  {
+    path: "/contracts",
+    route: contractRoutes,
   },
 
   // {
