@@ -26,6 +26,8 @@ export type IFilterRequest = {
   email?: string | undefined;
   contactNumber?: string | undefined;
   country?: string | undefined;
+  status?: string | undefined;
+  timeRange?: string | undefined;
 };
 
 export type SafeUser = {

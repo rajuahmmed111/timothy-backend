@@ -17,6 +17,7 @@ import { IGenericResponse } from "../../../interfaces/common";
 import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { Request } from "express";
+import { getDateRange } from "../../../helpars/filterByDate";
 
 // create user
 const createUser = async (payload: any): Promise<SafeUser | null> => {
@@ -62,7 +63,7 @@ const getAllUsers = async (
 ): Promise<IGenericResponse<SafeUser[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, timeRange, ...filterData } = params;
 
   const filters: Prisma.UserWhereInput[] = [];
 
@@ -93,6 +94,16 @@ const getAllUsers = async (
         },
       })),
     });
+  }
+
+  // timeRange filter
+  if (timeRange) {
+    const dateRange = getDateRange(timeRange);
+    if (dateRange) {
+      filters.push({
+        createdAt: dateRange,
+      });
+    }
   }
 
   const where: Prisma.UserWhereInput = { AND: filters };
@@ -227,7 +238,7 @@ const getAllBusinessPartners = async (
 ): Promise<IGenericResponse<SafeUser[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, timeRange, ...filterData } = params;
 
   const filters: Prisma.UserWhereInput[] = [];
 
@@ -258,6 +269,16 @@ const getAllBusinessPartners = async (
         },
       })),
     });
+  }
+
+  // timeRange filter
+  if (timeRange) {
+    const dateRange = getDateRange(timeRange);
+    if (dateRange) {
+      filters.push({
+        createdAt: dateRange,
+      });
+    }
   }
 
   const where: Prisma.UserWhereInput = { AND: filters };
@@ -311,7 +332,7 @@ const getAllNeededApprovedPartners = async (
 ): Promise<IGenericResponse<SafeUser[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, timeRange, ...filterData } = params;
 
   const filters: Prisma.UserWhereInput[] = [];
 
@@ -342,6 +363,16 @@ const getAllNeededApprovedPartners = async (
         },
       })),
     });
+  }
+
+  // timeRange filter
+  if (timeRange) {
+    const dateRange = getDateRange(timeRange);
+    if (dateRange) {
+      filters.push({
+        createdAt: dateRange,
+      });
+    }
   }
 
   const where: Prisma.UserWhereInput = { AND: filters };
@@ -415,7 +446,7 @@ const updatePartnerStatusInActiveToActive = async (id: string) => {
       status: true,
       createdAt: true,
       updatedAt: true,
-    }
+    },
   });
   return result;
 };
@@ -447,7 +478,7 @@ const updatePartnerStatusRejected = async (id: string) => {
       status: true,
       createdAt: true,
       updatedAt: true,
-    }
+    },
   });
   return result;
 };
