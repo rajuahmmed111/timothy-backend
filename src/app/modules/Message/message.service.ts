@@ -3,6 +3,7 @@ import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 // import channelClients from '../../../server';
 
+// send message
 const sendMessage = async (
   senderId: string,
   receiverId: string,

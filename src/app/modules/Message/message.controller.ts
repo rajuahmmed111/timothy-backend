@@ -4,6 +4,7 @@ import { messageServices } from './message.service';
 import sendResponse from '../../../shared/sendResponse';
 import httpStatus from 'http-status';
 
+// send message
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const senderId = req.user?.id;
   const receiverId = req.params.receiverId;
@@ -39,7 +40,6 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 });
 
 // get all messages
-
 const getMessagesFromDB = catchAsync(async (req: Request, res: Response) => {
  const {channelName} = req.params
 //  console.log(channelName);
