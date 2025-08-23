@@ -8,6 +8,7 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const senderId = req.user?.id;
   const receiverId = req.params.receiverId;
   const { message } = req.body;
+  console.log(senderId, "senderId")
 
   const files = req.files as
     | { [fieldname: string]: Express.Multer.File[] }

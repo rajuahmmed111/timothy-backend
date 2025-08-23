@@ -108,8 +108,8 @@ model User {
   car_Booking        Car_Booking[]
   attraction         Attraction[]
   attraction_Booking Attraction_Booking[]
-  person1            Channel[]            @relation("ChannelPerson1")
-  person2            Channel[]            @relation("ChannelPerson2")
+  sender            Channel[]            @relation("ChannelPerson1")
+  receiver            Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
 
   @@map("users")
