@@ -67,6 +67,8 @@ const attractionBusinessLogo = upload.single("attractionBusinessLogo");
 const attractionImages = upload.array("attractionImages", 5);
 const attractionDocs = upload.array("attractionDocs", 5);
 
+const uploadMessageImages = upload.array("messageImages", 5);
+
 // Cloudinary configuration
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
@@ -129,6 +131,8 @@ export const uploadFile = {
   attractionBusinessLogo,
   attractionImages,
   attractionDocs,
+
+  uploadMessageImages,
 
   uploadToCloudinary,
 };

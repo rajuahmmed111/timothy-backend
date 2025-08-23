@@ -18,6 +18,7 @@ import { notificationsRoute } from "../modules/Notification/notification.route";
 import { settingRoute } from "../modules/Setting/setting.route";
 import { termsConditionRoute } from "../modules/Terms_Condition/terms.route";
 import { contractRoutes } from "../modules/Contracts/contract.route";
+import { messageRoutes } from "../modules/Message/message.route";
 
 const router = express.Router();
 
@@ -95,6 +96,10 @@ const moduleRoutes = [
   {
     path: "/settings",
     route: settingRoute,
+  },
+  {
+    path: "/messages",
+    route: messageRoutes,
   },
 ];
 
