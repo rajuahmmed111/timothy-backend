@@ -336,25 +336,53 @@ const getPopularSecurityProtocols = async (
     isBooked: EveryServiceStatus.AVAILABLE,
   });
 
-  const result = await prisma.security_Protocol.findMany({
-    where,
-    orderBy: {
-      securityRating: "desc",
-    },
-    take: 10,
-    select: {
-      id: true,
-      securityName: true,
-      securityRating: true,
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          profileImage: true,
-        },
+ const result = await prisma.security_Protocol.findMany({
+  where,
+  orderBy: {
+    securityRating: "desc",
+  },
+  take: 10,
+  select: {
+    id: true,
+    securityBusinessName: true,
+    securityName: true,
+    securityBusinessType: true,
+    securityRegNum: true,
+    securityRegDate: true,
+    securityPhone: true,
+    securityEmail: true,
+    securityAddress: true,
+    securityCity: true,
+    securityPostalCode: true,
+    securityDistrict: true,
+    securityCountry: true,
+    securityDescription: true,
+    securityImages: true,
+    securityServicesOffered: true,
+    securityBookingCondition: true,
+    securityCancelationPolicy: true,
+    securityDocs: true,
+    securityRating: true,
+    securityPriceDay: true,
+    discount: true,
+    securityReviewCount: true,
+    securityBookingAbleDays: true,
+    category: true,
+    isBooked: true,
+    vat: true,
+    hiredCount: true, // ✅ Add this
+    createdAt: true,
+    updatedAt: true,
+
+    user: {
+      select: {
+        id: true,
+        fullName: true,
+        profileImage: true,
       },
     },
-  });
+  },
+});
 
   return result;
 };
