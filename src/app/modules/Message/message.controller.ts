@@ -9,7 +9,7 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const senderId = req.user?.id;
   const receiverId = req.params.receiverId;
   const { message } = req.body;
-  console.log(senderId, "senderId")
+  // console.log(senderId, "senderId")
 
   const files = req.files as
     | { [fieldname: string]: Express.Multer.File[] }
@@ -63,7 +63,7 @@ const getUserChannels = catchAsync(async (req: Request, res: Response) => {
    sendResponse(res, {
      statusCode: httpStatus.OK,
      success: true,
-     message: 'Messages retrieved successfully',
+     message: 'Channels retrieved successfully',
      data: channels,
    });
  });
