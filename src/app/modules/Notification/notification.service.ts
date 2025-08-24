@@ -1,11 +1,12 @@
 import ApiError from "../../../errors/ApiErrors";
 import admin from "../../../helpars/firebaseAdmin";
 import prisma from "../../../shared/prisma";
+import { NotificationPayload } from "./notification.interface";
 
 // Send notification to a single user
-const sendSingleNotification = async (req: any) => {
+const sendSingleNotification = async (payload: NotificationPayload) => {
   const user = await prisma.user.findUnique({
-    where: { id: req.params.userId },
+    where: { id: payload.userId },
   });
 
   if (!user?.fcmToken) {
@@ -14,8 +15,8 @@ const sendSingleNotification = async (req: any) => {
 
   const message = {
     notification: {
-      title: req.body.title,
-      body: req.body.body,
+      title: payload.title,
+      body: payload.body,
     },
     token: user.fcmToken,
   };
@@ -24,9 +25,9 @@ const sendSingleNotification = async (req: any) => {
     const response = await admin.messaging().send(message);
     await prisma.notifications.create({
       data: {
-        receiverId: req.params.userId,
-        title: req.body.title,
-        body: req.body.body,
+        receiverId: payload.userId,
+        title: payload.title,
+        body: payload.body,
       },
     });
     return response;

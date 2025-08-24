@@ -5,7 +5,10 @@ import sendResponse from "../../../shared/sendResponse";
 
 // send notification
 const sendNotification = catchAsync(async (req: Request, res: Response) => {
-  const notification = await NotificationService.sendSingleNotification(req);
+  const payload = req.body;
+  const notification = await NotificationService.sendSingleNotification(
+    payload
+  );
 
   sendResponse(res, {
     statusCode: 200,

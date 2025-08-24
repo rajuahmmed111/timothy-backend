@@ -7,6 +7,7 @@ import {
   IBookingFilterRequest,
   IHotelBookingData,
 } from "./hotelBooking.interface";
+import { NotificationService } from "../Notification/notification.service";
 
 // create hotel booking
 const createHotelBooking = async (
@@ -71,6 +72,27 @@ const createHotelBooking = async (
       category: hotel.category as string,
     },
   });
+
+  // ✅ Send notifications after booking
+  try {
+    // User notification
+    await NotificationService.sendSingleNotification({
+      userId: result.userId,
+      title: "Booking Confirmed",
+      body: `Your booking at hotel ${hotelId} from ${bookedFromDate} to ${bookedToDate} is confirmed!`,
+      message: `Total price: ${result.totalPrice}`,
+    });
+
+    // Partner / Service Provider notification
+    await NotificationService.sendSingleNotification({
+      userId: result.partnerId,
+      title: "New Booking",
+      body: `A user booked your hotel from ${bookedFromDate} to ${bookedToDate}`,
+      message: `Booking ID: ${result.id}`,
+    });
+  } catch (err) {
+    console.error("Failed to send booking notifications:", err);
+  }
 
   return result;
 };
