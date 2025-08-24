@@ -1,12 +1,12 @@
 import ApiError from "../../../errors/ApiErrors";
 import admin from "../../../helpars/firebaseAdmin";
 import prisma from "../../../shared/prisma";
-import { NotificationPayload } from "./notification.interface";
 
 // Send notification to a single user
-const sendSingleNotification = async (payload: NotificationPayload) => {
+const sendSingleNotification = async (req: any) => {
+  console.log(req, "req");
   const user = await prisma.user.findUnique({
-    where: { id: payload.userId },
+    where: { id: req.params.userId },
   });
 
   if (!user?.fcmToken) {
@@ -15,21 +15,21 @@ const sendSingleNotification = async (payload: NotificationPayload) => {
 
   const message = {
     notification: {
-      title: payload.title,
-      body: payload.body,
+      title: req.body.title,
+      body: req.body.body,
     },
     token: user.fcmToken,
   };
 
   try {
     const response = await admin.messaging().send(message);
-    await prisma.notifications.create({
-      data: {
-        receiverId: payload.userId,
-        title: payload.title,
-        body: payload.body,
-      },
-    });
+    // await prisma.notifications.create({
+    //   data: {
+    //     receiverId: req.params.userId,
+    //     title: req.body.title,
+    //     body: req.body.body,
+    //   },
+    // });
     return response;
   } catch (error: any) {
     if (error.code === "messaging/invalid-registration-token") {
