@@ -15,6 +15,7 @@ const createUserZodSchema = z.object({
     address: z.string().optional(),
     country: z.string().optional(),
     role: z.nativeEnum(UserRole).optional(),
+    fcmToken: z.string().optional(),
     status: z.nativeEnum(UserStatus).optional(),
   }),
 });

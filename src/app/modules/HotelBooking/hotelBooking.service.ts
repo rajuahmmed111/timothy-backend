@@ -7,9 +7,10 @@ import {
   IBookingFilterRequest,
   IHotelBookingData,
 } from "./hotelBooking.interface";
+import admin from "../../../helpars/firebaseAdmin";
 // import { NotificationService } from "../Notification/notification.service";
 
-// create hotel booking
+// Updated createHotelBooking service with notifications
 const createHotelBooking = async (
   userId: string,
   hotelId: string,
@@ -29,14 +30,24 @@ const createHotelBooking = async (
     select: {
       hotelRoomPriceNight: true,
       partnerId: true,
-      discount: true, // discount in percentage
+      discount: true,
       category: true,
+      hotelName: true, // Hotel name for notification
     },
   });
 
   if (!hotel) {
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }
+
+  // Get partner/service provider info
+  const partner = await prisma.user.findUnique({
+    where: { id: hotel.partnerId },
+    select: {
+      fcmToken: true,
+      fullName: true,
+    },
+  });
 
   if (!rooms || !adults || !children || !bookedFromDate || !bookedToDate) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
@@ -61,6 +72,7 @@ const createHotelBooking = async (
     totalPrice -= (totalPrice * hotel.discount) / 100;
   }
 
+  // Create booking
   const result = await prisma.hotel_Booking.create({
     data: {
       ...data,
@@ -73,26 +85,55 @@ const createHotelBooking = async (
     },
   });
 
-  // ✅ Send notifications after booking
-  // try {
-  //   // User notification
-  //   await NotificationService.sendSingleNotification({
-  //     userId: result.userId,
-  //     title: "Booking Confirmed",
-  //     body: `Your booking at hotel ${hotelId} from ${bookedFromDate} to ${bookedToDate} is confirmed!`,
-  //     message: `Total price: ${result.totalPrice}`,
-  //   });
+  // Send notifications after successful booking creation
+  try {
+    // 1. Send notification to user (booking confirmation)
+    if (user.fcmToken) {
+      const userNotificationData = {
+        notification: {
+          title: "Booking Confirmed! 🎉",
+          body: `Your hotel booking at ${hotel.hotelName} has been confirmed. Booking ID: ${result.id}`,
+        },
+        token: user.fcmToken,
+      };
 
-  //   // Partner / Service Provider notification
-  //   await NotificationService.sendSingleNotification({
-  //     userId: result.partnerId,
-  //     title: "New Booking",
-  //     body: `A user booked your hotel from ${bookedFromDate} to ${bookedToDate}`,
-  //     message: `Booking ID: ${result.id}`,
-  //   });
-  // } catch (err) {
-  //   console.error("Failed to send booking notifications:", err);
-  // }
+      await admin.messaging().send(userNotificationData);
+
+      // Save notification to database
+      await prisma.notifications.create({
+        data: {
+          receiverId: userId,
+          title: userNotificationData.notification.title,
+          body: userNotificationData.notification.body,
+        },
+      });
+    }
+
+    // 2. Send notification to service provider/partner (new booking alert)
+    if (partner && partner.fcmToken) {
+      const partnerNotificationData = {
+        notification: {
+          title: "New Hotel Booking! 🏨",
+          body: `New booking received from ${user.fullName} for ${rooms} room(s). Total: ৳${totalPrice}`,
+        },
+        token: partner.fcmToken,
+      };
+
+      await admin.messaging().send(partnerNotificationData);
+
+      // Save notification to database
+      await prisma.notifications.create({
+        data: {
+          receiverId: hotel.partnerId,
+          title: partnerNotificationData.notification.title,
+          body: partnerNotificationData.notification.body,
+        },
+      });
+    }
+  } catch (notificationError) {
+    console.error("Failed to send notifications:", notificationError);
+    // Don't throw error here, booking should still succeed even if notification fails
+  }
 
   return result;
 };

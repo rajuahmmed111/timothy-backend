@@ -17,7 +17,19 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "User information created successfully",
+    message: "OTP generated and sent to email successfully",
+    data: result,
+  });
+});
+
+// verify user
+const verifyOtpAndCreateUser = catchAsync(async (req: Request, res: Response) => {
+const { email, otp } = req.body;
+  const result = await UserService.verifyOtpAndCreateUser(email, otp);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User verified successfully",
     data: result,
   });
 });
@@ -236,6 +248,7 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
 
 export const UserController = {
   createUser,
+  verifyOtpAndCreateUser,
   getAllUsers,
   getAllAdmins,
   updateAdminStatusInActiveToActive,

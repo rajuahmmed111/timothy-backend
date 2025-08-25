@@ -18,25 +18,86 @@ import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { Request } from "express";
 import { getDateRange } from "../../../helpars/filterByDate";
+import emailSender from "../../../helpars/emailSender";
 
 // create user
-const createUser = async (payload: any): Promise<SafeUser | null> => {
+const createUser = async (payload: any) => {
+  // check if email exists
   const existingUser = await prisma.user.findUnique({
-    where: { email: payload.email, status: UserStatus.ACTIVE },
+    where: { email: payload.email },
   });
+
   if (existingUser) {
     throw new ApiError(httpStatus.BAD_REQUEST, "User already exists");
   }
 
+  // hash password
   const hashedPassword = await bcrypt.hash(payload.password, 12);
-  if (!hashedPassword) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Failed to hash password");
-  }
 
+  // create user with inactive status
   const user = await prisma.user.create({
     data: {
       ...payload,
       password: hashedPassword,
+      status: UserStatus.INACTIVE,
+    },
+  });
+
+  // generate OTP
+  const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
+  // 5 minutes
+  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
+  // prepare email html
+  const html = `
+    <h2>OTP Verification</h2>
+    <p>Your OTP code is: <b>${randomOtp}</b></p>
+    <p>This OTP will expire in 5 minutes.</p>
+  `;
+
+  // send email
+  await emailSender("OTP Verification", user.email, html);
+
+  // update user with OTP + expiry
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { otp: randomOtp, otpExpiry },
+  });
+
+  return {
+    message: "OTP sent to your email",
+    email: user.email,
+  };
+};
+
+// verify otp and create user
+const verifyOtpAndCreateUser = async (email: string, otp: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  if (user.otp !== otp) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP");
+  }
+
+  // OTP expired check
+  if (!user.otpExpiry || user.otpExpiry < new Date()) {
+    // delete user if expired
+    await prisma.user.delete({ where: { id: user.id } });
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "OTP has expired, please register again"
+    );
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      status: UserStatus.ACTIVE,
+      otp: null,
+      otpExpiry: null,
     },
     select: {
       id: true,
@@ -51,10 +112,10 @@ const createUser = async (payload: any): Promise<SafeUser | null> => {
       status: true,
       createdAt: true,
       updatedAt: true,
-    },
+    }
   });
 
-  return user;
+  return updatedUser;
 };
 
 // get all users
@@ -300,7 +361,6 @@ const updateAdminStatusRejected = async (id: string) => {
   });
   return result;
 };
-  
 
 // get all business partners
 const getAllBusinessPartners = async (
@@ -736,6 +796,7 @@ const deleteUser = async (
 
 export const UserService = {
   createUser,
+  verifyOtpAndCreateUser,
   getAllUsers,
   getAllAdmins,
   updateAdminStatusInActiveToActive,

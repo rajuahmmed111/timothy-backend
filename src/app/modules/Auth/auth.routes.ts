@@ -45,7 +45,6 @@ router.post("/forgot-password", AuthController.forgotPassword);
 router.post("/verify-otp", AuthController.verifyOtp);
 
 // reset password
-
 router.post(
   "/reset-password",
   validateRequest(authValidation.resetPasswordSchema),
