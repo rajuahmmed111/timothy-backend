@@ -17,6 +17,9 @@ router.post(
 
 router.get("/channels", auth(), messageControllers.getUserChannels);
 
+// get my channel through my id and receiver id
+router.get("/my-channel/:receiverId", auth(), messageControllers.getMyChannel);
+
 // get all message
 router.get(
   "/get-message/:channelName",

@@ -89,6 +89,25 @@ const sendMessage = async (
   return allMessages;
 };
 
+// get my channel through my id and receiver id
+const getMyChannel = async (userId: string, receiverId: string) => {
+  // find person1 and person2
+  const user1 = await prisma.user.findUnique({ where: { id: userId } });
+  const user2 = await prisma.user.findUnique({ where: { id: receiverId } });
+  if (!user1 || !user2) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const [person1, person2] = [userId, receiverId].sort();
+  const channelName = person1 + person2;
+  const channel = await prisma.channel.findFirst({
+    where: {
+      channelName: channelName,
+    },
+  });
+  return channel;
+};
+
 const getMessagesFromDB = async (channelName: string) => {
   const message = await prisma.channel.findMany({
     where: {
@@ -139,6 +158,7 @@ const getUserChannels = async (userId: string) => {
 
 export const messageServices = {
   sendMessage,
+  getMyChannel,
   getMessagesFromDB,
   getUserChannels,
 };

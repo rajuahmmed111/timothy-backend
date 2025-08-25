@@ -39,6 +39,19 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get my channel through my id and receiver id
+const getMyChannel = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const receiverId = req.params.receiverId;
+  const result = await messageServices.getMyChannel(userId, receiverId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Channel retrieved successfully',
+    data: result,
+  });
+});
+
 // get all messages
 const getMessagesFromDB = catchAsync(async (req: Request, res: Response) => {
  const {channelName} = req.params
@@ -70,6 +83,7 @@ const getUserChannels = catchAsync(async (req: Request, res: Response) => {
 
 export const messageControllers = {
   sendMessage,
+  getMyChannel,
   getMessagesFromDB,
   getUserChannels
 };
