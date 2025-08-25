@@ -39,6 +39,7 @@ export type SafeUser = {
   address: string | null;
   country: string | null;
   role: UserRole;
+  fcmToken: string | null;
   status: UserStatus;
   createdAt: Date;
   updatedAt: Date;

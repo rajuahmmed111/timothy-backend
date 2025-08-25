@@ -425,8 +425,8 @@ model Attraction {
   updatedAt DateTime @updatedAt
 
   // relationships
-  user               User                 @relation(fields: [partnerId], references: [id])
-  partnerId          String               @db.ObjectId
+  user               User?                 @relation(fields: [partnerId], references: [id])
+  partnerId          String?               @db.ObjectId
   attraction_Booking Attraction_Booking[]
   review             Review[]
   attractionSchedule AttractionSchedule[]
