@@ -7,15 +7,14 @@ import ApiError from "../../../errors/ApiErrors";
 import emailSender from "../../../helpars/emailSender";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
 import prisma from "../../../shared/prisma";
-import { ILoginResponse } from "./auth.interface";
+import { ILoginRequest, ILoginResponse } from "./auth.interface";
 
 // login user
-const loginUser = async (payload: {
-  email: string;
-  password: string;
-}): Promise<ILoginResponse> => {
+const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
+  const { email, password, fcmToken } = payload;
+
   const userData = await prisma.user.findUnique({
-    where: { email: payload.email, status: UserStatus.ACTIVE },
+    where: { email: email, status: UserStatus.ACTIVE },
   });
 
   if (!userData) {
@@ -26,19 +25,30 @@ const loginUser = async (payload: {
     throw new ApiError(httpStatus.FORBIDDEN, "Your account is inactive");
   }
 
-  if (!payload.password || !userData.password) {
+  if (!password || !userData.password) {
     throw new Error("Password is required");
   }
 
-  const isCorrectPassword = await bcrypt.compare(
-    payload.password,
-    userData.password
-  );
+  const isCorrectPassword = await bcrypt.compare(password, userData.password);
 
   if (!isCorrectPassword) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "incorrect credentials!");
   }
 
+  // update fcm token
+  let updatedFcmToken = userData;
+  if (fcmToken) {
+    try {
+      updatedFcmToken = await prisma.user.update({
+        where: { id: userData.id },
+        data: { fcmToken: fcmToken },
+      });
+      console.log(`FCM token updated for user: ${userData.id}`);
+    } catch (error) {
+      console.error("Failed to update FCM token:", error);
+      // Don't throw error here, login should still work
+    }
+  }
   const accessToken = jwtHelpers.generateToken(
     {
       id: userData.id,
