@@ -81,7 +81,7 @@ const createAttractionBooking = async (
     data: {
       userId,
       attractionId,
-      partnerId: attraction.partnerId,
+      partnerId: attraction.partnerId!,
       adults,
       children,
       date,
