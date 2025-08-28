@@ -2,6 +2,11 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { BookingStatus, EveryServiceStatus } from "@prisma/client";
+import {
+  BookingNotificationService,
+  IBookingNotificationData,
+  ServiceType,
+} from "../../../shared/notificationService";
 
 // create attraction booking
 const createAttractionBooking = async (
@@ -93,6 +98,19 @@ const createAttractionBooking = async (
     },
   });
 
+  // Send notifications after successful booking creation
+  const notificationData: IBookingNotificationData = {
+    bookingId: booking.id,
+    partnerId: booking.partnerId,
+    userId: booking.userId,
+    serviceType: ServiceType.ATTRACTION,
+    serviceName: attraction.attractionName,
+    bookedFromDate: booking.date,
+    bookedToDate: booking.date,
+    totalPrice: booking.totalPrice,
+  };
+  BookingNotificationService.sendBookingNotifications(notificationData);
+
   return booking;
 };
 
@@ -101,13 +119,13 @@ const getAllAttractionBookings = async (partnerId: string) => {
   const partner = await prisma.user.findUnique({
     where: { id: partnerId },
     include: {
-      attraction:{
+      attraction: {
         select: {
           id: true,
           attractionName: true,
         },
-      }
-    }
+      },
+    },
   });
   if (!partner) {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");

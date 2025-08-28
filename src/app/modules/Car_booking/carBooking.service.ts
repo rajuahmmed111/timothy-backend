@@ -10,6 +10,11 @@ import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import { differenceInDays, parse } from "date-fns";
 import { ICarBookingData } from "./carBooking.interface";
+import {
+  BookingNotificationService,
+  IBookingNotificationData,
+  ServiceType,
+} from "../../../shared/notificationService";
 
 // create car rental booking
 const createCarBooking = async (
@@ -35,6 +40,7 @@ const createCarBooking = async (
       discount: true,
       vat: true,
       category: true,
+      carName: true,
     },
   });
   if (!car)
@@ -61,14 +67,14 @@ const createCarBooking = async (
 
   // promo code discount (if provided)
   if (promo_code) {
-  const bookingStartDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
+    const bookingStartDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
 
     const promo = await prisma.promoCode.findFirst({
       where: {
         code: promo_code,
         status: PromoStatus.ACTIVE,
         validFrom: { lte: bookingStartDate },
-      validTo: { gte: bookingStartDate },
+        validTo: { gte: bookingStartDate },
       },
     });
     if (!promo) {
@@ -123,6 +129,19 @@ const createCarBooking = async (
     },
   });
 
+  // Send notifications after successful booking creation
+  const notificationData: IBookingNotificationData = {
+    bookingId: booking.id,
+    userId: userId,
+    partnerId: car.partnerId,
+    serviceType: ServiceType.CAR,
+    serviceName: car.carName,
+    totalPrice: totalPrice,
+    bookedFromDate: data.carBookedFromDate,
+    bookedToDate: data.carBookedToDate,
+  };
+  BookingNotificationService.sendBookingNotifications(notificationData);
+
   return booking;
 };
 
@@ -137,12 +156,12 @@ const getAllCarBookings = async (partnerId: string) => {
   const result = await prisma.car_Booking.findMany({
     where: { partnerId },
     include: {
-     car:{
-      select: {
-        id: true,
-        carName: true,
+      car: {
+        select: {
+          id: true,
+          carName: true,
+        },
       },
-     }
     },
   });
   if (result.length === 0) {

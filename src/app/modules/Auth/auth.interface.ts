@@ -2,11 +2,7 @@ export type ILoginResponse = {
   accessToken: string;
   refreshToken: string;
     user?: {
-    id?: string;
-    email?: string;
-    name?: string;
-    role?: string;
-    fcmToken?: string;
+    fcmToken?: string | null;
   };
 };
 

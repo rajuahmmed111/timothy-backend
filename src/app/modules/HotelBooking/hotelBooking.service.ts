@@ -8,6 +8,11 @@ import {
   IHotelBookingData,
 } from "./hotelBooking.interface";
 import admin from "../../../helpars/firebaseAdmin";
+import {
+  BookingNotificationService,
+  IBookingNotificationData,
+  ServiceType,
+} from "../../../shared/notificationService";
 // import { NotificationService } from "../Notification/notification.service";
 
 // Updated createHotelBooking service with notifications
@@ -86,54 +91,18 @@ const createHotelBooking = async (
   });
 
   // Send notifications after successful booking creation
-  try {
-    // 1. Send notification to user (booking confirmation)
-    if (user.fcmToken) {
-      const userNotificationData = {
-        notification: {
-          title: "Booking Confirmed! 🎉",
-          body: `Your hotel booking at ${hotel.hotelName} has been confirmed. Booking ID: ${result.id}`,
-        },
-        token: user.fcmToken,
-      };
+  const notificationData: IBookingNotificationData = {
+    bookingId: result.id,
+    userId: userId,
+    partnerId: hotel.partnerId,
+    serviceType: ServiceType.HOTEL,
+    serviceName: hotel.hotelName,
+    totalPrice: totalPrice,
+    bookedFromDate: bookedFromDate,
+    quantity: rooms,
+  };
 
-      await admin.messaging().send(userNotificationData);
-
-      // Save notification to database
-      await prisma.notifications.create({
-        data: {
-          receiverId: userId,
-          title: userNotificationData.notification.title,
-          body: userNotificationData.notification.body,
-        },
-      });
-    }
-
-    // 2. Send notification to service provider/partner (new booking alert)
-    if (partner && partner.fcmToken) {
-      const partnerNotificationData = {
-        notification: {
-          title: "New Hotel Booking! 🏨",
-          body: `New booking received from ${user.fullName} for ${rooms} room(s). Total: ৳${totalPrice}`,
-        },
-        token: partner.fcmToken,
-      };
-
-      await admin.messaging().send(partnerNotificationData);
-
-      // Save notification to database
-      await prisma.notifications.create({
-        data: {
-          receiverId: hotel.partnerId,
-          title: partnerNotificationData.notification.title,
-          body: partnerNotificationData.notification.body,
-        },
-      });
-    }
-  } catch (notificationError) {
-    console.error("Failed to send notifications:", notificationError);
-    // Don't throw error here, booking should still succeed even if notification fails
-  }
+  BookingNotificationService.sendBookingNotifications(notificationData);
 
   return result;
 };

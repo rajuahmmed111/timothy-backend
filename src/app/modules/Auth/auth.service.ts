@@ -43,7 +43,6 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
         where: { id: userData.id },
         data: { fcmToken: fcmToken },
       });
-      console.log(`FCM token updated for user: ${userData.id}`);
     } catch (error) {
       console.error("Failed to update FCM token:", error);
       // Don't throw error here, login should still work
@@ -72,6 +71,9 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
   const result = {
     accessToken,
     refreshToken,
+    user: {
+      fcmToken: updatedFcmToken.fcmToken,
+    }
   };
 
   return result;

@@ -69,7 +69,7 @@ async function main() {
       ws.on("message", async (raw: Buffer) => {
         try {
           const msgStr = raw.toString().trim();
-          console.log("Received WS message:", msgStr);
+          // console.log("Received WS message:", msgStr);
 
           const parsed = JSON.parse(msgStr);
 

@@ -4,6 +4,8 @@ import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import { differenceInDays, parse } from "date-fns";
 import { ISecurityBookingData } from "./security_booking.interface";
+import { BookingNotificationService, IBookingNotificationData, ServiceType } from "../../../shared/notificationService";
+
 
 // create security booking
 const createSecurityBooking = async (
@@ -31,6 +33,7 @@ const createSecurityBooking = async (
       discount: true,
       vat: true,
       category: true,
+      securityName: true,
     },
   });
   if (!security) {
@@ -87,6 +90,20 @@ const createSecurityBooking = async (
       category: security.category as string,
     },
   });
+
+  // Send notifications after successful booking creation
+  const notificationData: IBookingNotificationData = {
+    bookingId: result.id,
+    userId,
+    partnerId: security.partnerId,
+    serviceType: ServiceType.SECURITY,
+    quantity: number_of_security,
+    totalPrice,
+    bookedFromDate: securityBookedFromDate,
+    bookedToDate: securityBookedToDate,
+    serviceName: security.securityName,
+  };
+  BookingNotificationService.sendBookingNotifications(notificationData);
 
   return result;
 };
