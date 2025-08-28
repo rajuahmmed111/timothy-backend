@@ -147,7 +147,7 @@ const getSingleNotificationFromDB = async (
   return notification;
 };
 
-// get my notifications by user id(this user id in booking data table userId column)
+// get my all notifications
 const getMyNotifications = async (userId: string) => {
   // find me
   const user = await prisma.user.findUnique({
@@ -159,16 +159,9 @@ const getMyNotifications = async (userId: string) => {
     throw new ApiError(404, "User not found");
   }
 
-  // ami sei booking data
-  // const booking = await prisma.car_Booking.findMany({
-  //   where: {
-  //     userId: user.id,
-  //   },
-  // });
-
   const notifications = await prisma.notifications.findMany({
     where: {
-      receiverId: userId,
+      receiverId: user.id,
     },
     orderBy: { createdAt: "desc" },
   });

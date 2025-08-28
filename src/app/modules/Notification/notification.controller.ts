@@ -55,7 +55,7 @@ const getSingleNotificationById = catchAsync(
   }
 );
 
-// get my notifications by user id(this user id in booking data table userId column)
+// get my all notifications
 const getMyNotifications = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const notifications = await NotificationService.getMyNotifications(userId);

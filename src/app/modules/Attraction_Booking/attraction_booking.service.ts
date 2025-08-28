@@ -102,7 +102,7 @@ const createAttractionBooking = async (
   const notificationData: IBookingNotificationData = {
     bookingId: booking.id,
     partnerId: booking.partnerId,
-    userId: booking.userId,
+    userId: booking.userId!,
     serviceType: ServiceType.ATTRACTION,
     serviceName: attraction.attractionName,
     bookedFromDate: booking.date,

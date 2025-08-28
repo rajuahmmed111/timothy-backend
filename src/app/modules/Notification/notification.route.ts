@@ -16,7 +16,7 @@ router.post(
   NotificationController.sendNotifications
 );
 
-// get my notifications by user id(this user id in booking data table userId column)
+// get my all notifications
 router.get(
   "/my-notifications",
   auth(),
