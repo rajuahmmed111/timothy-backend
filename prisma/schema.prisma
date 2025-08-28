@@ -204,8 +204,8 @@ model Hotel_Booking {
   partnerId String @db.ObjectId
   hotel     Hotel  @relation(fields: [hotelId], references: [id])
   hotelId   String @db.ObjectId
-  user      User   @relation(fields: [userId], references: [id])
-  userId    String @db.ObjectId
+  user      User?   @relation(fields: [userId], references: [id])
+  userId    String? @db.ObjectId
 
   @@map("hotel_bookings")
 }
@@ -271,8 +271,8 @@ model Security_Booking {
   partnerId  String            @db.ObjectId
   security   Security_Protocol @relation(fields: [securityId], references: [id])
   securityId String            @db.ObjectId
-  user       User              @relation(fields: [userId], references: [id])
-  userId     String            @db.ObjectId
+  user       User   ?           @relation(fields: [userId], references: [id])
+  userId     String   ?         @db.ObjectId
 
   @@map("security_bookings")
 }
@@ -377,8 +377,8 @@ model Car_Booking {
   partnerId   String     @db.ObjectId
   car         Car_Rental @relation(fields: [carId], references: [id])
   carId       String     @db.ObjectId
-  user        User       @relation(fields: [userId], references: [id])
-  userId      String     @db.ObjectId
+  user        User   ?    @relation(fields: [userId], references: [id])
+  userId      String   ?  @db.ObjectId
   promoCode   PromoCode? @relation(fields: [promoCodeId], references: [id])
   promoCodeId String?    @db.ObjectId
 
@@ -476,8 +476,8 @@ model Attraction_Booking {
   partnerId    String     @db.ObjectId
   attraction   Attraction @relation(fields: [attractionId], references: [id])
   attractionId String     @db.ObjectId
-  user         User       @relation(fields: [userId], references: [id])
-  userId       String     @db.ObjectId
+  user         User  ?     @relation(fields: [userId], references: [id])
+  userId       String  ?   @db.ObjectId
 
   @@map("attraction_bookings")
 }

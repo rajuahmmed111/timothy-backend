@@ -182,8 +182,16 @@ const getAllCarRentals = async (
         : {
             createdAt: "desc",
           },
-    include: {
-      user: true,
+    select: {
+      id: true,
+      carName: true,
+      carBusinessType: true,
+      carCity: true,
+      carCountry: true,
+      carType: true,
+      carSeats: true,
+      carOilType: true,
+      partnerId: true,
     },
   });
   const total = await prisma.car_Rental.count({ where });

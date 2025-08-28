@@ -71,7 +71,7 @@ const sendNotifications = async (req: any) => {
   };
 
   const response = await admin.messaging().sendEachForMulticast(message as any);
-//   const response = await admin.messaging().sendEachForMulticast(message as any);
+  //   const response = await admin.messaging().sendEachForMulticast(message as any);
 
   // Find indices of successful responses
   const successIndices = response.responses
@@ -147,9 +147,38 @@ const getSingleNotificationFromDB = async (
   return notification;
 };
 
+// get my notifications by user id(this user id in booking data table userId column)
+const getMyNotifications = async (userId: string) => {
+  // find me
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // ami sei booking data
+  // const booking = await prisma.car_Booking.findMany({
+  //   where: {
+  //     userId: user.id,
+  //   },
+  // });
+
+  const notifications = await prisma.notifications.findMany({
+    where: {
+      receiverId: userId,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  return notifications;
+};
+
 export const NotificationService = {
   sendSingleNotification,
   sendNotifications,
   getNotificationsFromDB,
   getSingleNotificationFromDB,
+  getMyNotifications,
 };

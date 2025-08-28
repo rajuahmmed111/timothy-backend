@@ -16,7 +16,7 @@ const sendNotification = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const sendNotifications = catchAsync(async (req: any, res: any) => {
+const sendNotifications = catchAsync(async (req: Request, res: Response) => {
   const notifications = await NotificationService.sendNotifications(req);
 
   sendResponse(res, {
@@ -27,7 +27,7 @@ const sendNotifications = catchAsync(async (req: any, res: any) => {
   });
 });
 
-const getNotifications = catchAsync(async (req: any, res: any) => {
+const getNotifications = catchAsync(async (req: Request, res: Response) => {
   const notifications = await NotificationService.getNotificationsFromDB(req);
 
   sendResponse(res, {
@@ -38,23 +38,39 @@ const getNotifications = catchAsync(async (req: any, res: any) => {
   });
 });
 
-const getSingleNotificationById = catchAsync(async (req: any, res: any) => {
-  const notificationId = req.params.notificationId;
-  const notification = await NotificationService.getSingleNotificationFromDB(
-    req,
-    notificationId
-  );
+const getSingleNotificationById = catchAsync(
+  async (req: Request, res: Response) => {
+    const notificationId = req.params.notificationId;
+    const notification = await NotificationService.getSingleNotificationFromDB(
+      req,
+      notificationId
+    );
 
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Notification retrieved successfully",
+      data: notification,
+    });
+  }
+);
+
+// get my notifications by user id(this user id in booking data table userId column)
+const getMyNotifications = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const notifications = await NotificationService.getMyNotifications(userId);
   sendResponse(res, {
     success: true,
     statusCode: 200,
-    message: "Notification retrieved successfully",
-    data: notification,
+    message: "My notifications retrieved successfully",
+    data: notifications,
   });
 });
+
 export const NotificationController = {
   sendNotification,
   sendNotifications,
   getNotifications,
   getSingleNotificationById,
+  getMyNotifications,
 };
