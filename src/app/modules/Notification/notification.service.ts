@@ -149,23 +149,10 @@ const getSingleNotificationFromDB = async (
 
 // get my all notifications
 const getMyNotifications = async (userId: string) => {
-  // find me
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  const notifications = await prisma.notifications.findMany({
-    where: {
-      receiverId: user.id,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-  return notifications;
+return prisma.notifications.findMany({
+      where: { receiverId: userId },
+      orderBy: { createdAt: "desc" }, // newest first
+    });
 };
 
 export const NotificationService = {

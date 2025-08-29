@@ -7,13 +7,12 @@ import {
   IBookingFilterRequest,
   IHotelBookingData,
 } from "./hotelBooking.interface";
-import admin from "../../../helpars/firebaseAdmin";
+
 import {
   BookingNotificationService,
   IBookingNotificationData,
   ServiceType,
 } from "../../../shared/notificationService";
-// import { NotificationService } from "../Notification/notification.service";
 
 // Updated createHotelBooking service with notifications
 const createHotelBooking = async (

@@ -4,6 +4,13 @@ import { NotificationController } from "./notification.controller";
 
 const router = express.Router();
 
+// get my all notifications
+router.get(
+  "/my-notifications",
+  auth(),
+  NotificationController.getMyNotifications
+);
+
 router.post(
   "/send-notification/:userId",
   auth(),
@@ -16,12 +23,7 @@ router.post(
   NotificationController.sendNotifications
 );
 
-// get my all notifications
-router.get(
-  "/my-notifications",
-  auth(),
-  NotificationController.getMyNotifications
-);
+
 
 router.get("/", auth(), NotificationController.getNotifications);
 router.get(
