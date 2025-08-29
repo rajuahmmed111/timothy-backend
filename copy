@@ -1,15 +1,14 @@
 NODE_ENV=development # do not add this when deploying to production
-DATABASE_URL="mongodb+srv://timothy:OWVyMI979ILE0ZQj@cluster0.wqymbxc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+DATABASE_URL="mongodb+srv://timothyapp:RjKfD7UAMaF1aiyL@cluster0.wqymbxc.mongodb.net/timothy?retryWrites=true&w=majority&appName=Cluster0"
 PORT=5000
 
-
-EMAIL="ahraju3904@gmail.com"
-APP_PASS="vpxz rlnc qeov ffvn "
-CONTACT_MAIL_ADDRESS = "ahraju3904@gmail.com"
+EMAIL="amsohelrana.me@gmail.com"
+APP_PASS="hvex lxcg prub yybt"
+CONTACT_MAIL_ADDRESS="amsohelrana.me@gmail.com"
 
 JWT_SECRET=185313c65e5a918d3044434fb31f0e88de9b3e48493b4899d103a14cf2a93c7efddbd3cb48eb83ef18d7f17f693b6
 d76f2135da85ff08b4c25679383abcc5535
-EXPIRES_IN=1d
+EXPIRES_IN=7d
 REFRESH_TOKEN_SECRET=7e657f0aae73f1832afaf7ffe949781d58b4cb98ba2fb6897b43b66b6fd858c81dac0c509ab1cdd3be4fd98f279ae
 87f504223be77aa4f94504fe35f656b7a43
 REFRESH_TOKEN_EXPIRES_IN=1y
@@ -21,18 +20,14 @@ STRIPE_SECRET_KEY=sk_test_51Qp5z9PQgZXkq7pvqD1bA3SQLcA4U4VChp34IofpkxS2xBtVoFxh1
 STRIPE_CLIENT_ID=
 STRIPE_WEBHOOK_SECRET=whsec_HJbMMO8okvqLvnymGJ5f8u0ht3TdtTd0
 
-
 PAYPAL_CLIENT_ID=ARIHOFSkidkzDRJW4S6jcOJCLG8Sd4_rVKotmWThn9jovDZImieUU909tIiR9l2hBbtIoIDez1uTralm
 PAYPAL_CLIENT_SECRET=EE6sZUNe9IPpGPkRA1F3TgTdRDQPzoXc7qPGKI4jcSjcp8jjfZ6WSq6JFuYBaPqvkZY83o-gQMcm9e_u
-
 
 FRONTEND_URL=http://localhost:3000
 BACKEND_IMAGE_URL=http://localhost:5000/uploads
 
 RESET_PASS_LINK=http://localhost:3000/reset-password
 
-
- 
 CLOUDINARY_NAME="dugcllznd"
 CLOUDINARY_API_KEY="298919725832732"
 CLOUDINARY_API_SECRET="KQbyyHWCgDOc1uhDgWa1Wl-3bsg"
@@ -41,3 +36,7 @@ DO_SPACE_ENDPOINT="https://nyc3.digitaloceanspaces.com"
 DO_SPACE_ACCESS_KEY="DO002RGDJ947DJHJ9WDT"
 DO_SPACE_SECRET_KEY="e5+/pko6Ojar51Hb8ojUKfq2HtXy+tnGKOfs3rIcEfo"
 DO_SPACE_BUCKET="smtech-space"
+
+TWILIO_ACCOUNT_SID=ACedc9f47c3af4afb5939d9f3807235b30
+TWILIO_ACCOUNT_SID=5fb67c4c526f2bae36c6dffdae4fe66d
+TWILIO_PHONE_NUMBER=01516502364
