@@ -20,6 +20,7 @@ import { termsConditionRoute } from "../modules/Terms_Condition/terms.route";
 import { contractRoutes } from "../modules/Contracts/contract.route";
 import { messageRoutes } from "../modules/Message/message.route";
 import { phoneRoute } from "../modules/Setting/PhoneNumberVerify/phone.route";
+import { paymentRoutes } from "../modules/Payment/payment.route";
 
 const router = express.Router();
 
@@ -100,6 +101,10 @@ const moduleRoutes = [
   {
     path: "/messages",
     route: messageRoutes,
+  },
+  {
+    path: "/payments",
+    route: paymentRoutes,
   },
 ];
 
