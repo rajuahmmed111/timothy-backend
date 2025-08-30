@@ -54,4 +54,10 @@ export default {
     do_space_secret_key: process.env.DO_SPACE_SECRET_KEY,
     do_space_bucket: process.env.DO_SPACE_BUCKET,
   },
+
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID,
+    authToken: process.env.TWILIO_AUTH_TOKEN,
+    twilioNumber: process.env.TWILIO_PHONE_NUMBER,
+  },
 };
