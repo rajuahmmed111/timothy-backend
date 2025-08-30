@@ -77,11 +77,6 @@ const moduleRoutes = [
     path: "/contracts",
     route: contractRoutes,
   },
-
-  // {
-  //   path: "/subscription",
-  //   route: subscriptionRoute,
-  // },
   {
     path: "/notifications",
     route: notificationsRoute,
