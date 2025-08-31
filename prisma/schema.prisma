@@ -53,7 +53,8 @@ enum BookingStatus {
 }
 
 enum PaymentProvider {
-  STRIPE
+  FLUTTERWAVE
+  PAYONEER
 }
 
 enum PromoStatus {
@@ -85,8 +86,13 @@ model User {
   status        UserStatus @default(ACTIVE)
   fcmToken      String?    @default("")
 
-  // add for stripe integration
-  stripeCustomerId String?
+  // Flutterwave related (provider fields)
+  bankCode                 String? // provider bank code (Flutterwave bank code)
+  accountNumber            String? // provider account number
+  flutterwaveSubAccountId  String? // sub-account id from FW
+  flutterwaveBeneficiaryId String? // beneficiary id for transfers
+  isSubAccountActive       Boolean @default(false)
+  flutterwaveAccountLink   String?
 
   otp        String?
   otpExpiry  DateTime?
@@ -111,6 +117,7 @@ model User {
   sender             Channel[]            @relation("ChannelPerson1")
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
+  payout             Payout[]
 
   @@map("users")
 }
@@ -201,11 +208,12 @@ model Hotel_Booking {
   updatedAt      DateTime      @updatedAt
 
   // relationships
-  partnerId String @db.ObjectId
-  hotel     Hotel  @relation(fields: [hotelId], references: [id])
-  hotelId   String @db.ObjectId
-  user      User?   @relation(fields: [userId], references: [id])
-  userId    String? @db.ObjectId
+  partnerId String    @db.ObjectId
+  hotel     Hotel     @relation(fields: [hotelId], references: [id])
+  hotelId   String    @db.ObjectId
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?   @db.ObjectId
+  payment   Payment[]
 
   @@map("hotel_bookings")
 }
@@ -271,8 +279,9 @@ model Security_Booking {
   partnerId  String            @db.ObjectId
   security   Security_Protocol @relation(fields: [securityId], references: [id])
   securityId String            @db.ObjectId
-  user       User   ?           @relation(fields: [userId], references: [id])
-  userId     String   ?         @db.ObjectId
+  user       User?             @relation(fields: [userId], references: [id])
+  userId     String?           @db.ObjectId
+  payment    Payment[]
 
   @@map("security_bookings")
 }
@@ -362,25 +371,30 @@ model PromoCode {
 }
 
 model Car_Booking {
-  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  id                       String        @id @default(auto()) @map("_id") @db.ObjectId
   // number_of_car  Int
-  carBookedFromDate String
-  carBookedToDate   String
-  promo_code        String?
-  totalPrice        Float
-  bookingStatus     BookingStatus @default(PENDING)
-  category          String
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  carBookedFromDate        String
+  carBookedToDate          String
+  promo_code               String?
+  totalPrice               Float
+  bookingStatus            BookingStatus @default(PENDING)
+  category                 String
+  txRef                    String? // flutterwave tx_ref
+  flutterwaveTransactionId Int? // FW transaction id
+  payoutStatus             String? // PENDING / SUCCESS / FAILED
+  payoutId                 String? // FW transfer id
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
 
   // relationships
   partnerId   String     @db.ObjectId
   car         Car_Rental @relation(fields: [carId], references: [id])
   carId       String     @db.ObjectId
-  user        User   ?    @relation(fields: [userId], references: [id])
-  userId      String   ?  @db.ObjectId
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      String?    @db.ObjectId
   promoCode   PromoCode? @relation(fields: [promoCodeId], references: [id])
   promoCodeId String?    @db.ObjectId
+  payment     Payment[]
 
   @@map("car_bookings")
 }
@@ -476,8 +490,9 @@ model Attraction_Booking {
   partnerId    String     @db.ObjectId
   attraction   Attraction @relation(fields: [attractionId], references: [id])
   attractionId String     @db.ObjectId
-  user         User  ?     @relation(fields: [userId], references: [id])
-  userId       String  ?   @db.ObjectId
+  user         User?      @relation(fields: [userId], references: [id])
+  userId       String?    @db.ObjectId
+  payment      Payment[]
 
   @@map("attraction_bookings")
 }
@@ -521,6 +536,7 @@ model Favorite {
 model Notifications {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   receiverId  String?  @db.ObjectId
+  partnerId   String?  @db.ObjectId
   title       String
   message     String?
   body        String
@@ -533,26 +549,6 @@ model Notifications {
   user        User?    @relation(fields: [receiverId], references: [id])
 
   @@map("notifications")
-}
-
-model Payment {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  amount          Float
-  currency        String          @default("USD")
-  status          PaymentStatus
-  provider        PaymentProvider
-  paymentIntentId String? // Stripe payment intent ID
-  stripeSessionId String?         @unique
-  // userId          String?         @db.ObjectId 
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // relationships
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
-
-  @@map("payments")
 }
 
 model CustomerContact {
@@ -654,4 +650,62 @@ model Message {
   Channel     Channel? @relation(fields: [channelName], references: [channelName])
 
   @@map("messages")
+}
+
+model Payment {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  amount        Float
+  currency      String
+  status        PaymentStatus
+  provider      PaymentProvider
+  txRef         String          @unique
+  transactionId String?
+  serviceType   String
+  serviceId     String          @db.ObjectId
+
+  // Relations
+  user                 User                @relation(fields: [userId], references: [id])
+  userId               String              @db.ObjectId
+  hotel_booking        Hotel_Booking?      @relation(fields: [hotel_bookingId], references: [id])
+  hotel_bookingId      String?             @db.ObjectId
+  security_booking     Security_Booking?   @relation(fields: [security_bookingId], references: [id])
+  security_bookingId   String?             @db.ObjectId
+  car_booking          Car_Booking?        @relation(fields: [car_bookingId], references: [id])
+  car_bookingId        String?             @db.ObjectId
+  attraction_booking   Attraction_Booking? @relation(fields: [attraction_bookingId], references: [id])
+  attraction_bookingId String?             @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Payout {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount            Float
+  currency          String   @default("NGN")
+  status            String
+  serviceProviderId String   @db.ObjectId
+  bookingId         String   @db.ObjectId
+  transactionId     String?
+  serviceType       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  serviceProvider User @relation(fields: [serviceProviderId], references: [id])
+
+  @@map("payouts")
+}
+
+model PlatformCommission {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount        Float
+  currency      String   @default("NGN")
+  bookingId     String   @db.ObjectId
+  transactionId String?
+  serviceType   String
+  createdAt     DateTime @default(now())
+
+  @@map("platform_commissions")
 }

@@ -60,4 +60,15 @@ export default {
     authToken: process.env.TWILIO_AUTH_TOKEN,
     twilioNumber: process.env.TWILIO_PHONE_NUMBER,
   },
+
+  flutterwave: {
+    publicKey: process.env.FLUTTERWAVE_PUBLISHABLE_KEY,
+    secretKey: process.env.FLUTTERWAVE_SECRET_KEY,
+    encryptionKey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
+    webhookKey: process.env.FLUTTERWAVE_WEBHOOK_SECRET,
+
+    currency: process.env.CURRENCY || "USD",
+    ownerPayoutPercent: Number(process.env.OWNER_PAYOUT_PERCENT || 80),
+    ownerCommissionPercent: Number(process.env.OWNER_COMMISSION_PERCENT || 20),
+  },
 };
