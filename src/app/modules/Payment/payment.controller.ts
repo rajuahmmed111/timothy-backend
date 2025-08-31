@@ -7,8 +7,8 @@ import { IFlutterwaveSubAccountData, IPaymentData } from "./payment.interface";
 
 // initiate payment
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id as string;
-  const { bookingId } = req.params;
+  const userId = req.user?.id;
+  const bookingId = req.params.bookingId;
   const paymentData: IPaymentData = req.body;
 
   const result = await PaymentService.initiatePayment(

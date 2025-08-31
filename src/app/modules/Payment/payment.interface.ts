@@ -1,5 +1,4 @@
 export interface IPaymentData {
-  bookingId: string;
   paymentMethod: string;
   currency?: string;
 }

@@ -5,7 +5,7 @@ import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
-// Payment routes
+// payment routes
 router.post(
   "/initiate-payment/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
