@@ -102,8 +102,8 @@ const generateOnboardingLink = async (
 ) => {
   // This would typically generate a custom onboarding link
   // For now, returning a placeholder link where they can create sub-account
-  // const baseUrl ="https://timothy-dashboard.netlify.app";
-  return `${FLUTTERWAVE_BASE_URL}/onboarding/flutterwave?userId=${userId}&email=${encodeURIComponent(
+  const baseUrl ="https://timothy-dashboard.netlify.app";
+  return `${baseUrl}/onboarding/flutterwave?userId=${userId}&email=${encodeURIComponent(
     email
   )}&name=${encodeURIComponent(fullName)}`;
 };
