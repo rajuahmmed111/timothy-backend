@@ -31,9 +31,8 @@ enum EveryServiceStatus {
 }
 
 enum PaymentStatus {
-  SUCCESS
-  PENDING
-  FAILED
+  PAID
+  UNPAID
 }
 
 enum Weekday {
@@ -53,8 +52,8 @@ enum BookingStatus {
 }
 
 enum PaymentProvider {
-  FLUTTERWAVE
-  PAYONEER
+  STRIPE
+  PAYSTACK
 }
 
 enum PromoStatus {
@@ -85,6 +84,10 @@ model User {
   role          UserRole   @default(USER)
   status        UserStatus @default(ACTIVE)
   fcmToken      String?    @default("")
+
+  // Stripe
+  stripeAccountId   String?
+  isStripeConnected Boolean @default(false)
 
   otp        String?
   otpExpiry  DateTime?
@@ -362,16 +365,16 @@ model PromoCode {
 }
 
 model Car_Booking {
-  id                       String        @id @default(auto()) @map("_id") @db.ObjectId
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
   // number_of_car  Int
-  carBookedFromDate        String
-  carBookedToDate          String
-  promo_code               String?
-  totalPrice               Float
-  bookingStatus            BookingStatus @default(PENDING)
-  category                 String
-  createdAt                DateTime      @default(now())
-  updatedAt                DateTime      @updatedAt
+  carBookedFromDate String
+  carBookedToDate   String
+  promo_code        String?
+  totalPrice        Float
+  bookingStatus     BookingStatus @default(PENDING)
+  category          String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   // relationships
   partnerId   String     @db.ObjectId
@@ -640,15 +643,23 @@ model Message {
 }
 
 model Payment {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  amount        Float
-  currency      String
-  status        PaymentStatus
-  provider      PaymentProvider
-  txRef         String          @unique
-  transactionId String?
-  serviceType   String
-  serviceId     String          @db.ObjectId
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  amount           Float
+  description      String?
+  currency         String?
+  sessionId        String?
+  paymentMethod    String?
+  status           PaymentStatus
+  provider         PaymentProvider
+  payable_name     String?
+  payable_email    String?
+  payment_intent   String?
+  country          String?
+  admin_commission Float?
+  transactionId    String?
+  serviceType      String // HOTEL | SECURITY | CAR | ATTRACTION
+  partnerId        String          @db.ObjectId
+  isDeleted        Boolean         @default(false)
 
   // Relations
   user                 User                @relation(fields: [userId], references: [id])
