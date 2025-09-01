@@ -86,14 +86,6 @@ model User {
   status        UserStatus @default(ACTIVE)
   fcmToken      String?    @default("")
 
-  // Flutterwave related (provider fields)
-  bankCode                 String? // provider bank code (Flutterwave bank code)
-  accountNumber            String? // provider account number
-  flutterwaveSubAccountId  String? // sub-account id from FW
-  flutterwaveBeneficiaryId String? // beneficiary id for transfers
-  isSubAccountActive       Boolean @default(false)
-  flutterwaveAccountLink   String?
-
   otp        String?
   otpExpiry  DateTime?
   identifier String?
@@ -117,7 +109,6 @@ model User {
   sender             Channel[]            @relation("ChannelPerson1")
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
-  payout             Payout[]
 
   @@map("users")
 }
@@ -379,10 +370,6 @@ model Car_Booking {
   totalPrice               Float
   bookingStatus            BookingStatus @default(PENDING)
   category                 String
-  txRef                    String? // flutterwave tx_ref
-  flutterwaveTransactionId Int? // FW transaction id
-  payoutStatus             String? // PENDING / SUCCESS / FAILED
-  payoutId                 String? // FW transfer id
   createdAt                DateTime      @default(now())
   updatedAt                DateTime      @updatedAt
 
@@ -679,33 +666,4 @@ model Payment {
   updatedAt DateTime @updatedAt
 
   @@map("payments")
-}
-
-model Payout {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  amount            Float
-  currency          String   @default("NGN")
-  status            String
-  serviceProviderId String   @db.ObjectId
-  bookingId         String   @db.ObjectId
-  transactionId     String?
-  serviceType       String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  serviceProvider User @relation(fields: [serviceProviderId], references: [id])
-
-  @@map("payouts")
-}
-
-model PlatformCommission {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  amount        Float
-  currency      String   @default("NGN")
-  bookingId     String   @db.ObjectId
-  transactionId String?
-  serviceType   String
-  createdAt     DateTime @default(now())
-
-  @@map("platform_commissions")
 }
