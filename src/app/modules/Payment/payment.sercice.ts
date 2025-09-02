@@ -13,8 +13,30 @@ const stripeAccountOnboarding = async (userId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  // if user has stripe account
+  // if user already has stripe account
   if (user.stripeAccountId) {
+    const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+    const cardPayments = account.capabilities?.card_payments;
+    const transfers = account.capabilities?.transfers;
+    const requirements = account.requirements?.currently_due || [];
+
+    // if verified
+    if (cardPayments === "active" && transfers === "active") {
+      // update DB to mark as connected
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isStripeConnected: true },
+      });
+
+      return {
+        status: "verified",
+        message: "Stripe account verified successfully.",
+        capabilities: account.capabilities,
+      };
+    }
+
+    // if not verified → generate onboarding link
     const accountLinks = await stripe.accountLinks.create({
       account: user.stripeAccountId,
       refresh_url: `${config.stripe.refreshUrl}?accountId=${user.stripeAccountId}`,
@@ -22,80 +44,27 @@ const stripeAccountOnboarding = async (userId: string) => {
       type: "account_onboarding",
     });
 
-    if (accountLinks) {
-      const account = await stripe.accounts.retrieve(user.stripeAccountId);
+    // update DB to store stripeAccountId & mark connected
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        stripeAccountId: user.stripeAccountId,
+        isStripeConnected: true,
+      },
+    });
 
-      // capability status
-      const cardPayments = account.capabilities?.card_payments;
-      const transfers = account.capabilities?.transfers;
-
-      // incomplete requirements
-      const requirements = account.requirements?.currently_due || [];
-
-      // case 1: Fully verified (active)
-      if (cardPayments === "active" && transfers === "active") {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { isStripeConnected: true },
-        });
-
-        return {
-          status: "verified",
-          message: "Stripe account verified successfully.",
-          capabilities: account.capabilities,
-        };
-      }
-
-      // case 2: verification (pending)
-      if (cardPayments === "pending" || transfers === "pending") {
-        return {
-          status: "pending",
-          message: "Your Stripe account verification is under review.",
-          capabilities: account.capabilities,
-        };
-      }
-
-      // case 3: inactive
-      if (cardPayments === "inactive" && transfers === "inactive") {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { stripeAccountId: null }, // unset stripeAccountId
-        });
-
-        return {
-          status: "inactive",
-          message:
-            "Stripe account is inactive. Please complete onboarding again.",
-          onboardingLink: accountLinks?.url,
-        };
-      }
-
-      // case 4: requirements due
-      if (requirements.length > 0) {
-        return {
-          status: "requirements_due",
-          message: "Additional information required for Stripe verification.",
-          requirements,
-          onboardingLink: accountLinks.url,
-        };
-      }
-
-      // default fallback
-      return {
-        status: "unknown",
-        message: "Unable to determine Stripe account status.",
-        capabilities: account.capabilities,
-      };
-    }
-  } else {
-    // case 5: no account
     return {
-      status: "no_account",
-      message: "User does not have a Stripe account. Please create one first.",
+      status: requirements.length > 0 ? "requirements_due" : "pending",
+      message:
+        requirements.length > 0
+          ? "Additional information required for Stripe verification."
+          : "Your Stripe account verification is under review.",
+      requirements,
+      onboardingLink: accountLinks.url,
     };
   }
 
-  // create stripe account
+  // if user has no stripe account → create new account
   const account = await stripe.accounts.create({
     type: "express",
     country: "US",
@@ -108,26 +77,25 @@ const stripeAccountOnboarding = async (userId: string) => {
     settings: {
       payouts: {
         schedule: {
-          delay_days: 1,
+          delay_days: 2, // ✅ minimum allowed
         },
       },
     },
   });
 
-  // onboarding link
   const accountLink = await stripe.accountLinks.create({
     account: account.id,
-    refresh_url: `${config.stripe.refreshUrl}?accountId=${account?.id}`,
+    refresh_url: `${config.stripe.refreshUrl}?accountId=${account.id}`,
     return_url: config.stripe.returnUrl,
     type: "account_onboarding",
   });
 
+  // update DB with stripeAccountId & mark connected
   await prisma.user.update({
     where: { id: user.id },
     data: {
       stripeAccountId: account.id,
       isStripeConnected: true,
-      status: UserStatus.ACTIVE,
     },
   });
 
@@ -135,33 +103,98 @@ const stripeAccountOnboarding = async (userId: string) => {
     status: "pending",
     message: "Your Stripe account verification is under review.",
     capabilities: account.capabilities,
-    onboardingLink: accountLink?.url,
+    onboardingLink: accountLink.url,
   };
 };
 
 // checkout session
-const createCheckoutSession = async (userId: string) => {
+const createCheckoutSession = async (userId: string, bookingId: string) => {
   // find user
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId, status: UserStatus.ACTIVE },
+  });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
+  // find booking
+  const booking = await prisma.car_Booking.findUnique({
+    where: { id: bookingId, userId },
+  });
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  // find car
+  const car = await prisma.car_Rental.findUnique({
+    where: { id: booking.carId },
+  });
+  if (!car) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
+  }
+
+  // find partner
+  const partner = await prisma.user.findUnique({
+    where: { id: car.partnerId, status: UserStatus.ACTIVE },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // now check partner stripe account
+  if (!partner.stripeAccountId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Provider not onboarded with Stripe"
+    );
+  }
+
+  const amount = Math.round(booking.totalPrice * 100);
+  const adminFee = Math.round(amount * 0.2);
+
   // create checkout session
-  const checkoutSession = await stripe.checkout.sessions.create({
-    // line_items: [
-    //   {
-    //     price: config.stripe.priceId,
-    //     quantity: 1,
-    //   },
-    // ],
-    // mode: "subscription",
-    // customer: user.stripeCustomerId,
-    // success_url: `${config.stripe.successUrl}?sessionId={CHECKOUT_SESSION_ID}`,
-    // cancel_url: config.stripe.cancelUrl,
+  const checkoutSession = await stripe.checkout.sessions.create(
+    {
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: { name: "Car Booking" },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${config.stripe.checkout_success_url}/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${config.stripe.checkout_cancel_url}`,
+      payment_intent_data: {
+        application_fee_amount: adminFee,
+        transfer_data: { destination: partner.stripeAccountId },
+      },
+      metadata: {
+        bookingId: booking.id,
+        userId: user.id,
+        fullName: user.fullName ?? "",
+        email: user.email,
+        contactNumber: user.contactNumber ?? "",
+        country: user.country ?? "",
+      },
+    },
+    { idempotencyKey: `create_session_booking_${booking.id}` }
+  );
+
+  // update booking
+  await prisma.car_Booking.update({
+    where: { id: booking.id },
+    data: { checkoutSessionId: checkoutSession.id },
   });
 
-  return checkoutSession;
+  return {
+    checkoutUrl: checkoutSession.url,
+    checkoutSessionId: checkoutSession.id,
+  };
 };
 
 export const PaymentService = {

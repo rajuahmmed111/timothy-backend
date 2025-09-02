@@ -366,7 +366,7 @@ model PromoCode {
 
 model Car_Booking {
   id                String        @id @default(auto()) @map("_id") @db.ObjectId
-  // number_of_car  Int
+  checkoutSessionId String?
   carBookedFromDate String
   carBookedToDate   String
   promo_code        String?

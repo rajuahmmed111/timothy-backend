@@ -14,7 +14,7 @@ router.post(
 
 // checkout session
 router.post(
-    "/create-checkout-session",
+    "/create-checkout-session/:bookingId",
     auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
     PaymentController.createCheckoutSession
 );
