@@ -139,6 +139,32 @@ const stripeAccountOnboarding = async (userId: string) => {
   };
 };
 
+// checkout session
+const createCheckoutSession = async (userId: string) => {
+  // find user
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // create checkout session
+  const checkoutSession = await stripe.checkout.sessions.create({
+    // line_items: [
+    //   {
+    //     price: config.stripe.priceId,
+    //     quantity: 1,
+    //   },
+    // ],
+    // mode: "subscription",
+    // customer: user.stripeCustomerId,
+    // success_url: `${config.stripe.successUrl}?sessionId={CHECKOUT_SESSION_ID}`,
+    // cancel_url: config.stripe.cancelUrl,
+  });
+
+  return checkoutSession;
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
+  createCheckoutSession,
 };

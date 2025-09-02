@@ -18,6 +18,21 @@ const stripeAccountOnboarding = catchAsync(
   }
 );
 
+// checkout session
+const createCheckoutSession = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const result = await PaymentService.createCheckoutSession(userId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Checkout session created successfully",
+      data: result,
+    });
+  }
+);
+
 export const PaymentController = {
   stripeAccountOnboarding,
+  createCheckoutSession,
 };

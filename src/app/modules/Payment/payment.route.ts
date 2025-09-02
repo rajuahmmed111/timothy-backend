@@ -12,4 +12,11 @@ router.post(
     PaymentController.stripeAccountOnboarding
 );
 
+// checkout session
+router.post(
+    "/create-checkout-session",
+    auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+    PaymentController.createCheckoutSession
+);
+
 export const paymentRoutes = router;
