@@ -23,7 +23,8 @@ const createCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
     const bookingId = req.params.bookingId;
-    const result = await PaymentService.createCheckoutSession(userId, bookingId);
+    const {description} = req.body
+    const result = await PaymentService.createCheckoutSession(userId, bookingId, description);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

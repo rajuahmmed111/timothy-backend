@@ -108,7 +108,12 @@ const stripeAccountOnboarding = async (userId: string) => {
 };
 
 // checkout session
-const createCheckoutSession = async (userId: string, bookingId: string) => {
+// checkout session
+const createCheckoutSession = async (
+  userId: string,
+  bookingId: string,
+  description: string
+) => {
   // find user
   const user = await prisma.user.findUnique({
     where: { id: userId, status: UserStatus.ACTIVE },
@@ -141,7 +146,7 @@ const createCheckoutSession = async (userId: string, bookingId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  // now check partner stripe account
+  // check partner stripe account
   if (!partner.stripeAccountId) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -160,7 +165,10 @@ const createCheckoutSession = async (userId: string, bookingId: string) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: "Car Booking" },
+            product_data: {
+              name: "Car Booking",
+              description: description,
+            },
             unit_amount: amount,
           },
           quantity: 1,
@@ -172,6 +180,7 @@ const createCheckoutSession = async (userId: string, bookingId: string) => {
       payment_intent_data: {
         application_fee_amount: adminFee,
         transfer_data: { destination: partner.stripeAccountId },
+        description: description,
       },
       metadata: {
         bookingId: booking.id,
