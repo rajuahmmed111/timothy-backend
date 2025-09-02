@@ -15,6 +15,10 @@ export default {
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
     clientId: process.env.STRIPE_CLIENT_ID,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    refreshUrl: process.env.ONBOARDING_REFRESH_URL,
+    returnUrl: process.env.ONBOARDING_RETURN_URL,
+    checkout_success_url: process.env.CHECKOUT_SUCCESS_URL,
+    checkout_cancel_url: process.env.CHECKOUT_CANCEL_URL,
   },
 
   paypal: {

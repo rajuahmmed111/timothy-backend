@@ -7,7 +7,8 @@ import { PaymentService } from "./payment.sercice";
 // stripe account onboarding
 const stripeAccountOnboarding = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await PaymentService.stripeAccountOnboarding(req.user);
+    const userId = req.user?.id;
+    const result = await PaymentService.stripeAccountOnboarding(userId);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
