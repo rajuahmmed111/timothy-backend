@@ -2,8 +2,10 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import stripe from "../../../helpars/stripe";
-import { UserStatus } from "@prisma/client";
+import { PaymentStatus, UserStatus } from "@prisma/client";
 import config from "../../../config";
+import Stripe from "stripe";
+import { mapStripeStatusToPaymentStatus } from "./Stripe/stripe";
 
 // stripe account onboarding
 const stripeAccountOnboarding = async (userId: string) => {
@@ -108,7 +110,6 @@ const stripeAccountOnboarding = async (userId: string) => {
 };
 
 // checkout session
-// checkout session
 const createCheckoutSession = async (
   userId: string,
   bookingId: string,
@@ -190,8 +191,8 @@ const createCheckoutSession = async (
         contactNumber: user.contactNumber ?? "",
         country: user.country ?? "",
       },
-    },
-    { idempotencyKey: `create_session_booking_${booking.id}` }
+    }
+    // { idempotencyKey: `create_session_booking_${booking.id}` } // for idempotency only one time booking
   );
 
   // update booking
@@ -200,13 +201,68 @@ const createCheckoutSession = async (
     data: { checkoutSessionId: checkoutSession.id },
   });
 
+  // save payment record
+  await prisma.payment.create({
+    data: {
+      amount: amount,
+      description: description,
+      currency: checkoutSession.currency,
+      sessionId: checkoutSession.id,
+      paymentMethod: checkoutSession.payment_method_types.join(","),
+      status: mapStripeStatusToPaymentStatus(checkoutSession.payment_status),
+      provider: "STRIPE",
+      payable_name: user.fullName ?? "",
+      payable_email: user.email,
+      country: user.country ?? "",
+      admin_commission: adminFee,
+      serviceType: "CAR",
+      partnerId: partner.id,
+      userId: user.id,
+      car_bookingId: booking.id,
+    },
+  });
+
   return {
     checkoutUrl: checkoutSession.url,
     checkoutSessionId: checkoutSession.id,
   };
 };
 
+// stripe webhook payment
+const stripeHandleWebhook = async (event: Stripe.Event) => {
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const sessionId = session.id;
+      const paymentIntentId = session.payment_intent as string;
+
+      const paymentIntent = (await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      )) as Stripe.PaymentIntent;
+
+      const payment = await prisma.payment.findFirst({
+        where: { sessionId },
+      });
+
+      if (payment) {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: PaymentStatus.PAID,
+            payment_intent: paymentIntentId,
+          },
+        });
+      }
+      break;
+    }
+
+    default:
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid event type");
+  }
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
   createCheckoutSession,
+  stripeHandleWebhook,
 };

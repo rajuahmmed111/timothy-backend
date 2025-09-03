@@ -7,16 +7,23 @@ const router = express.Router();
 
 // stripe account onboarding
 router.post(
-    "/stripe-account-onboarding",
-    auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-    PaymentController.stripeAccountOnboarding
+  "/stripe-account-onboarding",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.stripeAccountOnboarding
 );
 
 // checkout session
 router.post(
-    "/create-checkout-session/:bookingId",
-    auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-    PaymentController.createCheckoutSession
+  "/create-checkout-session/:bookingId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.createCheckoutSession
+);
+
+// stripe webhook payment
+router.post(
+  "/stripe-webhook",
+  express.raw({ type: "application/json" }), // important: keep raw body
+  PaymentController.stripeHandleWebhook
 );
 
 export const paymentRoutes = router;
