@@ -44,8 +44,7 @@ const createCheckoutSession = catchAsync(
 
 // stripe webhook payment
 const stripeHandleWebhook = catchAsync(async (req: Request, res: Response) => {
-
-    const sig = req.headers["stripe-signature"] as string;
+  const sig = req.headers["stripe-signature"] as string;
   if (!sig) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing stripe signature", "");
   }
@@ -69,7 +68,6 @@ const stripeHandleWebhook = catchAsync(async (req: Request, res: Response) => {
       ""
     );
   }
-
 
   const result = await PaymentService.stripeHandleWebhook(event);
   sendResponse(res, {

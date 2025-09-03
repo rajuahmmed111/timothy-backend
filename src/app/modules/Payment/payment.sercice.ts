@@ -2,7 +2,12 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import stripe from "../../../helpars/stripe";
-import { PaymentStatus, UserStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  EveryServiceStatus,
+  PaymentStatus,
+  UserStatus,
+} from "@prisma/client";
 import config from "../../../config";
 import Stripe from "stripe";
 import { mapStripeStatusToPaymentStatus } from "./Stripe/stripe";
@@ -236,23 +241,69 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       const sessionId = session.id;
       const paymentIntentId = session.payment_intent as string;
 
-      const paymentIntent = (await stripe.paymentIntents.retrieve(
+      // paymentIntent retrieve
+      const paymentIntent = await stripe.paymentIntents.retrieve(
         paymentIntentId
-      )) as Stripe.PaymentIntent;
+      );
 
+      if (!paymentIntent.latest_charge) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          "No charge found in PaymentIntent"
+        );
+      }
+
+      // Service Provider received amount
+      let providerReceived = 0;
+      if (paymentIntent.transfer_data?.destination) {
+        const amountReceived = paymentIntent.amount_received ?? 0;
+        const applicationFee = paymentIntent.application_fee_amount ?? 0;
+        providerReceived = (amountReceived - applicationFee) / 100; // USD
+      }
+
+      // find Payment
       const payment = await prisma.payment.findFirst({
         where: { sessionId },
       });
 
-      if (payment) {
-        await prisma.payment.update({
-          where: { id: payment.id },
+      if (!payment) {
+        console.log(`No payment found for session: ${sessionId}`);
+        break;
+      }
+
+      // update Payment to PAID
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.PAID,
+          payment_intent: paymentIntentId,
+          service_fee: providerReceived,
+        },
+      });
+
+      // find car_booking associated with this payment
+      const carBooking = await prisma.car_Booking.findFirst({
+        where: { payment: { some: { id: payment.id } } },
+      });
+
+      if (carBooking) {
+        // update booking status to CONFIRMED
+        await prisma.car_Booking.update({
+          where: { id: carBooking.id },
           data: {
-            status: PaymentStatus.PAID,
-            payment_intent: paymentIntentId,
+            bookingStatus: BookingStatus.CONFIRMED,
+          },
+        });
+
+        // update car_rental status to BOOKED
+        await prisma.car_Rental.update({
+          where: { id: carBooking.carId },
+          data: {
+            isBooked: EveryServiceStatus.BOOKED,
           },
         });
       }
+
       break;
     }
 
