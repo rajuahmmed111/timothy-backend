@@ -114,7 +114,7 @@ const stripeAccountOnboarding = async (userId: string) => {
   };
 };
 
-// checkout session
+// checkout session on stripe
 const createCheckoutSession = async (
   userId: string,
   bookingId: string,

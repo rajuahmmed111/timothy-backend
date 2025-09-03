@@ -22,7 +22,7 @@ const stripeAccountOnboarding = catchAsync(
   }
 );
 
-// checkout session
+// checkout session on stripe
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;

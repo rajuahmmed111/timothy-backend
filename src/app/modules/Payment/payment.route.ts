@@ -12,7 +12,7 @@ router.post(
   PaymentController.stripeAccountOnboarding
 );
 
-// checkout session
+// checkout session on stripe
 router.post(
   "/create-checkout-session/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
