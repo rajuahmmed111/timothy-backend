@@ -26,13 +26,22 @@ const stripeAccountOnboarding = catchAsync(
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const bookingId = req.params.bookingId;
+    const { serviceType, bookingId } = req.params;
     const { description } = req.body;
+    
+const normalizedServiceType = serviceType.toUpperCase() as
+  | "CAR"
+  | "HOTEL"
+  | "SECURITY"
+  | "ATTRACTION";
+
     const result = await PaymentService.createCheckoutSession(
       userId,
+      normalizedServiceType,
       bookingId,
       description
     );
+
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

@@ -10,7 +10,7 @@ import {
 } from "@prisma/client";
 import config from "../../../config";
 import Stripe from "stripe";
-import { mapStripeStatusToPaymentStatus } from "./Stripe/stripe";
+import { mapStripeStatusToPaymentStatus, serviceConfig } from "./Stripe/stripe";
 
 // stripe account onboarding
 const stripeAccountOnboarding = async (userId: string) => {
@@ -117,113 +117,188 @@ const stripeAccountOnboarding = async (userId: string) => {
 // checkout session on stripe
 const createCheckoutSession = async (
   userId: string,
+  serviceType: string,
   bookingId: string,
   description: string
 ) => {
-  // find user
-  const user = await prisma.user.findUnique({
-    where: { id: userId, status: UserStatus.ACTIVE },
-  });
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-  }
+  let booking: any;
+  let service: any;
+  let partner: any;
+  let serviceName: string;
+  let partnerId: string;
+  let totalPrice: number;
 
-  // find booking
-  const booking = await prisma.car_Booking.findUnique({
-    where: { id: bookingId, userId },
-  });
-  if (!booking) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
-  }
+  switch (serviceType) {
+    case "CAR":
+      booking = await prisma.car_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(httpStatus.NOT_FOUND, "Car booking not found");
 
-  // find car
-  const car = await prisma.car_Rental.findUnique({
-    where: { id: booking.carId },
-  });
-  if (!car) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
+      service = await prisma.car_Rental.findUnique({
+        where: { id: booking.carId },
+      });
+      if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
+
+      partnerId = service.partnerId;
+      serviceName = service.carName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    case "HOTEL":
+      booking = await prisma.hotel_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(httpStatus.NOT_FOUND, "Hotel booking not found");
+
+      service = await prisma.hotel.findUnique({
+        where: { id: booking.hotelId },
+      });
+      if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+
+      partnerId = service.partnerId;
+      serviceName = service.hotelName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    case "SECURITY":
+      booking = await prisma.security_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(httpStatus.NOT_FOUND, "Security booking not found");
+
+      service = await prisma.security_Protocol.findUnique({
+        where: { id: booking.securityId },
+      });
+      if (!service)
+        throw new ApiError(httpStatus.NOT_FOUND, "Security service not found");
+
+      partnerId = service.partnerId;
+      serviceName = service.securityName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    case "ATTRACTION":
+      booking = await prisma.attraction_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(
+          httpStatus.NOT_FOUND,
+          "Attraction booking not found"
+        );
+
+      service = await prisma.attraction.findUnique({
+        where: { id: booking.attractionId },
+      });
+      if (!service)
+        throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
+
+      partnerId = service.partnerId!;
+      serviceName = service.attractionName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    default:
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
 
   // find partner
-  const partner = await prisma.user.findUnique({
-    where: { id: car.partnerId, status: UserStatus.ACTIVE },
-  });
-  if (!partner) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
-  }
-
-  // check partner stripe account
-  if (!partner.stripeAccountId) {
+  partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  if (!partner || !partner.stripeAccountId) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       "Provider not onboarded with Stripe"
     );
   }
 
-  const amount = Math.round(booking.totalPrice * 100);
+  const amount = Math.round(totalPrice * 100);
   const adminFee = Math.round(amount * 0.2);
 
-  // create checkout session
-  const checkoutSession = await stripe.checkout.sessions.create(
-    {
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Car Booking",
-              description: description,
-            },
-            unit_amount: amount,
+  // create Stripe checkout session
+  const checkoutSession = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: serviceName,
+            description,
           },
-          quantity: 1,
+          unit_amount: amount,
         },
-      ],
-      mode: "payment",
-      success_url: `${config.stripe.checkout_success_url}/?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${config.stripe.checkout_cancel_url}`,
-      payment_intent_data: {
-        application_fee_amount: adminFee,
-        transfer_data: { destination: partner.stripeAccountId },
-        description: description,
+        quantity: 1,
       },
-      metadata: {
-        bookingId: booking.id,
-        userId: user.id,
-        fullName: user.fullName ?? "",
-        email: user.email,
-        contactNumber: user.contactNumber ?? "",
-        country: user.country ?? "",
-      },
-    }
-    // { idempotencyKey: `create_session_booking_${booking.id}` } // for idempotency only one time booking
-  );
-
-  // update booking
-  await prisma.car_Booking.update({
-    where: { id: booking.id },
-    data: { checkoutSessionId: checkoutSession.id },
+    ],
+    mode: "payment",
+    success_url: `${config.stripe.checkout_success_url}/?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${config.stripe.checkout_cancel_url}`,
+    payment_intent_data: {
+      application_fee_amount: adminFee,
+      transfer_data: { destination: partner.stripeAccountId },
+      description,
+    },
+    metadata: {
+      bookingId: booking.id,
+      userId,
+      serviceType,
+    },
   });
+
+  // update booking with checkoutSessionId
+  switch (serviceType) {
+    case "CAR":
+      await prisma.car_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+    case "HOTEL":
+      await prisma.hotel_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+    case "SECURITY":
+      await prisma.security_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+    case "ATTRACTION":
+      await prisma.attraction_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+  }
 
   // save payment record
   await prisma.payment.create({
     data: {
-      amount: amount,
-      description: description,
+      amount,
+      description,
       currency: checkoutSession.currency,
       sessionId: checkoutSession.id,
       paymentMethod: checkoutSession.payment_method_types.join(","),
-      status: mapStripeStatusToPaymentStatus(checkoutSession.payment_status),
+      status: PaymentStatus.UNPAID,
       provider: "STRIPE",
-      payable_name: user.fullName ?? "",
-      payable_email: user.email,
-      country: user.country ?? "",
+      payable_name: partner.fullName ?? "",
+      payable_email: partner.email,
+      country: partner.country ?? "",
       admin_commission: adminFee,
-      serviceType: "CAR",
-      partnerId: partner.id,
-      userId: user.id,
-      car_bookingId: booking.id,
+      serviceType,
+      partnerId,
+      userId,
+      car_bookingId: serviceType === "CAR" ? booking.id : undefined,
+      hotel_bookingId: serviceType === "HOTEL" ? booking.id : undefined,
+      security_bookingId: serviceType === "SECURITY" ? booking.id : undefined,
+      attraction_bookingId:
+        serviceType === "ATTRACTION" ? booking.id : undefined,
     },
   });
 
@@ -241,7 +316,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       const sessionId = session.id;
       const paymentIntentId = session.payment_intent as string;
 
-      // paymentIntent retrieve
+      // retrieve paymentIntent
       const paymentIntent = await stripe.paymentIntents.retrieve(
         paymentIntentId
       );
@@ -253,7 +328,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         );
       }
 
-      // Service Provider received amount
+      // calculate provider received
       let providerReceived = 0;
       if (paymentIntent.transfer_data?.destination) {
         const amountReceived = paymentIntent.amount_received ?? 0;
@@ -281,26 +356,71 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         },
       });
 
-      // find car_booking associated with this payment
+      // --- Car Booking ---
       const carBooking = await prisma.car_Booking.findFirst({
         where: { payment: { some: { id: payment.id } } },
       });
 
       if (carBooking) {
-        // update booking status to CONFIRMED
         await prisma.car_Booking.update({
           where: { id: carBooking.id },
-          data: {
-            bookingStatus: BookingStatus.CONFIRMED,
-          },
+          data: { bookingStatus: BookingStatus.CONFIRMED },
         });
 
-        // update car_rental status to BOOKED
         await prisma.car_Rental.update({
           where: { id: carBooking.carId },
-          data: {
-            isBooked: EveryServiceStatus.BOOKED,
-          },
+          data: { isBooked: EveryServiceStatus.BOOKED },
+        });
+      }
+
+      // --- Hotel Booking ---
+      const hotelBooking = await prisma.hotel_Booking.findFirst({
+        where: { payment: { some: { id: payment.id } } },
+      });
+
+      if (hotelBooking) {
+        await prisma.hotel_Booking.update({
+          where: { id: hotelBooking.id },
+          data: { bookingStatus: BookingStatus.CONFIRMED },
+        });
+
+        await prisma.hotel.update({
+          where: { id: hotelBooking.hotelId },
+          data: { isBooked: EveryServiceStatus.BOOKED },
+        });
+      }
+
+      // --- Security Booking ---
+      const securityBooking = await prisma.security_Booking.findFirst({
+        where: { payment: { some: { id: payment.id } } },
+      });
+
+      if (securityBooking) {
+        await prisma.security_Booking.update({
+          where: { id: securityBooking.id },
+          data: { bookingStatus: BookingStatus.CONFIRMED },
+        });
+
+        await prisma.security_Protocol.update({
+          where: { id: securityBooking.securityId },
+          data: { isBooked: EveryServiceStatus.BOOKED },
+        });
+      }
+
+      // --- Attraction Booking ---
+      const attractionBooking = await prisma.attraction_Booking.findFirst({
+        where: { payment: { some: { id: payment.id } } },
+      });
+
+      if (attractionBooking) {
+        await prisma.attraction_Booking.update({
+          where: { id: attractionBooking.id },
+          data: { bookingStatus: BookingStatus.CONFIRMED },
+        });
+
+        await prisma.attraction.update({
+          where: { id: attractionBooking.attractionId },
+          data: { isBooked: EveryServiceStatus.BOOKED },
         });
       }
 

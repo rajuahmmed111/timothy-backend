@@ -14,7 +14,7 @@ import {
   ServiceType,
 } from "../../../shared/notificationService";
 
-// Updated createHotelBooking service with notifications
+// createHotelBooking service with notifications
 const createHotelBooking = async (
   userId: string,
   hotelId: string,

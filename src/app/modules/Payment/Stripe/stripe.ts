@@ -1,4 +1,5 @@
 import { PaymentStatus } from "@prisma/client";
+import prisma from "../../../../shared/prisma";
 
 export const mapStripeStatusToPaymentStatus = (
   stripeStatus: string
@@ -16,4 +17,35 @@ export const mapStripeStatusToPaymentStatus = (
     default:
       return PaymentStatus.UNPAID;
   }
+};
+
+export const serviceConfig = {
+  CAR: {
+    bookingModel: prisma.car_Booking,
+    serviceModel: prisma.car_Rental,
+    serviceTypeField: "car_bookingId",
+    nameField: "carName",
+    partnerIdField: "partnerId",
+  },
+  HOTEL: {
+    bookingModel: prisma.hotel_Booking,
+    serviceModel: prisma.hotel,
+    serviceTypeField: "hotel_bookingId",
+    nameField: "hotelName",
+    partnerIdField: "partnerId",
+  },
+  SECURITY: {
+    bookingModel: prisma.security_Booking,
+    serviceModel: prisma.security_Protocol,
+    serviceTypeField: "security_bookingId",
+    nameField: "securityName",
+    partnerIdField: "partnerId",
+  },
+  ATTRACTION: {
+    bookingModel: prisma.attraction_Booking,
+    serviceModel: prisma.attraction,
+    serviceTypeField: "attraction_bookingId",
+    nameField: "attractionName",
+    partnerIdField: "partnerId",
+  },
 };
