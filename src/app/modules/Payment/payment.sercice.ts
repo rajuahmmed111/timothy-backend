@@ -6,7 +6,6 @@ import {
   BookingStatus,
   EveryServiceStatus,
   PaymentStatus,
-  UserStatus,
 } from "@prisma/client";
 import config from "../../../config";
 import Stripe from "stripe";
