@@ -107,6 +107,21 @@ const cancelBooking = catchAsync(async (req, res) => {
 });
 
 //
+// pay-stack sub account
+const payStackAccountSubAccount = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const data = req.body;
+    const result = await PaymentService.payStackAccountSubAccount(userId, data);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Pay-stack account sub account add successfully",
+      data: result,
+    });
+  }
+);
+
 // create checkout session on pay-stack
 const createCheckoutSessionPayStack = catchAsync(
   async (req: Request, res: Response) => {
@@ -149,11 +164,30 @@ const payStackHandleWebhook = catchAsync(
   }
 );
 
+// pay-stack cancel booking
+const cancelPayStackBooking = catchAsync(async (req, res) => {
+  const { serviceType, bookingId } = req.params;
+  const userId = req.user?.id;
+  const result = await PaymentService.cancelPayStackBooking(
+    serviceType,
+    bookingId,
+    userId
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Booking cancelled successfully",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
   cancelBooking,
+  payStackAccountSubAccount,
   createCheckoutSessionPayStack,
   payStackHandleWebhook,
+  cancelPayStackBooking,
 };

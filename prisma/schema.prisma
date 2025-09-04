@@ -90,6 +90,14 @@ model User {
   stripeAccountId   String?
   isStripeConnected Boolean @default(false)
 
+  // Pay-stack
+  payStackMerchantId  String?
+  isPayStackConnected Boolean @default(false)
+
+  // Sub-account info for pay-stack
+  payStackSubAccountId String?
+  payStackSubAccount   String?
+
   otp        String?
   otpExpiry  DateTime?
   identifier String?

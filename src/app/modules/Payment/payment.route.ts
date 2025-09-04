@@ -36,6 +36,12 @@ router.post(
 );
 
 // ------------------------------pay-stack routes-----------------------------
+// pay-stack account sub-account
+router.post(
+  "/paystack-account-sub-account",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.payStackAccountSubAccount)
+
 // create checkout session on pay-stack
 router.post(
   "/create-checkout-session-paystack/:serviceType/:bookingId",
@@ -48,6 +54,13 @@ router.post(
   "/paystack-webhook",
   express.raw({ type: "application/json" }), // important: keep raw body
   PaymentController.payStackHandleWebhook
+);
+
+// pay-stack cancel booking
+router.post(
+  "/paystack-cancel-booking/:serviceType/:bookingId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.cancelPayStackBooking
 );
 
 export const paymentRoutes = router;

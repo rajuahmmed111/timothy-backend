@@ -527,6 +527,14 @@ const cancelBooking = async (
 };
 
 //
+// pay-stack sub account
+const payStackAccountSubAccount = async (userId: string, accountData: any) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+
+};
+
 // create checkout session on paystack
 const createCheckoutSessionPayStack = async (
   userId: string,
@@ -657,11 +665,63 @@ const payStackHandleWebhook = async (event: any) => {
   }
 };
 
+// pay-stack cancel booking
+const cancelPayStackBooking = async (
+  serviceType: string,
+  bookingId: string,
+  userId: string
+) => {
+  const serviceT = serviceConfig[serviceType as ServiceType];
+  if (!serviceT)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
+
+  const booking = await serviceT.bookingModel.findUnique({
+    where: { id: bookingId, userId },
+    include: { payment: true },
+  });
+  if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+
+  const payment = booking.payment?.[0];
+  if (!payment || !payment.transactionId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "No payment found for this booking"
+    );
+  }
+
+  // Paystack refund API
+  await axios.post(
+    `${payStackBaseUrl}/refund`,
+    { transaction: payment.transactionId },
+    { headers: { Authorization: `Bearer ${config.payStack.secretKey}` } }
+  );
+
+  // update DB
+  await prisma.payment.update({
+    where: { id: payment.id },
+    data: { status: PaymentStatus.REFUNDED },
+  });
+
+  await serviceT.bookingModel.update({
+    where: { id: bookingId },
+    data: { bookingStatus: BookingStatus.CANCELLED },
+  });
+
+  await serviceT.serviceModel.update({
+    where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
+    data: { isBooked: "AVAILABLE" },
+  });
+
+  return { bookingId, status: "CANCELLED" };
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
   cancelBooking,
+  payStackAccountSubAccount,
   createCheckoutSessionPayStack,
   payStackHandleWebhook,
+  cancelPayStackBooking,
 };
