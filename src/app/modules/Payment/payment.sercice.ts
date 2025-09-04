@@ -432,8 +432,97 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
   }
 };
 
+// cancel booking service
+const cancelBooking = async (
+  serviceType: string,
+  bookingId: string,
+  userId: string
+) => {
+  // detect booking model dynamically
+  const bookingModelMap: Record<string, any> = {
+    car: prisma.car_Booking,
+    hotel: prisma.hotel_Booking,
+    security: prisma.security_Booking,
+    attraction: prisma.attraction_Booking,
+  };
+
+  const serviceModelMap: Record<string, any> = {
+    car: prisma.car_Rental,
+    hotel: prisma.hotel,
+    security: prisma.security_Protocol,
+    attraction: prisma.attraction,
+  };
+
+  const bookingModel = bookingModelMap[serviceType.toLowerCase()];
+  const serviceModel = serviceModelMap[serviceType.toLowerCase()];
+
+  if (!bookingModel || !serviceModel) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
+  }
+
+  // find booking with payment & user
+  const booking = await bookingModel.findUnique({
+    where: { id: bookingId, userId },
+    include: { payment: true, user: true },
+  });
+
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  const user = booking.user;
+  if (!user.stripeAccountId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "User has no connected Stripe account"
+    );
+  }
+
+  // get payment
+  const payment = booking.payment?.[0];
+  if (!payment || !payment.payment_intent) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "No payment found for this booking"
+    );
+  }
+
+  // stripe full refund on connected account
+  await stripe.refunds.create(
+    {
+      payment_intent: payment.payment_intent,
+      amount: payment.amount, // full refund
+    },
+    {
+      stripeAccount: user.stripeAccountId, // connected account
+    }
+  );
+
+  // update payment status
+  await prisma.payment.update({
+    where: { id: payment.id },
+    data: { status: PaymentStatus.REFUNDED },
+  });
+
+  // update booking status to CANCELLED
+  await bookingModel.update({
+    where: { id: bookingId },
+    data: { bookingStatus: BookingStatus.CANCELLED },
+  });
+
+  // free the service again (isBooked = AVAILABLE)
+  const serviceIdField = `${serviceType.toLowerCase()}Id`;
+  await serviceModel.update({
+    where: { id: booking[serviceIdField] },
+    data: { isBooked: "AVAILABLE" },
+  });
+
+  return { bookingId, status: "CANCELLED" };
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
+  cancelBooking,
 };

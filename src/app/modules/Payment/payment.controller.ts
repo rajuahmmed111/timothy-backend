@@ -87,8 +87,24 @@ const stripeHandleWebhook = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// stripe cancel booking
+const cancelBooking = catchAsync(async (req, res) => {
+  const { serviceType, bookingId } = req.params;
+  const userId = req.user?.id;
+
+  const result = await PaymentService.cancelBooking(serviceType, bookingId, userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Booking cancelled successfully",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
+  cancelBooking,
 };

@@ -26,4 +26,11 @@ router.post(
   PaymentController.stripeHandleWebhook
 );
 
+// cancel booking route
+router.post(
+  "/stripe-cancel-booking/:serviceType/:bookingId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.cancelBooking
+);
+
 export const paymentRoutes = router;
