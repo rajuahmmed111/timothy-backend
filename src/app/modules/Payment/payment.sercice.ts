@@ -9,7 +9,14 @@ import {
 } from "@prisma/client";
 import config from "../../../config";
 import Stripe from "stripe";
-import { mapStripeStatusToPaymentStatus, serviceConfig } from "./Stripe/stripe";
+import {
+  mapStripeStatusToPaymentStatus,
+  serviceConfig,
+  ServiceType,
+} from "./Stripe/stripe";
+import axios from "axios";
+
+const payStackBaseUrl = "https://api.paystack.co";
 
 // stripe account onboarding
 const stripeAccountOnboarding = async (userId: string) => {
@@ -519,9 +526,142 @@ const cancelBooking = async (
   return { bookingId, status: "CANCELLED" };
 };
 
+//
+// create checkout session on paystack
+const createCheckoutSessionPayStack = async (
+  userId: string,
+  serviceType: string,
+  bookingId: string,
+  description: string
+) => {
+  const serviceT = serviceConfig[serviceType as ServiceType];
+  if (!serviceT)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
+
+  // find booking
+  const booking = await serviceT.bookingModel.findUnique({
+    where: { id: bookingId, userId },
+  });
+  if (!booking)
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `${serviceType} booking not found`
+    );
+
+  // find service
+  const service = await serviceT.serviceModel.findUnique({
+    where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
+  });
+  if (!service)
+    throw new ApiError(httpStatus.NOT_FOUND, `${serviceType} not found`);
+
+  // find partner
+  const partnerId = (service as any).partnerId;
+  const partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  if (!partner)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Provider not found");
+
+  const amount = Math.round(booking.totalPrice * 100);
+  const adminFee = Math.round(amount * 0.2);
+
+  // Call Paystack API → initialize transaction
+  const response = await axios.post(
+    `${payStackBaseUrl}/transaction/initialize`,
+    {
+      email: partner.email,
+      amount,
+      metadata: {
+        userId,
+        serviceType,
+        bookingId,
+        partnerId,
+        description,
+        adminFee,
+      },
+      callback_url: `${config.frontend_url}/payment/success`,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${config.payStack.secretKey}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = response.data.data;
+
+  // Save payment record
+  await prisma.payment.create({
+    data: {
+      amount,
+      description,
+      currency: "NGN",
+      sessionId: data.reference,
+      paymentMethod: "card",
+      status: PaymentStatus.UNPAID,
+      provider: "PAYSTACK",
+      payable_name: partner.fullName ?? "",
+      payable_email: partner.email,
+      country: partner.country ?? "",
+      admin_commission: adminFee,
+      serviceType,
+      partnerId,
+      userId,
+      [serviceT.serviceTypeField]: booking.id,
+    },
+  });
+
+  return {
+    checkoutUrl: data.authorization_url,
+    reference: data.reference,
+  };
+};
+
+const payStackHandleWebhook = async (event: any) => {
+  if (event.event === "charge.success") {
+    const reference = event.data.reference;
+
+    // find payment
+    const payment = await prisma.payment.findFirst({
+      where: { sessionId: reference },
+    });
+    if (!payment) return;
+
+    // update payment to PAID
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: PaymentStatus.PAID,
+        transactionId: event.data.id,
+      },
+    });
+
+    // update booking status → CONFIRMED
+    const config = serviceConfig[payment.serviceType as ServiceType];
+    if (!config) return;
+
+    const booking = await config.bookingModel.findUnique({
+      where: { id: (payment as any)[config.serviceTypeField] },
+    });
+    if (!booking) return;
+
+    await config.bookingModel.update({
+      where: { id: booking.id },
+      data: { bookingStatus: BookingStatus.CONFIRMED },
+    });
+
+    await config.serviceModel.update({
+      where: { id: (booking as any)[`${payment.serviceType.toLowerCase()}Id`] },
+      data: { isBooked: EveryServiceStatus.BOOKED },
+    });
+  }
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
   cancelBooking,
+  createCheckoutSessionPayStack,
+  payStackHandleWebhook,
 };

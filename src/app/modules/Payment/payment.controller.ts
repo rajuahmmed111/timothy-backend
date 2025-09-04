@@ -28,12 +28,12 @@ const createCheckoutSession = catchAsync(
     const userId = req.user?.id;
     const { serviceType, bookingId } = req.params;
     const { description } = req.body;
-    
-const normalizedServiceType = serviceType.toUpperCase() as
-  | "CAR"
-  | "HOTEL"
-  | "SECURITY"
-  | "ATTRACTION";
+
+    const normalizedServiceType = serviceType.toUpperCase() as
+      | "CAR"
+      | "HOTEL"
+      | "SECURITY"
+      | "ATTRACTION";
 
     const result = await PaymentService.createCheckoutSession(
       userId,
@@ -92,7 +92,11 @@ const cancelBooking = catchAsync(async (req, res) => {
   const { serviceType, bookingId } = req.params;
   const userId = req.user?.id;
 
-  const result = await PaymentService.cancelBooking(serviceType, bookingId, userId);
+  const result = await PaymentService.cancelBooking(
+    serviceType,
+    bookingId,
+    userId
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -102,9 +106,54 @@ const cancelBooking = catchAsync(async (req, res) => {
   });
 });
 
+//
+// create checkout session on pay-stack
+const createCheckoutSessionPayStack = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const { serviceType, bookingId } = req.params;
+    const { description } = req.body;
+    const normalizedServiceType = serviceType.toUpperCase() as
+      | "CAR"
+      | "HOTEL"
+      | "SECURITY"
+      | "ATTRACTION";
+
+    const result = await PaymentService.createCheckoutSessionPayStack(
+      userId,
+      normalizedServiceType,
+      bookingId,
+      description
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Checkout session created successfully",
+      data: result,
+    });
+  }
+);
+
+// pay-stack webhook payment
+const payStackHandleWebhook = catchAsync(
+  async (req: Request, res: Response) => {
+    let event: any;
+
+    const result = await PaymentService.payStackHandleWebhook(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Paystack webhook payment successfully",
+      data: result,
+    });
+  }
+);
+
 export const PaymentController = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
   cancelBooking,
+  createCheckoutSessionPayStack,
+  payStackHandleWebhook,
 };

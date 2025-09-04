@@ -21,6 +21,12 @@ export default {
     checkout_cancel_url: process.env.CHECKOUT_CANCEL_URL,
   },
 
+  payStack: {
+    publicKey: process.env.PAYSTACK_PUBLISHABLE_KEY,
+    secretKey: process.env.PAYSTACK_SECRET_KEY,
+    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
+  },
+
   paypal: {
     clientId: process.env.PAYPAL_CLIENT_ID,
     clientSecret: process.env.PAYPAL_CLIENT_SECRET,

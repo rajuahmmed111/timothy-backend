@@ -19,7 +19,18 @@ export const mapStripeStatusToPaymentStatus = (
   }
 };
 
-export const serviceConfig = {
+export type ServiceType = "CAR" | "HOTEL" | "SECURITY" | "ATTRACTION";
+
+export const serviceConfig: Record<
+  ServiceType,
+  {
+    bookingModel: any; // use correct Prisma delegate type
+    serviceModel: any;
+    serviceTypeField: string;
+    nameField: string;
+    partnerIdField: string;
+  }
+> = {
   CAR: {
     bookingModel: prisma.car_Booking,
     serviceModel: prisma.car_Rental,
