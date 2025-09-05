@@ -6,6 +6,7 @@ import {
   BookingStatus,
   EveryServiceStatus,
   PaymentStatus,
+  UserStatus,
 } from "@prisma/client";
 import config from "../../../config";
 import Stripe from "stripe";
@@ -527,15 +528,101 @@ const cancelBooking = async (
 };
 
 //
-// pay-stack sub account
+// pay-stack sub account for service user
 const payStackAccountSubAccount = async (userId: string, accountData: any) => {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  //  find service user
+  const partner = await prisma.user.findUnique({
+    where: { id: userId, status: UserStatus.ACTIVE },
+  });
+  if (!partner) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 
+  // sub account exists
+  if (partner.payStackSubAccountId) {
+    const response = await axios.get(
+      `${payStackBaseUrl}/subaccount/${partner.payStackSubAccountId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${config.payStack.secretKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
+    const subAccountData = response.data.data;
+
+    if (subAccountData.active) {
+      // Already active → mark in DB
+      await prisma.user.update({
+        where: { id: userId },
+        data: { isPayStackConnected: true },
+      });
+
+      return {
+        status: "active",
+        message: "Pay-stack sub-account already active",
+        data: subAccountData,
+      };
+    } else {
+      // not active → mark DB and notify user
+      await prisma.user.update({
+        where: { id: userId },
+        data: { isPayStackConnected: false },
+      });
+
+      return {
+        status: "inactive",
+        message: "Pay-stack sub-account exists but not active",
+        data: subAccountData,
+      };
+    }
+  }
+
+  // create Sub-account on Pay-stack
+  try {
+    const response = await axios.post(
+      `${payStackBaseUrl}/subaccount`,
+      {
+        business_name: accountData.business_name,
+        settlement_bank: accountData.settlement_bank,
+        account_number: accountData.account_number,
+        percentage_charge: accountData.percentage_charge,
+        primary_contact_email: partner.email,
+        currency: accountData.currency || "NGN",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${config.payStack.secretKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const subAccountData = response.data.data;
+
+    // sub-account info in DB
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        payStackSubAccountId: subAccountData.subaccount_code,
+        payStackSubAccount: JSON.stringify(subAccountData),
+        isPayStackConnected: true,
+      },
+    });
+
+    return {
+      status: subAccountData.active ? "active" : "pending",
+      message: "Pay-stack sub-account created",
+      data: subAccountData,
+    };
+  } catch (error: any) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      error.response?.data?.message || "Pay-stack sub-account creation failed"
+    );
+  }
 };
 
-// create checkout session on paystack
+// create checkout session on pay-stack
 const createCheckoutSessionPayStack = async (
   userId: string,
   serviceType: string,
