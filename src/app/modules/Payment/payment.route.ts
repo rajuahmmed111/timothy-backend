@@ -36,6 +36,12 @@ router.post(
 );
 
 // ------------------------------pay-stack routes-----------------------------
+// get banks list
+router.get("/paystack-banks", PaymentController.getPayStackBanks);
+
+// verify account
+router.post("/paystack-verify-account", PaymentController.verifyPayStackAccount);
+
 // pay-stack account sub-account
 router.post(
   "/paystack-account-sub-account",

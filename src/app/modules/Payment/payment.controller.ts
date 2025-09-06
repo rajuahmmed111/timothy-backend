@@ -107,12 +107,38 @@ const cancelBooking = catchAsync(async (req, res) => {
 });
 
 //
+// bank list
+const getPayStackBanks = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.getPayStackBanks();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Banks fetched successfully",
+    data: result,
+  });
+});
+
+// account verify
+const verifyPayStackAccount = catchAsync(async (req: Request, res: Response) => {
+  const { account_number, bank_code } = req.body;
+  const result = await PaymentService.verifyPayStackAccount(account_number, bank_code);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Account verified successfully",
+    data: result,
+  });
+});
+
 // pay-stack sub account
 const payStackAccountSubAccount = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const data = req.body;
-    const result = await PaymentService.payStackAccountSubAccount(userId, data);
+    const accountData = req.body;
+    const result = await PaymentService.payStackAccountSubAccount(
+      userId,
+      accountData
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -186,6 +212,8 @@ export const PaymentController = {
   createCheckoutSession,
   stripeHandleWebhook,
   cancelBooking,
+  getPayStackBanks,
+  verifyPayStackAccount,
   payStackAccountSubAccount,
   createCheckoutSessionPayStack,
   payStackHandleWebhook,

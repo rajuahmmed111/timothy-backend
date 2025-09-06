@@ -18,6 +18,10 @@ import {
 import axios from "axios";
 
 const payStackBaseUrl = "https://api.paystack.co";
+const headers = {
+  Authorization: `Bearer ${config.payStack.secretKey}`,
+  "Content-Type": "application/json",
+};
 
 // stripe account onboarding
 const stripeAccountOnboarding = async (userId: string) => {
@@ -528,30 +532,44 @@ const cancelBooking = async (
 };
 
 //
+// get banks
+const getPayStackBanks = async () => {
+  const res = await axios.get(`${payStackBaseUrl}/bank`, { headers });
+  return res.data.data;
+};
+
+// verify account
+const verifyPayStackAccount = async (
+  account_number: string,
+  bank_code: string
+) => {
+  const res = await axios.get(
+    `${payStackBaseUrl}/bank/resolve?account_number=${account_number}&bank_code=${bank_code}`,
+    { headers }
+  );
+  return res.data.data;
+};
+
 // pay-stack sub account for service user
 const payStackAccountSubAccount = async (userId: string, accountData: any) => {
-  //  find service user
+  // Find user
   const partner = await prisma.user.findUnique({
     where: { id: userId, status: UserStatus.ACTIVE },
   });
   if (!partner) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 
-  // sub account exists
+  // if sub-account already exists → fetch & return
   if (partner.payStackSubAccountId) {
     const response = await axios.get(
       `${payStackBaseUrl}/subaccount/${partner.payStackSubAccountId}`,
       {
-        headers: {
-          Authorization: `Bearer ${config.payStack.secretKey}`,
-          "Content-Type": "application/json",
-        },
+        headers,
       }
     );
 
     const subAccountData = response.data.data;
 
     if (subAccountData.active) {
-      // Already active → mark in DB
       await prisma.user.update({
         where: { id: userId },
         data: { isPayStackConnected: true },
@@ -562,44 +580,36 @@ const payStackAccountSubAccount = async (userId: string, accountData: any) => {
         message: "Pay-stack sub-account already active",
         data: subAccountData,
       };
-    } else {
-      // not active → mark DB and notify user
-      await prisma.user.update({
-        where: { id: userId },
-        data: { isPayStackConnected: false },
-      });
-
-      return {
-        status: "inactive",
-        message: "Pay-stack sub-account exists but not active",
-        data: subAccountData,
-      };
     }
+
+    return {
+      status: "inactive",
+      message: "Pay-stack sub-account exists but inactive",
+      data: subAccountData,
+    };
   }
 
-  // create Sub-account on Pay-stack
+  // create new sub-account
   try {
+    const payload = {
+      business_name: accountData.business_name,
+      settlement_bank: accountData.settlement_bank, // e.g. "058"
+      account_number: accountData.account_number, // e.g. "0123456789"
+      percentage_charge: accountData.percentage_charge, // e.g. 20
+      primary_contact_email: partner.email,
+      currency: accountData.currency || "NGN",
+    };
+
     const response = await axios.post(
       `${payStackBaseUrl}/subaccount`,
+      payload,
       {
-        business_name: accountData.business_name,
-        settlement_bank: accountData.settlement_bank,
-        account_number: accountData.account_number,
-        percentage_charge: accountData.percentage_charge,
-        primary_contact_email: partner.email,
-        currency: accountData.currency || "NGN",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.payStack.secretKey}`,
-          "Content-Type": "application/json",
-        },
+        headers,
       }
     );
 
     const subAccountData = response.data.data;
 
-    // sub-account info in DB
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -611,7 +621,7 @@ const payStackAccountSubAccount = async (userId: string, accountData: any) => {
 
     return {
       status: subAccountData.active ? "active" : "pending",
-      message: "Pay-stack sub-account created",
+      message: "Pay-stack subaccount created successfully",
       data: subAccountData,
     };
   } catch (error: any) {
@@ -807,6 +817,8 @@ export const PaymentService = {
   createCheckoutSession,
   stripeHandleWebhook,
   cancelBooking,
+  getPayStackBanks,
+  verifyPayStackAccount,
   payStackAccountSubAccount,
   createCheckoutSessionPayStack,
   payStackHandleWebhook,
