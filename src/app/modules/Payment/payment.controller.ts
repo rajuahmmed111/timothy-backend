@@ -118,6 +118,20 @@ const getPayStackBanks = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get sub account list
+const getPayStackSubAccounts = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const result = await PaymentService.getPayStackSubAccounts(userId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Sub accounts fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // account verify
 const verifyPayStackAccount = catchAsync(async (req: Request, res: Response) => {
   const { account_number, bank_code } = req.body;
@@ -213,6 +227,7 @@ export const PaymentController = {
   stripeHandleWebhook,
   cancelBooking,
   getPayStackBanks,
+  getPayStackSubAccounts,
   verifyPayStackAccount,
   payStackAccountSubAccount,
   createCheckoutSessionPayStack,
