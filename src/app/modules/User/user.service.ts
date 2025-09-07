@@ -19,6 +19,7 @@ import { uploadFile } from "../../../helpars/fileUploader";
 import { Request } from "express";
 import { getDateRange } from "../../../helpars/filterByDate";
 import emailSender from "../../../helpars/emailSender";
+import { createOtpEmailTemplate } from "../../../utils/createOtpEmailTemplate";
 
 // create user
 const createUser = async (payload: any) => {
@@ -49,11 +50,7 @@ const createUser = async (payload: any) => {
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
   // prepare email html
-  const html = `
-    <h2>OTP Verification</h2>
-    <p>Your OTP code is: <b>${randomOtp}</b></p>
-    <p>This OTP will expire in 5 minutes.</p>
-  `;
+  const html = createOtpEmailTemplate(randomOtp);
 
   // send email
   await emailSender("OTP Verification", user.email, html);
@@ -112,7 +109,7 @@ const verifyOtpAndCreateUser = async (email: string, otp: string) => {
       status: true,
       createdAt: true,
       updatedAt: true,
-    }
+    },
   });
 
   return updatedUser;
