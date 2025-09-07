@@ -14,7 +14,7 @@ import {
   ServiceType,
 } from "../../../shared/notificationService";
 
-// createHotelBooking service with notifications
+// createHotelBooking service
 const createHotelBooking = async (
   userId: string,
   hotelId: string,
@@ -30,7 +30,7 @@ const createHotelBooking = async (
   }
 
   const hotel = await prisma.hotel.findUnique({
-    where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
+    where: { id: hotelId},
     select: {
       hotelRoomPriceNight: true,
       partnerId: true,

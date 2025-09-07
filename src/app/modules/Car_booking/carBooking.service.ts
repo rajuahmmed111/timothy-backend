@@ -8,13 +8,14 @@ import {
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
-import { differenceInDays, parse } from "date-fns";
+import { differenceInDays, parse, startOfDay } from "date-fns";
 import { ICarBookingData } from "./carBooking.interface";
 import {
   BookingNotificationService,
   IBookingNotificationData,
   ServiceType,
 } from "../../../shared/notificationService";
+
 
 // create car rental booking
 const createCarBooking = async (
@@ -28,12 +29,11 @@ const createCarBooking = async (
   const user = await prisma.user.findUnique({
     where: { id: userId, status: UserStatus.ACTIVE },
   });
-  if (!user)
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
 
   // validate car
   const car = await prisma.car_Rental.findUnique({
-    where: { id: carId, isBooked: EveryServiceStatus.AVAILABLE },
+    where: { id: carId},
     select: {
       carPriceDay: true,
       partnerId: true,
@@ -43,19 +43,43 @@ const createCarBooking = async (
       carName: true,
     },
   });
-  if (!car)
-    throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unavailable");
+  if (!car) throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unavailable");
 
   // required fields
-  if (!carBookedFromDate || !carBookedToDate)
+  if (!carBookedFromDate || !carBookedToDate) 
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
 
-  // calculate booking days
   const fromDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
   const toDate = parse(carBookedToDate, "yyyy-MM-dd", new Date());
+  const today = startOfDay(new Date()); // ignore time
+
+  // prevent past-date booking
+  if (fromDate < today) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
+  }
+
+  // validate date range
   const numberOfDays = differenceInDays(toDate, fromDate);
   if (numberOfDays <= 0)
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid booking date range");
+
+  // prevent overlapping bookings
+  const overlappingBooking = await prisma.car_Booking.findFirst({
+    where: {
+      carId,
+      bookingStatus: { not: BookingStatus.CANCELLED },
+      OR: [
+        {
+          carBookedFromDate: { lte: carBookedToDate },
+          carBookedToDate: { gte: carBookedFromDate },
+        },
+      ],
+    },
+  });
+
+  if (overlappingBooking) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "This car is already booked for the selected dates");
+  }
 
   // base price calculation
   let basePrice = car.carPriceDay * numberOfDays;
@@ -68,7 +92,6 @@ const createCarBooking = async (
   // promo code discount (if provided)
   if (promo_code) {
     const bookingStartDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
-
     const promo = await prisma.promoCode.findFirst({
       where: {
         code: promo_code,
@@ -77,28 +100,11 @@ const createCarBooking = async (
         validTo: { gte: bookingStartDate },
       },
     });
-    if (!promo) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        "Promo code not found or expired"
-      );
-    }
+    if (!promo) throw new ApiError(httpStatus.NOT_FOUND, "Promo code not found or expired");
 
-    // check minimum amount
     if (promo.minimumAmount && basePrice < promo.minimumAmount)
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Minimum amount ${promo.minimumAmount} required`
-      );
+      throw new ApiError(httpStatus.BAD_REQUEST, `Minimum amount ${promo.minimumAmount} required`);
 
-    // Check per-user limit it related to payment
-    // const userUsageCount = await prisma.car_Booking.count({
-    //   where: { userId, promoCodeId: promo.id },
-    // });
-    // if (userUsageCount >= promo.perUserLimit)
-    //   throw new ApiError(httpStatus.BAD_REQUEST, "You have already used this promo code");
-
-    // promo discount calculation
     if (promo.discountType === DiscountType.PERCENTAGE) {
       basePrice -= (basePrice * promo.discountValue) / 100;
     } else {
@@ -106,12 +112,11 @@ const createCarBooking = async (
     }
   }
 
-  // vat calculation
+  // VAT calculation
   if (car.vat && car.vat > 0) {
     basePrice += (basePrice * car.vat) / 100;
   }
 
-  // final price
   const totalPrice = basePrice;
 
   // create booking
@@ -125,18 +130,18 @@ const createCarBooking = async (
       category: car.category as string,
       carBookedFromDate: data.carBookedFromDate,
       carBookedToDate: data.carBookedToDate,
-      promo_code: data.promo_code as string, // optional
+      promo_code: data.promo_code as string,
     },
   });
 
-  // Send notifications after successful booking creation
+  // Send notifications
   const notificationData: IBookingNotificationData = {
     bookingId: booking.id,
-    userId: userId,
+    userId,
     partnerId: car.partnerId,
     serviceType: ServiceType.CAR,
     serviceName: car.carName,
-    totalPrice: totalPrice,
+    totalPrice,
     bookedFromDate: data.carBookedFromDate,
     bookedToDate: data.carBookedToDate,
   };
@@ -144,6 +149,7 @@ const createCarBooking = async (
 
   return booking;
 };
+
 
 // get all car rental bookings
 const getAllCarBookings = async (partnerId: string) => {
