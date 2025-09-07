@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { differenceInDays, parse } from "date-fns";
+import { differenceInDays, parse, startOfDay } from "date-fns";
 import { BookingStatus, EveryServiceStatus } from "@prisma/client";
 import {
   IBookingFilterRequest,
@@ -60,7 +60,7 @@ const createHotelBooking = async (
   // calculate number of nights
   const fromDate = parse(bookedFromDate, "yyyy-MM-dd", new Date());
   const toDate = parse(bookedToDate, "yyyy-MM-dd", new Date());
-  const today = new Date();
+ const today = startOfDay(new Date());
 
   if (fromDate < today) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");

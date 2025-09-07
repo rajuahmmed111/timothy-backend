@@ -2,7 +2,7 @@ import { BookingStatus, EveryServiceStatus, UserStatus } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
-import { differenceInDays, parse } from "date-fns";
+import { differenceInDays, parse, startOfDay } from "date-fns";
 import { ISecurityBookingData } from "./security_booking.interface";
 import { BookingNotificationService, IBookingNotificationData, ServiceType } from "../../../shared/notificationService";
 
@@ -13,16 +13,13 @@ const createSecurityBooking = async (
   securityId: string,
   data: ISecurityBookingData
 ) => {
-  const { number_of_security, securityBookedFromDate, securityBookedToDate } =
-    data;
+  const { number_of_security, securityBookedFromDate, securityBookedToDate } = data;
 
   // validate user
   const user = await prisma.user.findUnique({
     where: { id: userId, status: UserStatus.ACTIVE },
   });
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
-  }
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
 
   // validate security
   const security = await prisma.security_Protocol.findUnique({
@@ -36,49 +33,59 @@ const createSecurityBooking = async (
       securityName: true,
     },
   });
-  if (!security) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      "Security service not found or unavailable"
-    );
-  }
+  if (!security) throw new ApiError(httpStatus.NOT_FOUND, "Security service not found or unavailable");
 
-  // Validate required fields
+  // validate required fields
   if (!number_of_security || !securityBookedFromDate || !securityBookedToDate) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
   }
-
   if (number_of_security <= 0) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "Number of security must be greater than zero"
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, "Number of security must be greater than zero");
   }
 
-  // Calculate booking days
   const fromDate = parse(securityBookedFromDate, "yyyy-MM-dd", new Date());
   const toDate = parse(securityBookedToDate, "yyyy-MM-dd", new Date());
-  const numberOfDays = differenceInDays(toDate, fromDate);
+  const today = startOfDay(new Date());
 
-  if (numberOfDays <= 0) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid booking date range");
+  // check past-date booking
+  if (fromDate < today) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
   }
 
-  // Base price calculation
-  let totalPrice =
-    security.securityPriceDay * number_of_security * numberOfDays;
+  // validate date range
+  const numberOfDays = differenceInDays(toDate, fromDate);
+  if (numberOfDays <= 0) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid booking date range");
 
-  // discount if available (percentage)
+  // check overlapping bookings
+  const overlappingBooking = await prisma.security_Booking.findFirst({
+    where: {
+      securityId,
+      bookingStatus: { not: BookingStatus.CANCELLED },
+      OR: [
+        {
+          securityBookedFromDate: { lte: securityBookedToDate },
+          securityBookedToDate: { gte: securityBookedFromDate },
+        },
+      ],
+    },
+  });
+
+  if (overlappingBooking) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "This security service is already booked for the selected dates");
+  }
+
+  // base price calculation
+  let totalPrice = security.securityPriceDay * number_of_security * numberOfDays;
+
   if (security.discount && security.discount > 0) {
     totalPrice -= (totalPrice * security.discount) / 100;
   }
 
-  // VAT if available (percentage)
   if (security.vat && security.vat > 0) {
     totalPrice += (totalPrice * security.vat) / 100;
   }
 
-  // Create booking
+  // create booking
   const result = await prisma.security_Booking.create({
     data: {
       ...data,
@@ -91,7 +98,7 @@ const createSecurityBooking = async (
     },
   });
 
-  // Send notifications after successful booking creation
+  // send notifications
   const notificationData: IBookingNotificationData = {
     bookingId: result.id,
     userId,
@@ -107,6 +114,7 @@ const createSecurityBooking = async (
 
   return result;
 };
+
 
 // get all security bookings
 const getAllSecurityBookings = async (partnerId: string) => {
