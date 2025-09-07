@@ -1,15 +1,13 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { BookingStatus, EveryServiceStatus } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import {
   BookingNotificationService,
   IBookingNotificationData,
   ServiceType,
 } from "../../../shared/notificationService";
-
-// create attraction booking
-import { parse, startOfDay, isBefore } from "date-fns";
+import { parse, startOfDay, isBefore, format } from "date-fns";
 
 // create attraction booking
 const createAttractionBooking = async (
@@ -19,31 +17,29 @@ const createAttractionBooking = async (
     adults: number;
     children: number;
     date: string; // "2025-08-12"
-    day: string; // "THURSDAY"
     from: string; // "10:00:00"
   }
 ) => {
-  const { adults, children, date, day, from } = data;
+  const { adults, children, date, from } = data;
 
   // validate required fields
-  if (adults == null || children == null || !date || !day || !from) {
+  if (adults == null || children == null || !date || !from) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       "Missing required booking fields"
     );
   }
 
-  // convert date & time for validation
+  // convert date & time
   const bookingDate = parse(date, "yyyy-MM-dd", new Date());
   const today = startOfDay(new Date());
   const now = new Date();
 
-  // check past-date
   if (isBefore(bookingDate, today)) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
   }
 
-  // check same-day but past time
+  // same-day past time check
   if (bookingDate.getTime() === today.getTime()) {
     const [hours, minutes, seconds] = from.split(":").map(Number);
     const bookingTime = new Date(today);
@@ -57,15 +53,24 @@ const createAttractionBooking = async (
     }
   }
 
-  // get attraction with schedules & slots
+  // get day from date automatically
+  const day = format(bookingDate, "EEEE").toUpperCase(); // MONDAY, TUESDAY...
+
+  // get attraction with schedules & slots (match by day)
   const attraction = await prisma.attraction.findUnique({
     where: { id: attractionId },
-    include: {
+    select: {
+      id: true,
+      attractionName: true,
+      partnerId: true,
+      attractionAdultPrice: true,
+      attractionChildPrice: true,
+      vat: true,
+      discount: true,
+      category: true,
       attractionSchedule: {
         where: { day },
-        include: {
-          slots: true, // load all slots
-        },
+        include: { slots: true },
       },
     },
   });
@@ -74,14 +79,14 @@ const createAttractionBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  // check schedule exists
+  // check schedule exists for that day
   if (
     !attraction.attractionSchedule ||
     attraction.attractionSchedule.length === 0
   ) {
     throw new ApiError(
       httpStatus.NOT_FOUND,
-      `No schedule found for ${date} (${day})`
+      `No schedule found for day ${day}`
     );
   }
 
@@ -96,33 +101,13 @@ const createAttractionBooking = async (
     );
   }
 
-  // optional: check slot capacity (if field exists like slot.capacity)
-  // if (slot.capacity) {
-  //   const existingBookings = await prisma.attraction_Booking.aggregate({
-  //     _sum: { adults: true, children: true },
-  //     where: { attractionId, date, timeSlot: { path: ["from"], equals: from } },
-  //   });
-
-  //   const alreadyBooked =
-  //     (existingBookings._sum.adults || 0) + (existingBookings._sum.children || 0);
-  //   const requestedSeats = adults + children;
-
-  //   if (alreadyBooked + requestedSeats > slot.capacity) {
-  //     throw new ApiError(httpStatus.BAD_REQUEST, "Selected slot is fully booked");
-  //   }
-  // }
-
   // calculate total price
   let totalPrice =
     adults * (attraction.attractionAdultPrice || 0) +
     children * (attraction.attractionChildPrice || 0);
 
-  if (attraction.vat) {
-    totalPrice += (totalPrice * attraction.vat) / 100;
-  }
-  if (attraction.discount) {
-    totalPrice -= (totalPrice * attraction.discount) / 100;
-  }
+  if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
+  if (attraction.discount) totalPrice -= (totalPrice * attraction.discount) / 100;
 
   // create booking
   const booking = await prisma.attraction_Booking.create({
@@ -137,11 +122,11 @@ const createAttractionBooking = async (
       timeSlot: { from: slot.from, to: slot.to },
       category: attraction.category as string,
       totalPrice,
-      bookingStatus: "PENDING",
+      bookingStatus: BookingStatus.PENDING,
     },
   });
 
-  // Send notifications
+  // send notifications
   const notificationData: IBookingNotificationData = {
     bookingId: booking.id,
     partnerId: booking.partnerId,
