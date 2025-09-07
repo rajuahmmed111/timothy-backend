@@ -5,7 +5,6 @@ import stripe from "../../../helpars/stripe";
 import {
   BookingStatus,
   EveryServiceStatus,
-  PaymentProvider,
   PaymentStatus,
   UserStatus,
 } from "@prisma/client";
@@ -539,11 +538,9 @@ const getPayStackBanks = async () => {
   return res.data.data;
 };
 
-// get sub account list
+// get sub accounts
 const getPayStackSubAccounts = async (userId: string) => {
-  const res = await axios.get(`${payStackBaseUrl}/subaccount`, {
-    headers,
-  });
+  const res = await axios.get(`${payStackBaseUrl}/subaccount`, { headers });
   return res.data.data;
 };
 
@@ -630,7 +627,7 @@ const payStackAccountSubAccount = async (userId: string, accountData: any) => {
 
     return {
       status: subAccountData.active ? "active" : "pending",
-      message: "Pay-stack sub-account created successfully",
+      message: "Pay-stack subaccount created successfully",
       data: subAccountData,
     };
   } catch (error: any) {
@@ -662,6 +659,10 @@ const createCheckoutSessionPayStack = async (
       `${serviceType} booking not found`
     );
 
+  // find user
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
   // find service
   const service = await serviceT.serviceModel.findUnique({
     where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
@@ -679,42 +680,32 @@ const createCheckoutSessionPayStack = async (
   const adminFee = Math.round(amount * 0.2); // 20% for app
   const providerAmount = amount - adminFee; // 80% for provider
 
-  // initialize Pay-stack transaction with split
-const payload = {
-  email: booking.userEmail, // must be valid email
-  amount,
-  metadata: {
-    bookingId,
-    serviceType,
-    userId,
-    partnerId,
-    description,
-    adminFee,
-    providerAmount,
-  },
-  callback_url: `${config.frontend_url}/payment/success`,
-  split: {
-    type: "percentage",
-    bearer_type: "account",
-    subaccounts: [
-      {
-        subaccount: partner.payStackSubAccountId, // Must be valid in test mode
-        share: 80,
-      },
-    ],
-  },
-};
-
-  
+  // --- Initialize Paystack transaction ---
   const response = await axios.post(
     `${payStackBaseUrl}/transaction/initialize`,
-    payload,
-    { headers }
+    {
+      email: user.email,
+      amount,
+      subaccount: partner.payStackSubAccountId,
+      metadata: {
+        bookingId,
+        serviceType,
+        userId,
+        partnerId,
+        description,
+        adminFee,
+        providerAmount,
+      },
+      callback_url: `${config.frontend_url}/payment/success`,
+    },
+    {
+      headers,
+    }
   );
 
   const data = response.data.data;
 
-  // Save payment record
+  // --- Save payment record in DB ---
   await prisma.payment.create({
     data: {
       amount,
@@ -723,7 +714,7 @@ const payload = {
       sessionId: data.reference,
       paymentMethod: "card",
       status: PaymentStatus.UNPAID,
-      provider: PaymentProvider.PAYSTACK,
+      provider: "PAYSTACK",
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
@@ -741,18 +732,26 @@ const payload = {
   };
 };
 
+// handle pay-stack webhook
 const payStackHandleWebhook = async (event: any) => {
   if (event.event === "charge.success") {
+    console.log(event, "charge success");
     const reference = event.data.reference;
+    console.log(reference, "reference");
 
     // find payment
-    const payment = await prisma.payment.findFirst({ where: { sessionId: reference } });
+    const payment = await prisma.payment.findFirst({
+      where: { sessionId: reference },
+    });
     if (!payment) return;
 
     // update payment to PAID
     await prisma.payment.update({
       where: { id: payment.id },
-      data: { status: PaymentStatus.PAID, transactionId: event.data.id },
+      data: {
+        status: PaymentStatus.PAID,
+        transactionId: event.data.id,
+      },
     });
 
     // update booking status → CONFIRMED
