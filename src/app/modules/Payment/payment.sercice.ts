@@ -804,7 +804,9 @@ const cancelPayStackBooking = async (
   bookingId: string,
   userId: string
 ) => {
-  const serviceT = serviceConfig[serviceType as ServiceType];
+  const normalizedType = serviceType.toUpperCase() as ServiceType;
+
+  const serviceT = serviceConfig[normalizedType];
   if (!serviceT)
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
 
