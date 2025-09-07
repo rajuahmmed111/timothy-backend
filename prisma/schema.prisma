@@ -669,6 +669,7 @@ model Payment {
   country          String?
   admin_commission Float?
   service_fee      Float?
+  paystack_fee     Float?
   transactionId    String?
   serviceType      String // HOTEL | SECURITY | CAR | ATTRACTION
   partnerId        String          @db.ObjectId

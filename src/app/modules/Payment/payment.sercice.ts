@@ -104,7 +104,7 @@ const stripeAccountOnboarding = async (userId: string) => {
   const accountLink = await stripe.accountLinks.create({
     account: account.id,
     refresh_url: `${config.stripe.refreshUrl}?accountId=${account.id}`,
-    return_url: config.stripe.returnUrl,
+    // return_url: config.stripe.returnUrl,
     type: "account_onboarding",
   });
 
@@ -734,44 +734,69 @@ const createCheckoutSessionPayStack = async (
 
 // handle pay-stack webhook
 const payStackHandleWebhook = async (event: any) => {
-  if (event.event === "charge.success") {
-    console.log(event, "charge success");
-    const reference = event.data.reference;
-    console.log(reference, "reference");
+  try {
+    if (event.event !== "charge.success") return;
+    // console.log("Received Paystack event:", event);
 
-    // find payment
+    const reference = event.data.reference;
+
+    // find payment record
     const payment = await prisma.payment.findFirst({
       where: { sessionId: reference },
     });
-    if (!payment) return;
+    if (!payment) {
+      // console.log("Payment not found for reference:", reference);
+      return;
+    }
+    // console.log("Found payment:", payment);
 
-    // update payment to PAID
+    // update payment to PAID with fees
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
         status: PaymentStatus.PAID,
-        transactionId: event.data.id,
+        transactionId: String(event.data.id),
+        admin_commission: event.data.fees_split?.integration ?? 0,
+        service_fee: event.data.fees_split?.subaccount ?? 0,
+        paystack_fee: event.data.fees_split?.paystack ?? 0,
       },
     });
 
     // update booking status → CONFIRMED
     const config = serviceConfig[payment.serviceType as ServiceType];
-    if (!config) return;
+    if (!config) {
+      console.log("Service config not found for type:", payment.serviceType);
+      return;
+    }
 
+    const bookingId = (payment as any)[config.serviceTypeField];
     const booking = await config.bookingModel.findUnique({
-      where: { id: (payment as any)[config.serviceTypeField] },
+      where: { id: bookingId },
     });
-    if (!booking) return;
+    if (!booking) {
+      console.log("Booking not found for id:", bookingId);
+      return;
+    }
 
     await config.bookingModel.update({
       where: { id: booking.id },
       data: { bookingStatus: BookingStatus.CONFIRMED },
     });
 
-    await config.serviceModel.update({
-      where: { id: (booking as any)[`${payment.serviceType.toLowerCase()}Id`] },
-      data: { isBooked: EveryServiceStatus.BOOKED },
-    });
+    // update service status → BOOKED
+    const serviceId = (booking as any)[
+      `${payment.serviceType.toLowerCase()}Id`
+    ];
+    if (serviceId) {
+      await config.serviceModel.update({
+        where: { id: serviceId },
+        data: { isBooked: EveryServiceStatus.BOOKED },
+      });
+    }
+
+    console.log(`Payment ${reference} processed successfully!`);
+  } catch (error) {
+    console.error("Error handling Paystack webhook:", error);
   }
 };
 
