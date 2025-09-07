@@ -822,7 +822,7 @@ const cancelPayStackBooking = async (
     );
   }
 
-  // Paystack refund API
+  // Pay-stack refund API
   await axios.post(
     `${payStackBaseUrl}/refund`,
     { transaction: payment.transactionId },
