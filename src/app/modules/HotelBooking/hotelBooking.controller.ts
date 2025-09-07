@@ -3,7 +3,6 @@ import catchAsync from "../../../shared/catchAsync";
 import { HotelBookingService } from "./hotelBooking.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
-// import { BookingCategory } from "./hotelBooking.interface";
 
 // create hotel booking
 const createHotelBooking = catchAsync(async (req: Request, res: Response) => {

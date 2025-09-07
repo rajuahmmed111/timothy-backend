@@ -44,7 +44,7 @@ const createHotelBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }
 
-  // Get partner/service provider info
+  // get partner/service provider info
   const partner = await prisma.user.findUnique({
     where: { id: hotel.partnerId },
     select: {
@@ -60,6 +60,11 @@ const createHotelBooking = async (
   // calculate number of nights
   const fromDate = parse(bookedFromDate, "yyyy-MM-dd", new Date());
   const toDate = parse(bookedToDate, "yyyy-MM-dd", new Date());
+  const today = new Date();
+
+  if (fromDate < today) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
+  }
 
   const numberOfNights = differenceInDays(toDate, fromDate);
 
@@ -76,7 +81,28 @@ const createHotelBooking = async (
     totalPrice -= (totalPrice * hotel.discount) / 100;
   }
 
-  // Create booking
+  // check for overlapping bookings
+  const overlappingBooking = await prisma.hotel_Booking.findFirst({
+    where: {
+      hotelId,
+      bookingStatus: { not: BookingStatus.CANCELLED }, // ignore cancelled bookings
+      OR: [
+        {
+          bookedFromDate: { lte: bookedToDate },
+          bookedToDate: { gte: bookedFromDate },
+        },
+      ],
+    },
+  });
+
+  if (overlappingBooking) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "This hotel is already booked for the selected dates"
+    );
+  }
+
+  // create booking
   const result = await prisma.hotel_Booking.create({
     data: {
       ...data,
