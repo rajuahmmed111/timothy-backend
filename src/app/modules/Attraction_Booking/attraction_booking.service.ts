@@ -9,6 +9,9 @@ import {
 } from "../../../shared/notificationService";
 
 // create attraction booking
+import { parse, startOfDay, isBefore } from "date-fns";
+
+// create attraction booking
 const createAttractionBooking = async (
   userId: string,
   attractionId: string,
@@ -24,10 +27,28 @@ const createAttractionBooking = async (
 
   // validate required fields
   if (adults == null || children == null || !date || !day || !from) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "Missing required booking fields"
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, "Missing required booking fields");
+  }
+
+  // convert date & time for validation
+  const bookingDate = parse(date, "yyyy-MM-dd", new Date());
+  const today = startOfDay(new Date());
+  const now = new Date();
+
+  // check past-date
+  if (isBefore(bookingDate, today)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
+  }
+
+  // check same-day but past time
+  if (bookingDate.getTime() === today.getTime()) {
+    const [hours, minutes, seconds] = from.split(":").map(Number);
+    const bookingTime = new Date(today);
+    bookingTime.setHours(hours, minutes, seconds, 0);
+
+    if (isBefore(bookingTime, now)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past time slots today");
+    }
   }
 
   // get attraction with schedules & slots
@@ -48,14 +69,8 @@ const createAttractionBooking = async (
   }
 
   // check schedule exists
-  if (
-    !attraction.attractionSchedule ||
-    attraction.attractionSchedule.length === 0
-  ) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      `No schedule found for ${date} (${day})`
-    );
+  if (!attraction.attractionSchedule || attraction.attractionSchedule.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, `No schedule found for ${date} (${day})`);
   }
 
   const schedule = attraction.attractionSchedule[0];
@@ -63,11 +78,24 @@ const createAttractionBooking = async (
   // find matching slot
   const slot = schedule.slots.find((s) => s.from === from);
   if (!slot) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      `Selected slot ${from} not available`
-    );
+    throw new ApiError(httpStatus.NOT_FOUND, `Selected slot ${from} not available`);
   }
+
+  // optional: check slot capacity (if field exists like slot.capacity)
+  // if (slot.capacity) {
+  //   const existingBookings = await prisma.attraction_Booking.aggregate({
+  //     _sum: { adults: true, children: true },
+  //     where: { attractionId, date, timeSlot: { path: ["from"], equals: from } },
+  //   });
+
+  //   const alreadyBooked =
+  //     (existingBookings._sum.adults || 0) + (existingBookings._sum.children || 0);
+  //   const requestedSeats = adults + children;
+
+  //   if (alreadyBooked + requestedSeats > slot.capacity) {
+  //     throw new ApiError(httpStatus.BAD_REQUEST, "Selected slot is fully booked");
+  //   }
+  // }
 
   // calculate total price
   let totalPrice =
@@ -91,14 +119,14 @@ const createAttractionBooking = async (
       children,
       date,
       day,
-      timeSlot: { from: slot.from, to: slot.to }, // use slot object directly
+      timeSlot: { from: slot.from, to: slot.to },
       category: attraction.category as string,
       totalPrice,
       bookingStatus: "PENDING",
     },
   });
 
-  // Send notifications after successful booking creation
+  // Send notifications
   const notificationData: IBookingNotificationData = {
     bookingId: booking.id,
     partnerId: booking.partnerId,
@@ -113,6 +141,7 @@ const createAttractionBooking = async (
 
   return booking;
 };
+
 
 // get all attraction bookings
 const getAllAttractionBookings = async (partnerId: string) => {
