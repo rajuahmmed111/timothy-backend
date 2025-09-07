@@ -796,7 +796,7 @@ const payStackHandleWebhook = async (event: any) => {
 
     console.log(`Payment ${reference} processed successfully!`);
   } catch (error) {
-    console.error("Error handling Paystack webhook:", error);
+    console.error("Error handling Pay-stack webhook:", error);
   }
 };
 
