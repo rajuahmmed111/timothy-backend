@@ -445,14 +445,15 @@ model Attraction {
   attraction_Booking Attraction_Booking[]
   review             Review[]
   attractionSchedule AttractionSchedule[]
+  scheduleSlot       ScheduleSlot[]
 
   @@map("attractions")
 }
 
 model AttractionSchedule {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  day  String
-  date String
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  day String
+  // date String
 
   // relationships
   attractionId String         @db.ObjectId
@@ -468,6 +469,8 @@ model ScheduleSlot {
   to   String // "12:00:00"
 
   // relationships
+  attractionId         String             @db.ObjectId
+  attraction           Attraction         @relation(fields: [attractionId], references: [id])
   attractionScheduleId String             @db.ObjectId
   weeklySchedule       AttractionSchedule @relation(fields: [attractionScheduleId], references: [id])
 

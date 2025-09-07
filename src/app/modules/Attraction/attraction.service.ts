@@ -90,7 +90,7 @@ const createAttraction = async (req: Request) => {
         attraction: {
           partnerId,
         },
-        date: schedule.date,
+        // date: schedule.date,
         day: schedule.day,
       },
     });
@@ -157,7 +157,7 @@ const createAttraction = async (req: Request) => {
         const attractionSchedule = await tx.attractionSchedule.create({
           data: {
             attractionId: attraction.id,
-            date: schedule.date,
+            // date: schedule.date,
             day: schedule.day,
           },
         });
@@ -172,6 +172,7 @@ const createAttraction = async (req: Request) => {
         for (const slot of uniqueSlots) {
           await tx.scheduleSlot.create({
             data: {
+              attractionId: attraction.id,
               attractionScheduleId: attractionSchedule.id,
               from: slot.from,
               to: slot.to,
@@ -183,7 +184,7 @@ const createAttraction = async (req: Request) => {
       return { attractionId: attraction.id };
     },
     {
-      timeout: 20000, // 20 seconds
+      timeout: 40000, // 40 seconds
     }
   );
 
@@ -533,7 +534,7 @@ const updateAttraction = async (req: Request) => {
       const attractionSchedule = await prisma.attractionSchedule.create({
         data: {
           attractionId: updatedAttraction.id,
-          date: schedule.date,
+          // date: schedule.date,
           day: schedule.day,
         },
       });
@@ -547,6 +548,7 @@ const updateAttraction = async (req: Request) => {
       for (const slot of uniqueSlots) {
         await prisma.scheduleSlot.create({
           data: {
+            attractionId: updatedAttraction.id,
             attractionScheduleId: attractionSchedule.id,
             from: slot.from,
             to: slot.to,
