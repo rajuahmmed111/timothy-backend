@@ -27,7 +27,10 @@ const createAttractionBooking = async (
 
   // validate required fields
   if (adults == null || children == null || !date || !day || !from) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Missing required booking fields");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Missing required booking fields"
+    );
   }
 
   // convert date & time for validation
@@ -47,7 +50,10 @@ const createAttractionBooking = async (
     bookingTime.setHours(hours, minutes, seconds, 0);
 
     if (isBefore(bookingTime, now)) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past time slots today");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Cannot book for past time slots today"
+      );
     }
   }
 
@@ -56,7 +62,7 @@ const createAttractionBooking = async (
     where: { id: attractionId },
     include: {
       attractionSchedule: {
-        where: { date, day },
+        where: { day },
         include: {
           slots: true, // load all slots
         },
@@ -69,8 +75,14 @@ const createAttractionBooking = async (
   }
 
   // check schedule exists
-  if (!attraction.attractionSchedule || attraction.attractionSchedule.length === 0) {
-    throw new ApiError(httpStatus.NOT_FOUND, `No schedule found for ${date} (${day})`);
+  if (
+    !attraction.attractionSchedule ||
+    attraction.attractionSchedule.length === 0
+  ) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `No schedule found for ${date} (${day})`
+    );
   }
 
   const schedule = attraction.attractionSchedule[0];
@@ -78,7 +90,10 @@ const createAttractionBooking = async (
   // find matching slot
   const slot = schedule.slots.find((s) => s.from === from);
   if (!slot) {
-    throw new ApiError(httpStatus.NOT_FOUND, `Selected slot ${from} not available`);
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `Selected slot ${from} not available`
+    );
   }
 
   // optional: check slot capacity (if field exists like slot.capacity)
@@ -141,7 +156,6 @@ const createAttractionBooking = async (
 
   return booking;
 };
-
 
 // get all attraction bookings
 const getAllAttractionBookings = async (partnerId: string) => {
