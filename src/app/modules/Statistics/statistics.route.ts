@@ -12,6 +12,10 @@ router.get(
   StatisticsController.getOverview
 );
 
-
+router.get(
+  "/earning",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+//   StatisticsController.paymentWithUserAnalysis
+);
 
 export const statisticsRoutes = router;
