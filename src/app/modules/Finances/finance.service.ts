@@ -234,6 +234,14 @@ const getAllUsersFinances = async (
     where,
   });
 
+  // sum service_fee
+  const totalUserExpense = await prisma.payment.aggregate({
+    _sum: {
+      amount: true,
+    },
+    where,
+  });
+
   return {
     meta: {
       total,
@@ -241,6 +249,7 @@ const getAllUsersFinances = async (
       limit,
     },
     data: result,
+    totalUserExpense: totalUserExpense._sum.amount || 0,
   };
 };
 
