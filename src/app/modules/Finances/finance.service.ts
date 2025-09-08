@@ -131,14 +131,12 @@ const getAllProvidersFinances = async (
     AND: filters,
   };
 
-  if (where) {
+  if (partnerId) {
     where.partnerId = partnerId;
   }
 
   const result = await prisma.payment.findMany({
-    where: {
-      partnerId,
-    },
+    where: where,
     skip,
     take: limit,
     orderBy:
