@@ -372,74 +372,59 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         },
       });
 
-      // --- Car Booking ---
-      const carBooking = await prisma.car_Booking.findFirst({
-        where: { payment: { some: { id: payment.id } } },
+      // update booking & service status
+      const config = serviceConfig[payment.serviceType as ServiceType];
+      if (!config) return;
+
+      const bookingId = (payment as any)[config.serviceTypeField];
+      const booking = await config.bookingModel.findUnique({
+        where: { id: bookingId },
+      });
+      if (!booking) return;
+
+      // update booking status → CONFIRMED
+      await config.bookingModel.update({
+        where: { id: booking.id },
+        data: { bookingStatus: BookingStatus.CONFIRMED },
       });
 
-      if (carBooking) {
-        await prisma.car_Booking.update({
-          where: { id: carBooking.id },
-          data: { bookingStatus: BookingStatus.CONFIRMED },
-        });
-
-        await prisma.car_Rental.update({
-          where: { id: carBooking.carId },
+      // update service status → BOOKED
+      const serviceId = (booking as any)[
+        `${payment.serviceType.toLowerCase()}Id`
+      ];
+      if (serviceId) {
+        await config.serviceModel.update({
+          where: { id: serviceId },
           data: { isBooked: EveryServiceStatus.BOOKED },
         });
       }
 
-      // --- Hotel Booking ---
-      const hotelBooking = await prisma.hotel_Booking.findFirst({
-        where: { payment: { some: { id: payment.id } } },
+      // ---------- send notification ----------
+      const service = await config.serviceModel.findUnique({
+        where: { id: serviceId },
       });
+      if (!service) return;
 
-      if (hotelBooking) {
-        await prisma.hotel_Booking.update({
-          where: { id: hotelBooking.id },
-          data: { bookingStatus: BookingStatus.CONFIRMED },
-        });
+      const notificationData: IBookingNotificationData = {
+        bookingId: booking.id,
+        userId: booking.userId,
+        partnerId: booking.partnerId,
+        serviceTypes: payment.serviceType as ServiceTypes,
+        serviceName: service[config.nameField],
+        totalPrice: booking.totalPrice,
+        // bookedFromDate:
+        //   (booking as any).bookedFromDate || (booking as any).date,
+        // bookedToDate: (booking as any).bookedToDate,
+        // quantity:
+        //   (booking as any).rooms ||
+        //   (booking as any).adults ||
+        //   (booking as any).number_of_security ||
+        //   1,
+      };
 
-        await prisma.hotel.update({
-          where: { id: hotelBooking.hotelId },
-          data: { isBooked: EveryServiceStatus.BOOKED },
-        });
-      }
-
-      // --- Security Booking ---
-      const securityBooking = await prisma.security_Booking.findFirst({
-        where: { payment: { some: { id: payment.id } } },
-      });
-
-      if (securityBooking) {
-        await prisma.security_Booking.update({
-          where: { id: securityBooking.id },
-          data: { bookingStatus: BookingStatus.CONFIRMED },
-        });
-
-        await prisma.security_Protocol.update({
-          where: { id: securityBooking.securityId },
-          data: { isBooked: EveryServiceStatus.BOOKED },
-        });
-      }
-
-      // --- Attraction Booking ---
-      const attractionBooking = await prisma.attraction_Booking.findFirst({
-        where: { payment: { some: { id: payment.id } } },
-      });
-
-      if (attractionBooking) {
-        await prisma.attraction_Booking.update({
-          where: { id: attractionBooking.id },
-          data: { bookingStatus: BookingStatus.CONFIRMED },
-        });
-
-        await prisma.attraction.update({
-          where: { id: attractionBooking.attractionId },
-          data: { isBooked: EveryServiceStatus.BOOKED },
-        });
-      }
-
+      await BookingNotificationService.sendBookingNotifications(
+        notificationData
+      );
       break;
     }
 
@@ -797,7 +782,7 @@ const payStackHandleWebhook = async (event: any) => {
       });
     }
 
-    // ---------- SEND NOTIFICATION ----------
+    // ---------- send notifications ----------
     const service = await config.serviceModel.findUnique({
       where: { id: serviceId },
     });
@@ -810,13 +795,13 @@ const payStackHandleWebhook = async (event: any) => {
       serviceTypes: payment.serviceType as ServiceTypes,
       serviceName: service[config.nameField],
       totalPrice: booking.totalPrice,
-      bookedFromDate: (booking as any).bookedFromDate || (booking as any).date,
-      bookedToDate: (booking as any).bookedToDate,
-      quantity:
-        (booking as any).rooms ||
-        (booking as any).adults ||
-        (booking as any).number_of_security ||
-        1,
+      // bookedFromDate: (booking as any).bookedFromDate || (booking as any).date,
+      // bookedToDate: (booking as any).bookedToDate,
+      // quantity:
+      //   (booking as any).rooms ||
+      //   (booking as any).adults ||
+      //   (booking as any).number_of_security ||
+      //   1,
     };
 
     await BookingNotificationService.sendBookingNotifications(notificationData);

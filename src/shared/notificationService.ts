@@ -9,13 +9,13 @@ export enum ServiceTypes {
 }
 
 export interface IBookingNotificationData {
-  bookingId: string;
-  userId: string;
-  partnerId: string;
+  bookingId?: string;
+  userId?: string;
+  partnerId?: string;
   serviceTypes: ServiceTypes;
-  serviceName: string;
+  serviceName?: string;
   totalPrice: number;
-  bookedFromDate: string;
+  bookedFromDate?: string;
   bookedToDate?: string;
   quantity?: number;
   additionalInfo?: any;
@@ -154,7 +154,7 @@ const sendBookingNotifications = async (
     const userMessage = getUserConfirmationMessage(data.serviceTypes, data);
     if (userInfo.fcmToken) {
       const userResult = await sendNotification(
-        data.userId,
+        data.userId!,
         userInfo.fcmToken,
         userMessage,
         data,
@@ -171,7 +171,7 @@ const sendBookingNotifications = async (
         userInfo.fullName || "Unknown User"
       );
       const partnerResult = await sendNotification(
-        data.partnerId,
+        data.partnerId!,
         partnerInfo.fcmToken,
         partnerMessage,
         data,
