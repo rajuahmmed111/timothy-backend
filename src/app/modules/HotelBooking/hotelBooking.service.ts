@@ -7,11 +7,6 @@ import {
   IBookingFilterRequest,
   IHotelBookingData,
 } from "./hotelBooking.interface";
-import {
-  BookingNotificationService,
-  IBookingNotificationData,
-  ServiceType,
-} from "../../../shared/notificationService";
 
 // createHotelBooking service
 const createHotelBooking = async (
@@ -115,18 +110,17 @@ const createHotelBooking = async (
   });
 
   // Send notifications after successful booking creation
-  const notificationData: IBookingNotificationData = {
-    bookingId: result.id,
-    userId: userId,
-    partnerId: hotel.partnerId,
-    serviceType: ServiceType.HOTEL,
-    serviceName: hotel.hotelName,
-    totalPrice: totalPrice,
-    bookedFromDate: bookedFromDate,
-    quantity: rooms,
-  };
-
-  BookingNotificationService.sendBookingNotifications(notificationData);
+  // const notificationData: IBookingNotificationData = {
+  //   bookingId: result.id,
+  //   userId: userId,
+  //   partnerId: hotel.partnerId,
+  //   serviceType: ServiceType.HOTEL,
+  //   serviceName: hotel.hotelName,
+  //   totalPrice: totalPrice,
+  //   bookedFromDate: bookedFromDate,
+  //   quantity: rooms,
+  // };
+  // BookingNotificationService.sendBookingNotifications(notificationData);
 
   return result;
 };

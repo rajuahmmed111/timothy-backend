@@ -10,11 +10,6 @@ import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import { differenceInDays, parse, startOfDay } from "date-fns";
 import { ICarBookingData } from "./carBooking.interface";
-import {
-  BookingNotificationService,
-  IBookingNotificationData,
-  ServiceType,
-} from "../../../shared/notificationService";
 
 // create car rental booking
 const createCarBooking = async (
@@ -146,17 +141,17 @@ const createCarBooking = async (
   });
 
   // Send notifications
-  const notificationData: IBookingNotificationData = {
-    bookingId: booking.id,
-    userId,
-    partnerId: car.partnerId,
-    serviceType: ServiceType.CAR,
-    serviceName: car.carName,
-    totalPrice,
-    bookedFromDate: data.carBookedFromDate,
-    bookedToDate: data.carBookedToDate,
-  };
-  BookingNotificationService.sendBookingNotifications(notificationData);
+  // const notificationData: IBookingNotificationData = {
+  //   bookingId: booking.id,
+  //   userId,
+  //   partnerId: car.partnerId,
+  //   serviceType: ServiceType.CAR,
+  //   serviceName: car.carName,
+  //   totalPrice,
+  //   bookedFromDate: data.carBookedFromDate,
+  //   bookedToDate: data.carBookedToDate,
+  // };
+  // BookingNotificationService.sendBookingNotifications(notificationData);
 
   return booking;
 };

@@ -2,11 +2,6 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { BookingStatus } from "@prisma/client";
-import {
-  BookingNotificationService,
-  IBookingNotificationData,
-  ServiceType,
-} from "../../../shared/notificationService";
 import { parse, startOfDay, isBefore, format } from "date-fns";
 
 // create attraction booking
@@ -128,17 +123,17 @@ const createAttractionBooking = async (
   });
 
   // send notifications
-  const notificationData: IBookingNotificationData = {
-    bookingId: booking.id,
-    partnerId: booking.partnerId,
-    userId: booking.userId!,
-    serviceType: ServiceType.ATTRACTION,
-    serviceName: attraction.attractionName,
-    bookedFromDate: booking.date,
-    bookedToDate: booking.date,
-    totalPrice: booking.totalPrice,
-  };
-  BookingNotificationService.sendBookingNotifications(notificationData);
+  // const notificationData: IBookingNotificationData = {
+  //   bookingId: booking.id,
+  //   partnerId: booking.partnerId,
+  //   userId: booking.userId!,
+  //   serviceType: ServiceType.ATTRACTION,
+  //   serviceName: attraction.attractionName,
+  //   bookedFromDate: booking.date,
+  //   bookedToDate: booking.date,
+  //   totalPrice: booking.totalPrice,
+  // };
+  // BookingNotificationService.sendBookingNotifications(notificationData);
 
   return booking;
 };
