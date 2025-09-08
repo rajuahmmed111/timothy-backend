@@ -9,6 +9,6 @@ const router = express.Router();
 router.get("/", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), FinanceController.getAllFinances);
 
 // get all service providers finances
-// router.get("/:partnerId", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), FinanceController.getAllProvidersFinances);
+router.get("/:partnerId", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), FinanceController.getAllProvidersFinances);
 
 export const financeRoutes = router;

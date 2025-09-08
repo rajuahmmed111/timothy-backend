@@ -22,6 +22,23 @@ const getAllFinances = catchAsync(
   }
 );
 
+// get all service providers finances
+const getAllProvidersFinances = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.params.partnerId;
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result = await FinanceService.getAllProvidersFinances(partnerId, filter, options);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Finances fetched successfully",
+      data: result,
+    });
+  }
+);
+
 export const FinanceController = {
   getAllFinances,
+  getAllProvidersFinances,
 };

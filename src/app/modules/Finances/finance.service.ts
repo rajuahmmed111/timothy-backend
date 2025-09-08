@@ -82,6 +82,47 @@ const getAllFinances = async (
   };
 };
 
+// get all service providers finances
+const getAllProvidersFinances = async (
+  partnerId: string,
+  params: IFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.payment.findMany({
+    where: {
+      partnerId,
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.payment.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 export const FinanceService = {
   getAllFinances,
+  getAllProvidersFinances,
 };
