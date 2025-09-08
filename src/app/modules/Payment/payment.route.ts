@@ -6,7 +6,6 @@ import { UserRole } from "@prisma/client";
 const router = express.Router();
 
 // ------------------------------stripe routes-----------------------------
-
 // stripe account onboarding
 router.post(
   "/stripe-account-onboarding",
