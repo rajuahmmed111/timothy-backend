@@ -6,8 +6,8 @@ import { IFilterRequest } from "./finance.interface";
 import { searchableFields } from "./finance.constant";
 import { getDateRange } from "../../../helpars/filterByDate";
 
-// get all service providers finances
-const getAllProvidersFinances = async (
+// get all finances
+const getAllFinances = async (
   params: IFilterRequest,
   options: IPaginationOptions
 ) => {
@@ -83,5 +83,5 @@ const getAllProvidersFinances = async (
 };
 
 export const FinanceService = {
-  getAllProvidersFinances,
+  getAllFinances,
 };

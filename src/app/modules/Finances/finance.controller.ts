@@ -7,12 +7,12 @@ import { pick } from "../../../shared/pick";
 import { filterField } from "./finance.constant";
 import { paginationFields } from "../../../constants/pagination";
 
-// get all service providers finances
-const getAllProvidersFinances = catchAsync(
+// get all finances
+const getAllFinances = catchAsync(
   async (req: Request, res: Response) => {
       const filter = pick(req.query, filterField);
       const options = pick(req.query, paginationFields);
-    const result = await FinanceService.getAllProvidersFinances(filter, options);
+    const result = await FinanceService.getAllFinances(filter, options);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -23,5 +23,5 @@ const getAllProvidersFinances = catchAsync(
 );
 
 export const FinanceController = {
-  getAllProvidersFinances,
+  getAllFinances,
 };
