@@ -63,7 +63,7 @@ const stripeAccountOnboarding = async (userId: string) => {
     const accountLinks = await stripe.accountLinks.create({
       account: user.stripeAccountId,
       refresh_url: `${config.stripe.refreshUrl}?accountId=${user.stripeAccountId}`,
-      return_url: config.stripe.returnUrl,
+      return_url: `${config.stripe.returnUrl}?accountId=${user.stripeAccountId}`,
       type: "account_onboarding",
     });
 
@@ -100,7 +100,7 @@ const stripeAccountOnboarding = async (userId: string) => {
     settings: {
       payouts: {
         schedule: {
-          delay_days: 2, // ✅ minimum allowed
+          delay_days: 2, // minimum allowed
         },
       },
     },
@@ -109,7 +109,7 @@ const stripeAccountOnboarding = async (userId: string) => {
   const accountLink = await stripe.accountLinks.create({
     account: account.id,
     refresh_url: `${config.stripe.refreshUrl}?accountId=${account.id}`,
-    // return_url: config.stripe.returnUrl,
+    return_url: `${config.stripe.returnUrl}?accountId=${account.id}`,
     type: "account_onboarding",
   });
 
