@@ -7,8 +7,7 @@ import httpStatus from "http-status";
 // get all service providers finances
 const getAllProvidersFinances = catchAsync(
   async (req: Request, res: Response) => {
-    const partnerId = req.user?.id;
-    const result = await FinanceService.getAllProvidersFinances(partnerId);
+    const result = await FinanceService.getAllProvidersFinances();
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
