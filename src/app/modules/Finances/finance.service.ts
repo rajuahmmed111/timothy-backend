@@ -129,6 +129,7 @@ const getAllProvidersFinances = async (
 
   const where: Prisma.PaymentWhereInput = {
     AND: filters,
+    ...(partnerId && { partnerId }),
   };
 
   if (partnerId) {
