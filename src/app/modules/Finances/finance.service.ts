@@ -4,6 +4,7 @@ import { IPaginationOptions } from "../../../interfaces/paginations";
 import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./finance.interface";
 import { searchableFields } from "./finance.constant";
+import { getDateRange } from "../../../helpars/filterByDate";
 
 // get all service providers finances
 const getAllProvidersFinances = async (
@@ -28,8 +29,57 @@ const getAllProvidersFinances = async (
     });
   }
 
-  const result = await prisma.payment.findMany({});
-  return result;
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // timeRange filter
+  if (timeRange) {
+    const dateRange = getDateRange(timeRange);
+    if (dateRange) {
+      filters.push({
+        createdAt: dateRange,
+      });
+    }
+  }
+
+  const where: Prisma.PaymentWhereInput = {
+    AND: filters,
+  };
+
+  const result = await prisma.payment.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.payment.count({
+    where,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
 export const FinanceService = {
