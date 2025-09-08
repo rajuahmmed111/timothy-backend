@@ -247,4 +247,5 @@ const getAllUsersFinances = async (
 export const FinanceService = {
   getAllFinances,
   getAllProvidersFinances,
+  getAllUsersFinances,
 };

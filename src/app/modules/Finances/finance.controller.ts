@@ -8,19 +8,17 @@ import { filterField } from "./finance.constant";
 import { paginationFields } from "../../../constants/pagination";
 
 // get all finances
-const getAllFinances = catchAsync(
-  async (req: Request, res: Response) => {
-      const filter = pick(req.query, filterField);
-      const options = pick(req.query, paginationFields);
-    const result = await FinanceService.getAllFinances(filter, options);
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Finances fetched successfully",
-      data: result,
-    });
-  }
-);
+const getAllFinances = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const result = await FinanceService.getAllFinances(filter, options);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Finances fetched successfully",
+    data: result,
+  });
+});
 
 // get all service providers finances
 const getAllProvidersFinances = catchAsync(
@@ -28,7 +26,11 @@ const getAllProvidersFinances = catchAsync(
     const partnerId = req.params.partnerId;
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
-    const result = await FinanceService.getAllProvidersFinances(partnerId, filter, options);
+    const result = await FinanceService.getAllProvidersFinances(
+      partnerId,
+      filter,
+      options
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -38,7 +40,26 @@ const getAllProvidersFinances = catchAsync(
   }
 );
 
+// get all users finance
+const getAllUsersFinances = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const result = await FinanceService.getAllUsersFinances(
+    userId,
+    filter,
+    options
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Finances fetched successfully",
+    data: result,
+  });
+});
+
 export const FinanceController = {
   getAllFinances,
   getAllProvidersFinances,
+  getAllUsersFinances,
 };

@@ -6,9 +6,24 @@ import { UserRole } from "@prisma/client";
 const router = express.Router();
 
 // get all finances
-router.get("/", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), FinanceController.getAllFinances);
+router.get(
+  "/",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FinanceController.getAllFinances
+);
 
 // get all service providers finances
-router.get("/:partnerId", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), FinanceController.getAllProvidersFinances);
+router.get(
+  "/provider/:partnerId",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FinanceController.getAllProvidersFinances
+);
+
+// get all users finance
+router.get(
+  "/user/:userId",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FinanceController.getAllUsersFinances
+);
 
 export const financeRoutes = router;
