@@ -1,7 +1,7 @@
 import admin from "../helpars/firebaseAdmin";
 import prisma from "./prisma";
 
-export enum ServiceType {
+export enum ServiceTypes {
   HOTEL = "HOTEL",
   SECURITY = "SECURITY",
   CAR = "CAR",
@@ -12,7 +12,7 @@ export interface IBookingNotificationData {
   bookingId: string;
   userId: string;
   partnerId: string;
-  serviceType: ServiceType;
+  serviceTypes: ServiceTypes;
   serviceName: string;
   totalPrice: number;
   bookedFromDate: string;
@@ -35,15 +35,15 @@ interface INotificationResult {
 
 // user template
 const getUserConfirmationMessage = (
-  serviceType: ServiceType,
+  serviceType: ServiceTypes,
   data: IBookingNotificationData
 ) => {
   const templates = {
-    [ServiceType.HOTEL]: {
+    [ServiceTypes.HOTEL]: {
       title: "Hotel Booking Confirmed! 🏨",
       body: `Your hotel booking at ${data.serviceName} has been confirmed. Check-in: ${data.bookedFromDate}. Booking ID: ${data.bookingId}`,
     },
-    [ServiceType.SECURITY]: {
+    [ServiceTypes.SECURITY]: {
       title: "Security Service Booked! 🛡️",
       body: `Your security service from ${
         data.serviceName
@@ -51,11 +51,11 @@ const getUserConfirmationMessage = (
         data.quantity || 1
       }`,
     },
-    [ServiceType.CAR]: {
+    [ServiceTypes.CAR]: {
       title: "Car Rental Confirmed! 🚗",
       body: `Your car rental from ${data.serviceName} has been confirmed. Pickup: ${data.bookedFromDate}. Total: ৳${data.totalPrice}`,
     },
-    [ServiceType.ATTRACTION]: {
+    [ServiceTypes.ATTRACTION]: {
       title: "Attraction Booking Confirmed! 🎢",
       body: `Your booking for ${
         data.serviceName
@@ -70,24 +70,24 @@ const getUserConfirmationMessage = (
 
 // partner template
 const getPartnerNotificationMessage = (
-  serviceType: ServiceType,
+  serviceType: ServiceTypes,
   data: IBookingNotificationData,
   userName: string
 ) => {
   const templates = {
-    [ServiceType.HOTEL]: {
+    [ServiceTypes.HOTEL]: {
       title: "New Hotel Booking! 🏨",
       body: `New booking from ${userName}. Rooms: ${data.quantity}, Amount: ৳${data.totalPrice}. Check-in: ${data.bookedFromDate}`,
     },
-    [ServiceType.SECURITY]: {
+    [ServiceTypes.SECURITY]: {
       title: "New Security Booking! 🛡️",
       body: `New security service booking from ${userName}. Guards: ${data.quantity}, Amount: ৳${data.totalPrice}. Date: ${data.bookedFromDate}`,
     },
-    [ServiceType.CAR]: {
+    [ServiceTypes.CAR]: {
       title: "New Car Rental! 🚗",
       body: `New car rental from ${userName}. Vehicle: ${data.serviceName}, Amount: ৳${data.totalPrice}. Pickup: ${data.bookedFromDate}`,
     },
-    [ServiceType.ATTRACTION]: {
+    [ServiceTypes.ATTRACTION]: {
       title: "New Attraction Booking! 🎢",
       body: `New booking from ${userName} for ${data.serviceName}. Tickets: ${data.quantity}, Amount: ৳${data.totalPrice}`,
     },
@@ -118,7 +118,7 @@ const sendNotification = async (
         receiverId,
         title: message.title,
         body: message.body,
-        serviceType: data.serviceType,
+        serviceTypes: data.serviceTypes,
         bookingId: data.bookingId,
       } as any,
     });
@@ -151,7 +151,7 @@ const sendBookingNotifications = async (
     if (!userInfo) throw new Error("User not found");
 
     // User notification
-    const userMessage = getUserConfirmationMessage(data.serviceType, data);
+    const userMessage = getUserConfirmationMessage(data.serviceTypes, data);
     if (userInfo.fcmToken) {
       const userResult = await sendNotification(
         data.userId,
@@ -166,7 +166,7 @@ const sendBookingNotifications = async (
     // Partner notification
     if (partnerInfo?.fcmToken) {
       const partnerMessage = getPartnerNotificationMessage(
-        data.serviceType,
+        data.serviceTypes,
         data,
         userInfo.fullName || "Unknown User"
       );

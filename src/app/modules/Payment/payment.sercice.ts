@@ -16,6 +16,13 @@ import {
   ServiceType,
 } from "./Stripe/stripe";
 import axios from "axios";
+import {
+  BookingNotificationService,
+  IBookingNotificationData,
+  ServiceTypes,
+} from "../../../shared/notificationService";
+
+
 
 const payStackBaseUrl = "https://api.paystack.co";
 const headers = {
@@ -792,7 +799,30 @@ const payStackHandleWebhook = async (event: any) => {
       });
     }
 
-    console.log(`Payment ${reference} processed successfully!`);
+    // ---------- SEND NOTIFICATION ----------
+    const service = await config.serviceModel.findUnique({
+      where: { id: serviceId },
+    });
+    if (!service) return;
+
+    const notificationData: IBookingNotificationData = {
+      bookingId: booking.id,
+      userId: booking.userId,
+      partnerId: booking.partnerId,
+      serviceTypes: payment.serviceType as ServiceTypes,
+      serviceName: service[config.nameField],
+      totalPrice: booking.totalPrice,
+      bookedFromDate: (booking as any).bookedFromDate || (booking as any).date,
+      bookedToDate: (booking as any).bookedToDate,
+      quantity:
+        (booking as any).rooms ||
+        (booking as any).adults ||
+        (booking as any).number_of_security ||
+        1,
+    };
+
+    await BookingNotificationService.sendBookingNotifications(notificationData);
+
   } catch (error) {
     console.error("Error handling Pay-stack webhook:", error);
   }
