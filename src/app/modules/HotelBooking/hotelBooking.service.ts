@@ -7,7 +7,6 @@ import {
   IBookingFilterRequest,
   IHotelBookingData,
 } from "./hotelBooking.interface";
-
 import {
   BookingNotificationService,
   IBookingNotificationData,

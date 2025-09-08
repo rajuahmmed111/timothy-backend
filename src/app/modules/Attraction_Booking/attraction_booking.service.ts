@@ -107,7 +107,8 @@ const createAttractionBooking = async (
     children * (attraction.attractionChildPrice || 0);
 
   if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
-  if (attraction.discount) totalPrice -= (totalPrice * attraction.discount) / 100;
+  if (attraction.discount)
+    totalPrice -= (totalPrice * attraction.discount) / 100;
 
   // create booking
   const booking = await prisma.attraction_Booking.create({

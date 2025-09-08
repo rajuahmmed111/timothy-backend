@@ -16,7 +16,6 @@ import {
   ServiceType,
 } from "../../../shared/notificationService";
 
-
 // create car rental booking
 const createCarBooking = async (
   userId: string,
@@ -29,11 +28,12 @@ const createCarBooking = async (
   const user = await prisma.user.findUnique({
     where: { id: userId, status: UserStatus.ACTIVE },
   });
-  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
+  if (!user)
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
 
   // validate car
   const car = await prisma.car_Rental.findUnique({
-    where: { id: carId},
+    where: { id: carId },
     select: {
       carPriceDay: true,
       partnerId: true,
@@ -43,10 +43,11 @@ const createCarBooking = async (
       carName: true,
     },
   });
-  if (!car) throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unavailable");
+  if (!car)
+    throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unavailable");
 
   // required fields
-  if (!carBookedFromDate || !carBookedToDate) 
+  if (!carBookedFromDate || !carBookedToDate)
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
 
   const fromDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
@@ -78,7 +79,10 @@ const createCarBooking = async (
   });
 
   if (overlappingBooking) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "This car is already booked for the selected dates");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "This car is already booked for the selected dates"
+    );
   }
 
   // base price calculation
@@ -100,10 +104,17 @@ const createCarBooking = async (
         validTo: { gte: bookingStartDate },
       },
     });
-    if (!promo) throw new ApiError(httpStatus.NOT_FOUND, "Promo code not found or expired");
+    if (!promo)
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "Promo code not found or expired"
+      );
 
     if (promo.minimumAmount && basePrice < promo.minimumAmount)
-      throw new ApiError(httpStatus.BAD_REQUEST, `Minimum amount ${promo.minimumAmount} required`);
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Minimum amount ${promo.minimumAmount} required`
+      );
 
     if (promo.discountType === DiscountType.PERCENTAGE) {
       basePrice -= (basePrice * promo.discountValue) / 100;
@@ -149,7 +160,6 @@ const createCarBooking = async (
 
   return booking;
 };
-
 
 // get all car rental bookings
 const getAllCarBookings = async (partnerId: string) => {
