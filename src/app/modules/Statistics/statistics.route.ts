@@ -14,9 +14,9 @@ router.get(
 
 // get payment with user analysis
 router.get(
-  "/earning",
+  "/payment-user-analysis",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
-//   StatisticsController.paymentWithUserAnalysis
+  StatisticsController.paymentWithUserAnalysis
 );
 
 export const statisticsRoutes = router;

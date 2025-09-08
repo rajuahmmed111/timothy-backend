@@ -32,4 +32,5 @@ const paymentWithUserAnalysis = catchAsync(
 
 export const StatisticsController = {
   getOverview,
+  paymentWithUserAnalysis,
 };
