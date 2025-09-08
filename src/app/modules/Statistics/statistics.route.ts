@@ -12,6 +12,7 @@ router.get(
   StatisticsController.getOverview
 );
 
+// get payment with user analysis
 router.get(
   "/earning",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
