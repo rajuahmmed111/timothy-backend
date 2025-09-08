@@ -1,9 +1,6 @@
 export type IFilterRequest = {
   searchTerm?: string | undefined;
-  fullName?: string | undefined;
-  email?: string | undefined;
-  contactNumber?: string | undefined;
-  country?: string | undefined;
-  status?: string | undefined;
+  payable_name?: string | undefined;
+  payable_email?: string | undefined;
   timeRange?: string | undefined;
 };

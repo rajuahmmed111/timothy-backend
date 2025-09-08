@@ -1,16 +1,7 @@
 export const filterField: string[] = [
   "searchTerm",
-  "fullName",
-  "email",
-  "contactNumber",
-  "country",
-  "status",
+  "payable_name",
+  "payable_email",
   "timeRange",
 ];
-export const searchableFields: string[] = [
-  "fullName",
-  "email",
-  "contactNumber",
-  "country",
-  "status",
-];
+export const searchableFields: string[] = ["payable_name", "payable_email"];
