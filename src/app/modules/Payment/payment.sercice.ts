@@ -22,8 +22,6 @@ import {
   ServiceTypes,
 } from "../../../shared/notificationService";
 
-
-
 const payStackBaseUrl = "https://api.paystack.co";
 const headers = {
   Authorization: `Bearer ${config.payStack.secretKey}`,
@@ -822,7 +820,6 @@ const payStackHandleWebhook = async (event: any) => {
     };
 
     await BookingNotificationService.sendBookingNotifications(notificationData);
-
   } catch (error) {
     console.error("Error handling Pay-stack webhook:", error);
   }
