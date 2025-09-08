@@ -156,6 +156,14 @@ const getAllProvidersFinances = async (
     },
   });
 
+  // sum service_fee
+  const totalServiceFee = await prisma.payment.aggregate({
+    _sum: {
+      service_fee: true,
+    },
+    where,
+  });
+
   return {
     meta: {
       total,
@@ -163,6 +171,7 @@ const getAllProvidersFinances = async (
       limit,
     },
     data: result,
+    totalServiceFee: totalServiceFee._sum.service_fee || 0,
   };
 };
 
