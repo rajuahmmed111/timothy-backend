@@ -22,6 +22,7 @@ import { messageRoutes } from "../modules/Message/message.route";
 import { phoneRoute } from "../modules/Setting/PhoneNumberVerify/phone.route";
 import { paymentRoutes } from "../modules/Payment/payment.route";
 import { financeRoutes } from "../modules/Finances/finance.route";
+import { statisticsRoutes } from "../modules/Statistics/statistics.route";
 
 const router = express.Router();
 
@@ -110,6 +111,10 @@ const moduleRoutes = [
   {
     path: "/finances",
     route: financeRoutes,
+  },
+  {
+    path: "/statistics",
+    route: statisticsRoutes,
   },
 ];
 
