@@ -16,7 +16,6 @@ const getOverview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 // get payment with user analysis
 const paymentWithUserAnalysis = catchAsync(
   async (req: Request, res: Response) => {
