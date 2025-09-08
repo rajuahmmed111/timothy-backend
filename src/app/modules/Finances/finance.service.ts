@@ -90,6 +90,51 @@ const getAllProvidersFinances = async (
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
+  const { searchTerm, timeRange, ...filterData } = params;
+
+  const filters: Prisma.PaymentWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // timeRange filter
+  if (timeRange) {
+    const dateRange = getDateRange(timeRange);
+    if (dateRange) {
+      filters.push({
+        createdAt: dateRange,
+      });
+    }
+  }
+
+  const where: Prisma.PaymentWhereInput = {
+    AND: filters,
+  };
+
+  if (where) {
+    where.partnerId = partnerId;
+  }
+
   const result = await prisma.payment.findMany({
     where: {
       partnerId,
