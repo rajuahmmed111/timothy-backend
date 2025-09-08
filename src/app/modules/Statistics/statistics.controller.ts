@@ -19,13 +19,13 @@ const getOverview = catchAsync(async (req: Request, res: Response) => {
 // get payment with user analysis
 const paymentWithUserAnalysis = catchAsync(
   async (req: Request, res: Response) => {
-    // const result = await StatisticsService.paymentWithUserAnalysis();
+    const result = await StatisticsService.paymentWithUserAnalysis();
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Statistics fetched successfully",
-      data: null,
+      data: result,
     });
   }
 );

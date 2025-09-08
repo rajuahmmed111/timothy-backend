@@ -52,4 +52,15 @@ const getOverview = async () => {
   };
 };
 
-export const StatisticsService = { getOverview };
+// get payment with user analysis
+const paymentWithUserAnalysis = async () => {
+  const result = await prisma.payment.groupBy({
+    by: ["userId"],
+    _sum: {
+      amount: true,
+    },
+  });
+  return result;
+};
+
+export const StatisticsService = { getOverview, paymentWithUserAnalysis };
