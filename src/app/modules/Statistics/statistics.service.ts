@@ -27,7 +27,7 @@ const getOverview = async () => {
     totalUsers,
     totalPartners,
     // totalContracts,
-    adminEarnings,
+    adminEarnings: adminEarnings._sum.admin_commission,
   };
 };
 
