@@ -88,11 +88,11 @@ const stripeHandleWebhook = catchAsync(async (req: Request, res: Response) => {
 });
 
 // stripe cancel booking
-const cancelBooking = catchAsync(async (req, res) => {
+const cancelStripeBooking = catchAsync(async (req, res) => {
   const { serviceType, bookingId } = req.params;
   const userId = req.user?.id;
 
-  const result = await PaymentService.cancelBooking(
+  const result = await PaymentService.cancelStripeBooking(
     serviceType,
     bookingId,
     userId
@@ -225,7 +225,7 @@ export const PaymentController = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
-  cancelBooking,
+  cancelStripeBooking,
   getPayStackBanks,
   getPayStackSubAccounts,
   verifyPayStackAccount,

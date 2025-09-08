@@ -433,8 +433,8 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
   }
 };
 
-// cancel booking service
-const cancelBooking = async (
+// cancel booking service stripe
+const cancelStripeBooking = async (
   serviceType: string,
   bookingId: string,
   userId: string
@@ -515,8 +515,24 @@ const cancelBooking = async (
   const serviceIdField = `${serviceType.toLowerCase()}Id`;
   await serviceModel.update({
     where: { id: booking[serviceIdField] },
-    data: { isBooked: "AVAILABLE" },
+    data: { isBooked: EveryServiceStatus.AVAILABLE },
   });
+
+  // -------- send cancel notification --------
+  const service = await serviceModel.findUnique({
+    where: { id: booking[serviceIdField] },
+  });
+
+  const notificationData: IBookingNotificationData = {
+    bookingId: booking.id,
+    userId: booking.userId,
+    partnerId: booking.partnerId,
+    serviceTypes: serviceType.toUpperCase() as ServiceTypes,
+    serviceName: service?.name || "",
+    totalPrice: booking.totalPrice,
+  };
+
+  await BookingNotificationService.sendCancelNotifications(notificationData);
 
   return { bookingId, status: "CANCELLED" };
 };
@@ -859,6 +875,23 @@ const cancelPayStackBooking = async (
     data: { isBooked: "AVAILABLE" },
   });
 
+  // -------- send cancel notification --------
+  const serviceId = (booking as any)[`${serviceType.toLowerCase()}Id`];
+  const service = await serviceT.serviceModel.findUnique({
+    where: { id: serviceId },
+  });
+
+  const notificationData: IBookingNotificationData = {
+    bookingId: booking.id,
+    userId: booking.userId,
+    partnerId: booking.partnerId,
+    serviceTypes: normalizedType as ServiceTypes,
+    serviceName: service?.[serviceT.nameField] || "",
+    totalPrice: booking.totalPrice,
+  };
+
+  await BookingNotificationService.sendCancelNotifications(notificationData);
+
   return { bookingId, status: "CANCELLED" };
 };
 
@@ -866,7 +899,7 @@ export const PaymentService = {
   stripeAccountOnboarding,
   createCheckoutSession,
   stripeHandleWebhook,
-  cancelBooking,
+  cancelStripeBooking,
   getPayStackBanks,
   getPayStackSubAccounts,
   verifyPayStackAccount,

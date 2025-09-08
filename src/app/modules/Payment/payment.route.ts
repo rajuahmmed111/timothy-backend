@@ -28,11 +28,11 @@ router.post(
   PaymentController.stripeHandleWebhook
 );
 
-// cancel booking route
+// cancel booking stripe
 router.post(
   "/stripe-cancel-booking/:serviceType/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-  PaymentController.cancelBooking
+  PaymentController.cancelStripeBooking
 );
 
 // ------------------------------pay-stack routes-----------------------------
@@ -43,13 +43,17 @@ router.get("/paystack-banks", PaymentController.getPayStackBanks);
 router.get("/paystack-sub-accounts", PaymentController.getPayStackSubAccounts);
 
 // verify account
-router.post("/paystack-verify-account", PaymentController.verifyPayStackAccount);
+router.post(
+  "/paystack-verify-account",
+  PaymentController.verifyPayStackAccount
+);
 
 // pay-stack account sub-account
 router.post(
   "/paystack-account-sub-account",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-  PaymentController.payStackAccountSubAccount)
+  PaymentController.payStackAccountSubAccount
+);
 
 // create checkout session on pay-stack
 router.post(

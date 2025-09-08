@@ -33,7 +33,7 @@ interface INotificationResult {
   error?: string;
 }
 
-// user template
+// user booking template
 const getUserConfirmationMessage = (
   serviceType: ServiceTypes,
   data: IBookingNotificationData
@@ -68,7 +68,34 @@ const getUserConfirmationMessage = (
   return templates[serviceType];
 };
 
-// partner template
+// user cancel template
+const getUserCancelMessage = (
+  serviceType: ServiceTypes,
+  data: IBookingNotificationData
+) => {
+  const templates = {
+    [ServiceTypes.HOTEL]: {
+      title: "Hotel Booking Cancelled ❌",
+      body: `Your hotel booking at ${data.serviceName} (ID: ${data.bookingId}) has been cancelled.`,
+    },
+    [ServiceTypes.SECURITY]: {
+      title: "Security Service Cancelled ❌",
+      body: `Your security service from ${data.serviceName} has been cancelled.`,
+    },
+    [ServiceTypes.CAR]: {
+      title: "Car Rental Cancelled ❌",
+      body: `Your car rental from ${data.serviceName} has been cancelled.`,
+    },
+    [ServiceTypes.ATTRACTION]: {
+      title: "Attraction Booking Cancelled ❌",
+      body: `Your attraction booking for ${data.serviceName} has been cancelled.`,
+    },
+  };
+
+  return templates[serviceType];
+};
+
+// partner booking template
 const getPartnerNotificationMessage = (
   serviceType: ServiceTypes,
   data: IBookingNotificationData,
@@ -90,6 +117,34 @@ const getPartnerNotificationMessage = (
     [ServiceTypes.ATTRACTION]: {
       title: "New Attraction Booking! 🎢",
       body: `New booking from ${userName} for ${data.serviceName}. Tickets: ${data.quantity}, Amount: ৳${data.totalPrice}`,
+    },
+  };
+
+  return templates[serviceType];
+};
+
+// partner cancel template
+const getPartnerCancelMessage = (
+  serviceType: ServiceTypes,
+  data: IBookingNotificationData,
+  userName: string
+) => {
+  const templates = {
+    [ServiceTypes.HOTEL]: {
+      title: "Hotel Booking Cancelled ❌",
+      body: `${userName} has cancelled their hotel booking. Booking ID: ${data.bookingId}`,
+    },
+    [ServiceTypes.SECURITY]: {
+      title: "Security Service Cancelled ❌",
+      body: `${userName} has cancelled their security booking.`,
+    },
+    [ServiceTypes.CAR]: {
+      title: "Car Rental Cancelled ❌",
+      body: `${userName} has cancelled their car rental booking.`,
+    },
+    [ServiceTypes.ATTRACTION]: {
+      title: "Attraction Booking Cancelled ❌",
+      body: `${userName} has cancelled their attraction booking.`,
     },
   };
 
@@ -130,7 +185,7 @@ const sendNotification = async (
   }
 };
 
-// main function
+// main function for booking
 const sendBookingNotifications = async (
   data: IBookingNotificationData
 ): Promise<INotificationResult> => {
@@ -198,4 +253,75 @@ const sendBookingNotifications = async (
   }
 };
 
-export const BookingNotificationService = { sendBookingNotifications };
+// main function for cancel
+const sendCancelNotifications = async (
+  data: IBookingNotificationData
+): Promise<INotificationResult> => {
+  const notifications: Array<any> = [];
+
+  try {
+    const [userInfo, partnerInfo] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { fullName: true, fcmToken: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: data.partnerId },
+        select: { fullName: true, fcmToken: true },
+      }),
+    ]);
+
+    if (!userInfo) throw new Error("User not found");
+
+    // User notification
+    const userMessage = getUserCancelMessage(data.serviceTypes, data);
+    if (userInfo.fcmToken) {
+      const userResult = await sendNotification(
+        data.userId!,
+        userInfo.fcmToken,
+        userMessage,
+        data,
+        "user"
+      );
+      notifications.push(userResult);
+    }
+
+    // Partner notification
+    if (partnerInfo?.fcmToken) {
+      const partnerMessage = getPartnerCancelMessage(
+        data.serviceTypes,
+        data,
+        userInfo.fullName || "Unknown User"
+      );
+      const partnerResult = await sendNotification(
+        data.partnerId!,
+        partnerInfo.fcmToken,
+        partnerMessage,
+        data,
+        "partner"
+      );
+      notifications.push(partnerResult);
+    }
+
+    const successCount = notifications.filter((n) => n.success).length;
+
+    return {
+      success: successCount > 0,
+      notifications,
+      message: `${successCount} cancel notifications sent successfully`,
+    };
+  } catch (error: any) {
+    console.error("Cancel notification service failed:", error);
+    return {
+      success: false,
+      notifications,
+      message: "Cancel notification service failed",
+      error: error.message,
+    };
+  }
+};
+
+export const BookingNotificationService = {
+  sendBookingNotifications,
+  sendCancelNotifications,
+};
