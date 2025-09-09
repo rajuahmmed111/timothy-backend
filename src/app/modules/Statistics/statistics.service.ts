@@ -54,13 +54,45 @@ const getOverview = async () => {
 
 // get payment with user analysis
 const paymentWithUserAnalysis = async () => {
-  const result = await prisma.payment.groupBy({
-    by: ["userId"],
-    _sum: {
-      amount: true,
-    },
+  const result = await prisma.payment.aggregateRaw({
+    pipeline: [
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ],
   });
-  return result;
+
+  const resultArray = result as unknown as {
+    _id: number;
+    totalAmount: number;
+  }[];
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const monthData = new Map(resultArray.map((r) => [r._id, r.totalAmount]));
+
+  const paymentMonthsData = months.map((name, index) => ({
+    month: name,
+    totalAmount: monthData.get(index + 1) ?? 0,
+  }));
+
+  return { paymentMonthsData };
 };
 
 export const StatisticsService = { getOverview, paymentWithUserAnalysis };
