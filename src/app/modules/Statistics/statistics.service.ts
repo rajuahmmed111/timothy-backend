@@ -96,6 +96,8 @@ const paymentWithUserAnalysis = async () => {
     totalAmount: monthData.get(index + 1) ?? 0,
   }));
 
+  // user analysis
+
   return { paymentMonthsData };
 };
 
