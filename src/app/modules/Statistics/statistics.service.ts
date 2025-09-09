@@ -54,6 +54,7 @@ const getOverview = async () => {
 
 // get payment with user analysis
 const paymentWithUserAnalysis = async () => {
+  // get all payments
   const result = await prisma.payment.aggregateRaw({
     pipeline: [
       {
