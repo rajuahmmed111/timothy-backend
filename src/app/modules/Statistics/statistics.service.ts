@@ -54,25 +54,54 @@ const getOverview = async () => {
 
 // get payment with user analysis
 const paymentWithUserAnalysis = async () => {
-  // get all payments
-  const result = await prisma.payment.aggregateRaw({
+  // total users
+  const totalUsers = await prisma.user.count({
+    where: { role: UserRole.USER },
+  });
+
+  // total partners
+  const totalPartners = await prisma.user.count({
+    where: { role: UserRole.BUSINESS_PARTNER },
+  });
+
+  // payment monthly analysis
+  const paymentResult = await prisma.payment.aggregateRaw({
     pipeline: [
       {
         $group: {
-          _id: { $month: "$createdAt" },
+          _id: { month: { $month: "$createdAt" } },
           totalAmount: { $sum: "$amount" },
         },
       },
     ],
   });
 
-  // convert to array
-  const resultArray = result as unknown as {
-    _id: number;
+  const paymentArray = paymentResult as unknown as {
+    _id: { month: number };
     totalAmount: number;
   }[];
 
-  // get all months
+  // user monthly analysis
+  const userResult = await prisma.user.aggregateRaw({
+    pipeline: [
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            role: "$role",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ],
+  });
+
+  const userArray = userResult as unknown as {
+    _id: { month: number; role: string };
+    count: number;
+  }[];
+
+  // Months
   const months = [
     "January",
     "February",
@@ -88,18 +117,40 @@ const paymentWithUserAnalysis = async () => {
     "December",
   ];
 
-  const monthData = new Map(resultArray.map((r) => [r._id, r.totalAmount]));
-
-  // create paymentMonthsData
+  // structure
   const paymentMonthsData = months.map((name, index) => ({
     month: name,
-    totalAmount: monthData.get(index + 1) ?? 0,
+    totalAmount: 0,
   }));
 
-  // user analysis
-  
+  const userMonthsData = months.map((name, index) => ({
+    month: name,
+    userCount: 0,
+    partnerCount: 0,
+  }));
 
-  return { paymentMonthsData };
+  //  payments
+  for (const r of paymentArray) {
+    const monthIndex = r._id.month - 1;
+    paymentMonthsData[monthIndex].totalAmount = r.totalAmount;
+  }
+
+  // users
+  for (const r of userArray) {
+    const monthIndex = r._id.month - 1;
+    if (r._id.role === UserRole.USER) {
+      userMonthsData[monthIndex].userCount = r.count;
+    } else if (r._id.role === UserRole.BUSINESS_PARTNER) {
+      userMonthsData[monthIndex].partnerCount = r.count;
+    }
+  }
+
+  return {
+    totalUsers,
+    totalPartners,
+    paymentMonthsData,
+    userMonthsData,
+  };
 };
 
 export const StatisticsService = { getOverview, paymentWithUserAnalysis };
