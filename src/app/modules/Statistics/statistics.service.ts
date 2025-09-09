@@ -1,5 +1,7 @@
 import { UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../../shared/prisma";
+import { IFilterRequest } from "./statistics.interface";
+import { getYearRange } from "../../../helpars/filterByDate";
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = async () => {
@@ -52,28 +54,51 @@ const getOverview = async () => {
   };
 };
 
-// get payment with user analysis
-const paymentWithUserAnalysis = async () => {
-  // total users
+const paymentWithUserAnalysis = async (params: IFilterRequest) => {
+  const { yearRange } = params;
+
+  // Get date range for filtering
+  const dateRange = getYearRange(yearRange);
+
+  // Total users with date filtering
   const totalUsers = await prisma.user.count({
-    where: { role: UserRole.USER },
+    where: {
+      role: UserRole.USER,
+      ...(dateRange && { createdAt: dateRange }),
+    },
   });
 
-  // total partners
+  // Total partners with date filtering
   const totalPartners = await prisma.user.count({
-    where: { role: UserRole.BUSINESS_PARTNER },
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+      ...(dateRange && { createdAt: dateRange }),
+    },
   });
 
-  // payment monthly analysis
-  const paymentResult = await prisma.payment.aggregateRaw({
-    pipeline: [
-      {
-        $group: {
-          _id: { month: { $month: "$createdAt" } },
-          totalAmount: { $sum: "$amount" },
-        },
+  // Monthly payment aggregation - ONLY include PAID payments
+  const paymentPipeline = [
+    // Filter by date range if provided
+    ...(dateRange
+      ? [
+          {
+            $match: {
+              createdAt: { $gte: dateRange.gte, $lte: dateRange.lte },
+              status: "PAID", // Only include paid payments
+            },
+          },
+        ]
+      : [{ $match: { status: "PAID" } }]), // Always filter for paid payments
+    {
+      $group: {
+        _id: { month: { $month: "$createdAt" } },
+        totalAmount: { $sum: "$amount" },
       },
-    ],
+    },
+  ];
+
+  const paymentResult = await prisma.payment.aggregateRaw({
+    pipeline: paymentPipeline,
   });
 
   const paymentArray = paymentResult as unknown as {
@@ -81,19 +106,28 @@ const paymentWithUserAnalysis = async () => {
     totalAmount: number;
   }[];
 
-  // user monthly analysis
-  const userResult = await prisma.user.aggregateRaw({
-    pipeline: [
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            role: "$role",
+  // Monthly user aggregation
+  const userPipeline = [
+    // Filter by date range if provided
+    ...(dateRange
+      ? [
+          {
+            $match: {
+              createdAt: { $gte: dateRange.gte, $lte: dateRange.lte },
+            },
           },
-          count: { $sum: 1 },
-        },
+        ]
+      : []),
+    {
+      $group: {
+        _id: { month: { $month: "$createdAt" }, role: "$role" },
+        count: { $sum: 1 },
       },
-    ],
+    },
+  ];
+
+  const userResult = await prisma.user.aggregateRaw({
+    pipeline: userPipeline,
   });
 
   const userArray = userResult as unknown as {
@@ -101,7 +135,6 @@ const paymentWithUserAnalysis = async () => {
     count: number;
   }[];
 
-  // Months
   const months = [
     "January",
     "February",
@@ -117,31 +150,34 @@ const paymentWithUserAnalysis = async () => {
     "December",
   ];
 
-  // structure
-  const paymentMonthsData = months.map((name, index) => ({
+  // Initialize payment & user data arrays
+  const paymentMonthsData = months.map((name) => ({
     month: name,
     totalAmount: 0,
   }));
-
-  const userMonthsData = months.map((name, index) => ({
+  const userMonthsData = months.map((name) => ({
     month: name,
     userCount: 0,
     partnerCount: 0,
   }));
 
-  //  payments
+  // Fill payment data
   for (const r of paymentArray) {
     const monthIndex = r._id.month - 1;
-    paymentMonthsData[monthIndex].totalAmount = r.totalAmount;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      paymentMonthsData[monthIndex].totalAmount = r.totalAmount;
+    }
   }
 
-  // users
+  // Fill user data
   for (const r of userArray) {
     const monthIndex = r._id.month - 1;
-    if (r._id.role === UserRole.USER) {
-      userMonthsData[monthIndex].userCount = r.count;
-    } else if (r._id.role === UserRole.BUSINESS_PARTNER) {
-      userMonthsData[monthIndex].partnerCount = r.count;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      if (r._id.role === UserRole.USER) {
+        userMonthsData[monthIndex].userCount = r.count;
+      } else if (r._id.role === UserRole.BUSINESS_PARTNER) {
+        userMonthsData[monthIndex].partnerCount = r.count;
+      }
     }
   }
 

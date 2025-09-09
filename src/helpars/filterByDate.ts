@@ -22,11 +22,10 @@ export const getDateRange = (timeRange?: string) => {
   }
 };
 
-export const getYearRange = (year?: number) => {
-  if (!year) return undefined;
-
-  const startOfYear = new Date(year, 0, 1); // January 1st 00:00:00
-  const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999); // December 31st 23:59:59
-
-  return { gte: startOfYear, lte: endOfYear };
+export const getYearRange = (yearRange?: number) => {
+  if (!yearRange) return undefined;
+  return {
+    gte: new Date(Date.UTC(yearRange, 0, 1, 0, 0, 0)),
+    lte: new Date(Date.UTC(yearRange, 11, 31, 23, 59, 59, 999)),
+  };
 };

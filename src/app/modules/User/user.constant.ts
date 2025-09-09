@@ -12,5 +12,5 @@ export const searchableFields: string[] = [
   "email",
   "contactNumber",
   "country",
-  "status",
+  // "status",
 ];
