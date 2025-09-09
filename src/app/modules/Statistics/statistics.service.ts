@@ -72,6 +72,7 @@ const paymentWithUserAnalysis = async () => {
     totalAmount: number;
   }[];
 
+  // get all months
   const months = [
     "January",
     "February",
