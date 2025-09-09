@@ -271,7 +271,6 @@ const financialMetrics = async () => {
   };
 };
 
-
 export const StatisticsService = {
   getOverview,
   paymentWithUserAnalysis,
