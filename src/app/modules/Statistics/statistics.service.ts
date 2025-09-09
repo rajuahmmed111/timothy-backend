@@ -1,4 +1,9 @@
-import { PaymentStatus, UserRole, UserStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  PaymentStatus,
+  UserRole,
+  UserStatus,
+} from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./statistics.interface";
 import { getYearRange } from "../../../helpars/filterByDate";
@@ -271,9 +276,9 @@ const financialMetrics = async () => {
   };
 };
 
-// cancel refund and contracts
+// booking and cancel/refund metrics
 const cancelRefundAndContracts = async () => {
-  // total canceled count
+  // total canceled/refunded count
   const canceledCount = await prisma.payment.count({
     where: {
       status: PaymentStatus.REFUNDED,
@@ -290,15 +295,83 @@ const cancelRefundAndContracts = async () => {
     },
   });
 
+  // total payments
   const totalPayments = await prisma.payment.count();
+
   // cancel rate as percentage
   const cancelRate =
     totalPayments > 0 ? (canceledCount / totalPayments) * 100 : 0;
+
+  // total booking counts by type
+  const [hotelCount, securityCount, carCount, attractionCount] =
+    await Promise.all([
+      prisma.hotel_Booking.count(),
+      prisma.security_Booking.count(),
+      prisma.car_Booking.count(),
+      prisma.attraction_Booking.count(),
+    ]);
+
+  const totalContracts =
+    hotelCount + securityCount + carCount + attractionCount;
+
+  // total bookings by status
+  const [
+    pendingHotel,
+    confirmedHotel,
+    pendingSecurity,
+    confirmedSecurity,
+    pendingCar,
+    confirmedCar,
+    pendingAttraction,
+    confirmedAttraction,
+  ] = await Promise.all([
+    prisma.hotel_Booking.count({
+      where: { bookingStatus: BookingStatus.CONFIRMED },
+    }),
+    prisma.hotel_Booking.count({
+      where: { bookingStatus: BookingStatus.PENDING },
+    }),
+    prisma.security_Booking.count({
+      where: { bookingStatus: BookingStatus.CONFIRMED },
+    }),
+    prisma.security_Booking.count({
+      where: { bookingStatus: BookingStatus.PENDING },
+    }),
+    prisma.car_Booking.count({
+      where: { bookingStatus: BookingStatus.CONFIRMED },
+    }),
+    prisma.car_Booking.count({
+      where: { bookingStatus: BookingStatus.PENDING },
+    }),
+    prisma.attraction_Booking.count({
+      where: { bookingStatus: BookingStatus.CONFIRMED },
+    }),
+    prisma.attraction_Booking.count({
+      where: { bookingStatus: BookingStatus.PENDING },
+    }),
+  ]);
+
+  const totalPending =
+    pendingHotel + pendingSecurity + pendingCar + pendingAttraction;
+
+  const totalConfirmed =
+    confirmedHotel + confirmedSecurity + confirmedCar + confirmedAttraction;
+
+  const pendingRate =
+    totalContracts > 0 ? (totalPending / totalContracts) * 100 : 0;
+
+  const confirmedRate =
+    totalContracts > 0 ? (totalConfirmed / totalContracts) * 100 : 0;
 
   return {
     canceledCount,
     refundAmount: refundAmount._sum.amount ?? 0,
     cancelRate,
+    totalContracts,
+    totalPending,
+    totalConfirmed,
+    pendingRate,
+    confirmedRate,
   };
 };
 
