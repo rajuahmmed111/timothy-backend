@@ -66,6 +66,7 @@ const paymentWithUserAnalysis = async () => {
     ],
   });
 
+  // convert to array
   const resultArray = result as unknown as {
     _id: number;
     totalAmount: number;
