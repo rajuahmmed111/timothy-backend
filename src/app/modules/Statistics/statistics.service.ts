@@ -90,6 +90,7 @@ const paymentWithUserAnalysis = async () => {
 
   const monthData = new Map(resultArray.map((r) => [r._id, r.totalAmount]));
 
+  // create paymentMonthsData
   const paymentMonthsData = months.map((name, index) => ({
     month: name,
     totalAmount: monthData.get(index + 1) ?? 0,
