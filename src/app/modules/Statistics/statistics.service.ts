@@ -271,8 +271,40 @@ const financialMetrics = async () => {
   };
 };
 
+// cancel refund and contracts
+const cancelRefundAndContracts = async () => {
+  // total canceled count
+  const canceledCount = await prisma.payment.count({
+    where: {
+      status: PaymentStatus.REFUNDED,
+    },
+  });
+
+  // total refund amount
+  const refundAmount = await prisma.payment.aggregate({
+    where: {
+      status: PaymentStatus.REFUNDED,
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const totalPayments = await prisma.payment.count();
+  // cancel rate as percentage
+  const cancelRate =
+    totalPayments > 0 ? (canceledCount / totalPayments) * 100 : 0;
+
+  return {
+    canceledCount,
+    refundAmount: refundAmount._sum.amount ?? 0,
+    cancelRate,
+  };
+};
+
 export const StatisticsService = {
   getOverview,
   paymentWithUserAnalysis,
   financialMetrics,
+  cancelRefundAndContracts,
 };

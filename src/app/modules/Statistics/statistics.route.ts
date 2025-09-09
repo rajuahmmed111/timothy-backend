@@ -26,4 +26,11 @@ router.get(
   StatisticsController.financialMetrics
 );
 
+// cancel refund and contracts
+router.get(
+  "/cancel-refund-contracts",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.cancelRefundAndContracts
+);
+
 export const statisticsRoutes = router;
