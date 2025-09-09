@@ -1,7 +1,9 @@
-import { UserRole, UserStatus } from "@prisma/client";
+import { PaymentStatus, UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./statistics.interface";
 import { getYearRange } from "../../../helpars/filterByDate";
+import ApiError from "../../../errors/ApiErrors";
+import httpStatus from "http-status";
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = async () => {
@@ -27,13 +29,18 @@ const getOverview = async () => {
   const totalContracts =
     hotelCount + securityCount + carCount + attractionCount;
 
-  // admin earnings
+  // admin earnings (only PAID payments)
   const adminEarnings = await prisma.payment.aggregate({
+    where: {
+      status: PaymentStatus.PAID,
+    },
     _sum: {
       admin_commission: true,
     },
   });
-
+  if (!adminEarnings) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Admin earnings not found");
+  }
   // total pending partner requests
   const totalPendingPartners = await prisma.user.count({
     where: { role: UserRole.BUSINESS_PARTNER, status: UserStatus.INACTIVE },
@@ -190,4 +197,83 @@ const paymentWithUserAnalysis = async (params: IFilterRequest) => {
   };
 };
 
-export const StatisticsService = { getOverview, paymentWithUserAnalysis };
+// financial metrics
+const financialMetrics = async () => {
+  // total admin and service earnings (only PAID payments)
+  const earnings = await prisma.payment.aggregate({
+    where: {
+      status: PaymentStatus.PAID,
+    },
+    _sum: {
+      admin_commission: true,
+      service_fee: true,
+    },
+  });
+
+  if (!earnings) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Earnings not found");
+  }
+
+  // monthly earnings (group by month)
+  const monthlyPayments = await prisma.payment.findMany({
+    where: {
+      status: PaymentStatus.PAID,
+    },
+    select: {
+      createdAt: true,
+      admin_commission: true,
+      service_fee: true,
+    },
+  });
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const paymentMonthsData = months.map((name, index) => {
+    // sum earnings for this month (regardless of year)
+    const monthlyData = monthlyPayments.filter(
+      (p) => p.createdAt.getUTCMonth() === index
+    );
+
+    const adminEarnings = monthlyData.reduce(
+      (sum, p) => sum + (p.admin_commission ?? 0),
+      0
+    );
+
+    const serviceEarnings = monthlyData.reduce(
+      (sum, p) => sum + (p.service_fee ?? 0),
+      0
+    );
+
+    return {
+      month: name,
+      adminEarnings,
+      serviceEarnings,
+    };
+  });
+
+  return {
+    adminEarnings: earnings._sum.admin_commission ?? 0,
+    serviceEarnings: earnings._sum.service_fee ?? 0,
+    paymentMonthsData,
+  };
+};
+
+
+export const StatisticsService = {
+  getOverview,
+  paymentWithUserAnalysis,
+  financialMetrics,
+};

@@ -19,4 +19,11 @@ router.get(
   StatisticsController.paymentWithUserAnalysis
 );
 
+// financial metrics
+router.get(
+  "/financial-metrics",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.financialMetrics
+);
+
 export const statisticsRoutes = router;

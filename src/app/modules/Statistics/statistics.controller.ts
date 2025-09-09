@@ -33,7 +33,20 @@ const paymentWithUserAnalysis = catchAsync(
   }
 );
 
+// financial metrics
+const financialMetrics = catchAsync(async (req: Request, res: Response) => {
+  const result = await StatisticsService.financialMetrics();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Statistics fetched successfully",
+    data: result,
+  });
+});
+
 export const StatisticsController = {
   getOverview,
   paymentWithUserAnalysis,
+  financialMetrics,
 };
