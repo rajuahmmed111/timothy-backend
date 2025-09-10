@@ -59,6 +59,18 @@ const cancelRefundAndContracts = catchAsync(
   }
 );
 
+// get all service provider for send report
+const getAllServiceProviders = catchAsync(async (req: Request, res: Response) => {
+  const result = await StatisticsService.getAllServiceProviders();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Service providers fetched successfully",
+    data: result,
+  });
+});
+
 // send report to service provider through email
 const sendReportToServiceProviderThroughEmail = catchAsync(async (req: Request, res: Response) => {
   const result = await StatisticsService.sendReportToServiceProviderThroughEmail();
@@ -76,5 +88,6 @@ export const StatisticsController = {
   paymentWithUserAnalysis,
   financialMetrics,
   cancelRefundAndContracts,
+  getAllServiceProviders,
   sendReportToServiceProviderThroughEmail,
 };

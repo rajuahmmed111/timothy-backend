@@ -33,6 +33,13 @@ router.get(
   StatisticsController.cancelRefundAndContracts
 );
 
+// get all service provider for send report
+router.get(
+  "/service-providers",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.getAllServiceProviders
+);
+
 // send report to service provider through email
 router.post(
   "/send-report-service-provider",

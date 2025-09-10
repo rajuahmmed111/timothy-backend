@@ -375,6 +375,52 @@ const cancelRefundAndContracts = async () => {
   };
 };
 
+// get all service provider for send report
+const getAllServiceProviders = async () => {
+  const partners = await prisma.user.findMany({
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      contactNumber: true,
+      profileImage: true,
+      email: true,
+      role: true,
+      status: true,
+      address: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+  if (!partners || partners.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No partner found");
+  }
+
+  // add service_fee sum for each partner
+  const partnerEarnings = await Promise.all(
+    partners.map(async (partner) => {
+      const earnings = await prisma.payment.aggregate({
+        where: {
+          partnerId: partner.id,
+          status: PaymentStatus.PAID,
+        },
+        _sum: {
+          service_fee: true,
+        },
+      });
+      return {
+        ...partner,
+        service_fee: earnings._sum.service_fee ?? 0,
+      };
+    })
+  );
+
+  return { partnerEarnings };
+};
+
 // send report to service provider through email
 const sendReportToServiceProviderThroughEmail = async () => {
   // find all service providers
@@ -384,7 +430,7 @@ const sendReportToServiceProviderThroughEmail = async () => {
     },
   });
 
-  return {serviceProviders};
+  return { serviceProviders };
 };
 
 export const StatisticsService = {
@@ -392,5 +438,6 @@ export const StatisticsService = {
   paymentWithUserAnalysis,
   financialMetrics,
   cancelRefundAndContracts,
+  getAllServiceProviders,
   sendReportToServiceProviderThroughEmail,
 };
