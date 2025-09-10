@@ -376,7 +376,16 @@ const cancelRefundAndContracts = async () => {
 };
 
 // send report to service provider through email
-const sendReportToServiceProviderThroughEmail = async () => {};
+const sendReportToServiceProviderThroughEmail = async () => {
+  // find all service providers
+  const serviceProviders = await prisma.user.findMany({
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+    },
+  });
+
+  return {serviceProviders};
+};
 
 export const StatisticsService = {
   getOverview,

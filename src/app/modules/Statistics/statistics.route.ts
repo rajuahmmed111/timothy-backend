@@ -34,8 +34,8 @@ router.get(
 );
 
 // send report to service provider through email
-router.post(
-  "/send-report",
+router.get(
+  "/send-report-service-provider",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   StatisticsController.sendReportToServiceProviderThroughEmail
 );
