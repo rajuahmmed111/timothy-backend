@@ -231,8 +231,14 @@ const createCheckoutSession = async (
     );
   }
 
+  // amount (convert USD → cents)
   const amount = Math.round(totalPrice * 100);
+
+  // 20% admin commission
   const adminFee = Math.round(amount * 0.2);
+
+  // service fee (partner earnings)
+  const serviceFee = amount - adminFee;
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -254,8 +260,8 @@ const createCheckoutSession = async (
     success_url: `${config.stripe.checkout_success_url}/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
-      application_fee_amount: adminFee,
-      transfer_data: { destination: partner.stripeAccountId },
+      application_fee_amount: adminFee, // goes to Admin
+      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
       description,
     },
     metadata: {
@@ -307,6 +313,7 @@ const createCheckoutSession = async (
       payable_email: partner.email,
       country: partner.country ?? "",
       admin_commission: adminFee,
+      service_fee: serviceFee, // 👈 Partner-এর earnings এখানে save হবে
       serviceType,
       partnerId,
       userId,
@@ -349,7 +356,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       if (paymentIntent.transfer_data?.destination) {
         const amountReceived = paymentIntent.amount_received ?? 0;
         const applicationFee = paymentIntent.application_fee_amount ?? 0;
-        providerReceived = (amountReceived - applicationFee) / 100; // USD
+        providerReceived = amountReceived - applicationFee; // not USD
       }
 
       // find Payment
