@@ -33,4 +33,11 @@ router.get(
   StatisticsController.cancelRefundAndContracts
 );
 
+// send report to service provider through email
+router.post(
+  "/send-report",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.sendReportToServiceProviderThroughEmail
+);
+
 export const statisticsRoutes = router;

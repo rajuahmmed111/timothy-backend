@@ -375,9 +375,13 @@ const cancelRefundAndContracts = async () => {
   };
 };
 
+// send report to service provider through email
+const sendReportToServiceProviderThroughEmail = async () => {};
+
 export const StatisticsService = {
   getOverview,
   paymentWithUserAnalysis,
   financialMetrics,
   cancelRefundAndContracts,
+  sendReportToServiceProviderThroughEmail,
 };
