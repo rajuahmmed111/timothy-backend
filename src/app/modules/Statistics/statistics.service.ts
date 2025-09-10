@@ -484,9 +484,264 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your Earnings Report</title>
-  <style>
-    /* [keep all your CSS styles exactly as in your template] */
-  </style>
+ <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="80" r="2" fill="white" opacity="0.1"/><circle cx="40" cy="60" r="1" fill="white" opacity="0.1"/><circle cx="70" cy="30" r="1.5" fill="white" opacity="0.1"/></svg>');
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 26px;
+            font-weight: 300;
+            margin-bottom: 8px;
+        }
+        
+        .report-date {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #374151;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .partner-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .partner-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .partner-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .partner-email {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .partner-id {
+            font-size: 12px;
+            color: #9ca3af;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .earnings-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .earnings-title {
+            font-size: 18px;
+            color: #374151;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .earnings-amount {
+            font-size: 48px;
+            font-weight: bold;
+            color: #059669;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .earnings-period {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .details-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .details-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .details-grid {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #111827;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        .footer {
+            background: #1f2937;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .footer-text {
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info {
+            font-size: 14px;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .email-container {
+                border-radius: 12px;
+            }
+            
+            .header, .content {
+                padding: 25px 20px;
+            }
+            
+            .partner-card {
+                padding: 25px 20px;
+            }
+            
+            .earnings-amount {
+                font-size: 36px;
+            }
+            
+            .details-section, .message-section {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
   <div class="email-container">
@@ -518,8 +773,7 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
       <!-- Earnings Display -->
       <div class="earnings-section">
         <div class="earnings-title">🎉 Your Total Service Fee Earnings</div>
-        <div class="earnings-amount">৳${partner.service_fee.toFixed(0)}</div>
-        <div class="earnings-currency">Bangladeshi Taka</div>
+        <div class="earnings-amount">$${partner.service_fee.toFixed(0)}</div>
         <div class="earnings-period">📅 Since joining: ${joinDate}</div>
       </div>
       
@@ -528,32 +782,24 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
         <div class="details-title">📋 Account Information</div>
         <div class="details-grid">
           <div class="detail-item">
-            <span class="detail-label">Partner Role</span>
+            <span class="detail-label">Partner Role :</span>
             <span class="detail-value">${partner.role}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">Account Status</span>
-            <span class="detail-value">${partner.status}</span>
+            <span class="detail-value"> ${partner.status}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Join Date</span>
-            <span class="detail-value">${joinDate}</span>
+            <span class="detail-label">Join Date :</span>
+            <span class="detail-value"> ${joinDate}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Last Updated</span>
-            <span class="detail-value">${updatedDate}</span>
+            <span class="detail-label">Last Updated :</span>
+            <span class="detail-value"> ${updatedDate}</span>
           </div>
         </div>
       </div>
-      
-      <!-- Message Section -->
-      <div class="message-section">
-        <div class="message-icon">🚀</div>
-        <div class="message-title">Keep up the great work!</div>
-        <div class="message-text">
-          Your earnings reflect your dedication and hard work as our business partner. We truly appreciate your contribution to our growing success. Keep up the excellent work and let's achieve even greater milestones together!
-        </div>
-      </div>
+  
     </div>
     
     <!-- Footer -->
@@ -563,7 +809,7 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
       <div class="contact-info">
         <p>Questions? Contact us at support@yourcompany.com</p>
         <p>📞 +880-XXXX-XXXX | 🌐 www.yourcompany.com</p>
-        <p style="margin-top: 15px; font-size: 12px;">© 2025 YourCompany. All rights reserved.</p>
+        <p style="margin-top: 15px; font-size: 12px;">© ${new Date().getFullYear()} YourCompany. All rights reserved.</p>
       </div>
     </div>
   </div>
@@ -573,6 +819,8 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
 
   // Send the email
   await emailSender("📊 Your Earnings Report", partner.email, html);
+
+  // return partner
 };
 
 export const StatisticsService = {
