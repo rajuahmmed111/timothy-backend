@@ -91,8 +91,9 @@ const getSingleServiceProvider = catchAsync(
 // send report to service provider through email
 const sendReportToServiceProviderThroughEmail = catchAsync(
   async (req: Request, res: Response) => {
+    const id = req.params.id;
     const result =
-      await StatisticsService.sendReportToServiceProviderThroughEmail();
+      await StatisticsService.sendReportToServiceProviderThroughEmail(id);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,

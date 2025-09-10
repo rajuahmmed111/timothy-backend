@@ -49,7 +49,7 @@ router.get(
 
 // send report to service provider through email
 router.post(
-  "/send-report-service-provider",
+  "/send-report-service-provider/:id",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   StatisticsController.sendReportToServiceProviderThroughEmail
 );

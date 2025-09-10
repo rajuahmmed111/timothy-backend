@@ -9,6 +9,8 @@ import { IFilterRequest } from "./statistics.interface";
 import { getYearRange } from "../../../helpars/filterByDate";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
+import emailSender from "../../../helpars/emailSender";
+import { format } from "date-fns";
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = async () => {
@@ -461,15 +463,123 @@ const getSingleServiceProvider = async (id: string) => {
 };
 
 // send report to service provider through email
-const sendReportToServiceProviderThroughEmail = async () => {
-  // find all service providers
-  const serviceProviders = await prisma.user.findMany({
-    where: {
-      role: UserRole.BUSINESS_PARTNER,
-    },
-  });
+const sendReportToServiceProviderThroughEmail = async (id: string) => {
+  // fetch single service provider
+  const partner = await getSingleServiceProvider(id);
 
-  return { serviceProviders };
+  if (!partner.email) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Partner email not found");
+  }
+
+  // Format dates nicely
+  const joinDate = format(new Date(partner.createdAt), "MMMM d, yyyy");
+  const updatedDate = format(new Date(partner.updatedAt), "MMMM d, yyyy");
+  const reportDate = format(new Date(), "MMMM yyyy");
+
+  // Prepare email HTML (dynamic)
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Earnings Report</title>
+  <style>
+    /* [keep all your CSS styles exactly as in your template] */
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">💰</div>
+        <h1>Your Earnings Report</h1>
+        <div class="report-date">${reportDate}</div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content">
+      <div class="greeting">
+        Dear <strong>${partner.fullName ?? "Valued Partner"}</strong>,<br><br>
+        We hope this message finds you well! We're excited to share your latest earnings report as our valued business partner.
+      </div>
+      
+      <!-- Partner Info Card -->
+      <div class="partner-card">
+        <img src="${partner.profileImage}" alt="Profile" class="partner-avatar">
+        <div class="partner-name">${partner.fullName ?? "Unknown"}</div>
+        <div class="partner-email">${partner.email}</div>
+        <div class="partner-id">ID: ${partner.id}</div>
+        <div class="status-badge">✅ ${partner.status} Partner</div>
+      </div>
+      
+      <!-- Earnings Display -->
+      <div class="earnings-section">
+        <div class="earnings-title">🎉 Your Total Service Fee Earnings</div>
+        <div class="earnings-amount">৳${partner.service_fee.toFixed(0)}</div>
+        <div class="earnings-currency">Bangladeshi Taka</div>
+        <div class="earnings-period">📅 Since joining: ${joinDate}</div>
+      </div>
+      
+      <!-- Account Details -->
+      <div class="details-section">
+        <div class="details-title">📋 Account Information</div>
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Partner Role</span>
+            <span class="detail-value">${partner.role}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Account Status</span>
+            <span class="detail-value">${partner.status}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Join Date</span>
+            <span class="detail-value">${joinDate}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Last Updated</span>
+            <span class="detail-value">${updatedDate}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Message Section -->
+      <div class="message-section">
+        <div class="message-icon">🚀</div>
+        <div class="message-title">Keep up the great work!</div>
+        <div class="message-text">
+          Your earnings reflect your dedication and hard work as our business partner. We truly appreciate your contribution to our growing success. Keep up the excellent work and let's achieve even greater milestones together!
+        </div>
+      </div>
+      
+      <!-- Call to Action -->
+    //   <div class="cta-section">
+    //     <a href="https://yourcompany.com/dashboard" class="cta-button">View Dashboard 📊</a>
+    //   </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-title">Thank You for Being Our Partner! 🤝</div>
+      <p class="footer-text">Your success is our success. Let's continue building something amazing together.</p>
+      <div class="contact-info">
+        <p>Questions? Contact us at support@yourcompany.com</p>
+        <p>📞 +880-XXXX-XXXX | 🌐 www.yourcompany.com</p>
+        <p style="margin-top: 15px; font-size: 12px;">© 2025 YourCompany. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  // Send the email
+  await emailSender("📊 Your Earnings Report", partner.email, html);
+
+  return partner;
 };
 
 export const StatisticsService = {
