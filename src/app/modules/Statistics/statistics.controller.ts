@@ -60,28 +60,48 @@ const cancelRefundAndContracts = catchAsync(
 );
 
 // get all service provider for send report
-const getAllServiceProviders = catchAsync(async (req: Request, res: Response) => {
-  const result = await StatisticsService.getAllServiceProviders();
+const getAllServiceProviders = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await StatisticsService.getAllServiceProviders();
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Service providers fetched successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Service providers fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// get single service provider
+const getSingleServiceProvider = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await StatisticsService.getSingleServiceProvider(id);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Service provider fetched successfully",
+      data: result,
+    });
+  }
+);
 
 // send report to service provider through email
-const sendReportToServiceProviderThroughEmail = catchAsync(async (req: Request, res: Response) => {
-  const result = await StatisticsService.sendReportToServiceProviderThroughEmail();
+const sendReportToServiceProviderThroughEmail = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await StatisticsService.sendReportToServiceProviderThroughEmail();
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Report sent successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Report sent successfully",
+      data: result,
+    });
+  }
+);
 
 export const StatisticsController = {
   getOverview,
@@ -89,5 +109,6 @@ export const StatisticsController = {
   financialMetrics,
   cancelRefundAndContracts,
   getAllServiceProviders,
+  getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
 };

@@ -421,6 +421,45 @@ const getAllServiceProviders = async () => {
   return { partnerEarnings };
 };
 
+// get single service provider
+const getSingleServiceProvider = async (id: string) => {
+  const partner = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      fullName: true,
+      contactNumber: true,
+      profileImage: true,
+      email: true,
+      role: true,
+      status: true,
+      address: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // calculate earnings
+  const earnings = await prisma.payment.aggregate({
+    where: {
+      partnerId: id,
+      status: PaymentStatus.PAID,
+    },
+    _sum: {
+      service_fee: true,
+    },
+  });
+
+  return {
+    ...partner,
+    service_fee: earnings._sum.service_fee ?? 0,
+  };
+};
+
 // send report to service provider through email
 const sendReportToServiceProviderThroughEmail = async () => {
   // find all service providers
@@ -439,5 +478,6 @@ export const StatisticsService = {
   financialMetrics,
   cancelRefundAndContracts,
   getAllServiceProviders,
+  getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
 };

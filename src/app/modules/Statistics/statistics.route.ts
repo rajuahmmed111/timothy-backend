@@ -40,6 +40,13 @@ router.get(
   StatisticsController.getAllServiceProviders
 );
 
+// get single service provider
+router.get(
+  "/service-provider/:id",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.getSingleServiceProvider
+);
+
 // send report to service provider through email
 router.post(
   "/send-report-service-provider",
