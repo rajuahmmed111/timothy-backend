@@ -26,4 +26,11 @@ router.get(
   FinanceController.getAllUsersFinances
 );
 
+// get single service provider finances
+router.get(
+  "/:paymentId",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FinanceController.getSingleProviderFinance
+);
+
 export const financeRoutes = router;

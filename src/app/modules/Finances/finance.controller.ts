@@ -58,8 +58,23 @@ const getAllUsersFinances = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get single service provider finances
+const getSingleProviderFinance = catchAsync(
+  async (req: Request, res: Response) => {
+    const paymentId = req.params.paymentId;
+    const result = await FinanceService.getSingleProviderFinance(paymentId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Finance fetched successfully",
+      data: result,
+    });
+  }
+);
+
 export const FinanceController = {
   getAllFinances,
   getAllProvidersFinances,
   getAllUsersFinances,
+  getSingleProviderFinance,
 };

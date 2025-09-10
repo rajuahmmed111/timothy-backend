@@ -5,6 +5,8 @@ import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./finance.interface";
 import { searchableFields } from "./finance.constant";
 import { getDateRange } from "../../../helpars/filterByDate";
+import ApiError from "../../../errors/ApiErrors";
+import httpStatus from "http-status";
 
 // get all finances
 const getAllFinances = async (
@@ -262,8 +264,55 @@ const getAllUsersFinances = async (
   };
 };
 
+// get single service provider finances
+const getSingleProviderFinance = async (paymentId: string) => {
+  // payment data
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+  });
+
+  if (!payment) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Finance not found");
+  }
+
+  // user
+  const user = await prisma.user.findUnique({
+    where: { id: payment.userId },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      role: true,
+      contactNumber: true,
+      address: true,
+    },
+  });
+
+  // partner
+  const partner = await prisma.user.findUnique({
+    where: { id: payment.partnerId },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      role: true,
+      contactNumber: true,
+      address: true,
+    },
+  });
+
+  return {
+    payment,
+    user,
+    partner,
+  };
+};
+
 export const FinanceService = {
   getAllFinances,
   getAllProvidersFinances,
   getAllUsersFinances,
+  getSingleProviderFinance,
 };

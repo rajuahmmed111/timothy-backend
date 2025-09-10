@@ -554,11 +554,6 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
           Your earnings reflect your dedication and hard work as our business partner. We truly appreciate your contribution to our growing success. Keep up the excellent work and let's achieve even greater milestones together!
         </div>
       </div>
-      
-      <!-- Call to Action -->
-    //   <div class="cta-section">
-    //     <a href="https://yourcompany.com/dashboard" class="cta-button">View Dashboard 📊</a>
-    //   </div>
     </div>
     
     <!-- Footer -->
@@ -578,8 +573,6 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
 
   // Send the email
   await emailSender("📊 Your Earnings Report", partner.email, html);
-
-  return partner;
 };
 
 export const StatisticsService = {
