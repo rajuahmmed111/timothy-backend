@@ -49,7 +49,7 @@ router.post(
 
 // get my all my transactions
 router.get(
-  "/my-transactions",
+  "/my-orders",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
   PaymentController.getMyTransactions
 );
