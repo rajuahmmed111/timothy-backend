@@ -204,7 +204,7 @@ const createCheckoutSession = async (
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 
-  // Step 1: Ensure user has an active Stripe account
+  // ensure user has an active Stripe account
   const stripeStatus = await ensureUserStripeAccount(userId);
   if (stripeStatus.status === "onboarding_required") {
     return {
