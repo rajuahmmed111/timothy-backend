@@ -505,6 +505,9 @@ const updateHotel = async (req: Request) => {
     hotelRoomCapacity,
     category,
     discount,
+    hotelNumberOfRooms,
+    hotelNumAdults,
+    hotelNumChildren,
   } = req.body;
 
   const updatedHotel = await prisma.hotel.update({
@@ -569,6 +572,9 @@ const updateHotel = async (req: Request) => {
       hotelRoomCapacity: hotelRoomCapacity ?? existingHotel.hotelRoomCapacity,
       hotelRoomImages: roomImageUrls,
       category: category ?? existingHotel.category,
+      hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
+      hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
+      hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
       discount: discount ? parseFloat(discount) : existingHotel.discount,
     },
   });
