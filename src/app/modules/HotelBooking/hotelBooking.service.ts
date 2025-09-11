@@ -2,7 +2,11 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { differenceInDays, parse, startOfDay } from "date-fns";
-import { BookingStatus, EveryServiceStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  EveryServiceStatus,
+  PaymentStatus,
+} from "@prisma/client";
 import {
   IBookingFilterRequest,
   IHotelBookingData,
@@ -174,6 +178,7 @@ const getAllMyHotelBookings = async (userId: string) => {
         },
       },
       payment: {
+        where: { status: PaymentStatus.PAID },
         select: {
           id: true,
           provider: true,

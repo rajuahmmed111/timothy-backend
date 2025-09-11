@@ -2,6 +2,7 @@ import {
   BookingStatus,
   DiscountType,
   EveryServiceStatus,
+  PaymentStatus,
   PromoStatus,
   UserStatus,
 } from "@prisma/client";
@@ -228,6 +229,7 @@ const getAllMyCarBookings = async (userId: string) => {
         },
       },
       payment: {
+        where: { status: PaymentStatus.PAID },
         select: {
           id: true,
           provider: true,

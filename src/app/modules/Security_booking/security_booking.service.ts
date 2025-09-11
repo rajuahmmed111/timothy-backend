@@ -1,4 +1,4 @@
-import { BookingStatus, EveryServiceStatus, UserStatus } from "@prisma/client";
+import { BookingStatus, EveryServiceStatus, PaymentStatus, UserStatus } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
@@ -196,6 +196,7 @@ const getAllMySecurityBookings = async (userId: string) => {
         },
       },
       payment: {
+        where: { status:PaymentStatus.PAID },
         select: {
           id: true,
           provider: true,

@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { parse, startOfDay, isBefore, format } from "date-fns";
 
 // create attraction booking
@@ -209,6 +209,7 @@ const getAllMyAttractionBookings = async (userId: string) => {
         },
       },
       payment: {
+        where: { status: PaymentStatus.PAID },
         select: {
           id: true,
           provider: true,
