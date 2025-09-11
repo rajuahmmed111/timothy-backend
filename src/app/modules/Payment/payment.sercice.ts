@@ -326,7 +326,7 @@ const createCheckoutSession = async (
       },
     ],
     mode: "payment",
-    success_url: `${config.stripe.checkout_success_url}/?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${config.stripe.checkout_success_url}?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
       application_fee_amount: adminFee, // goes to Admin
