@@ -126,15 +126,15 @@ const createHotelBooking = async (
 };
 
 // get all hotel bookings
-const getAllHotelBookings = async (userId: string) => {
+const getAllHotelBookings = async (partnerId: string) => {
   // find partner
-  const partner = await prisma.user.findUnique({ where: { id: userId } });
+  const partner = await prisma.user.findUnique({ where: { id: partnerId } });
   if (!partner) {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
   const result = await prisma.hotel_Booking.findMany({
-    where: { userId, bookingStatus: BookingStatus.CONFIRMED },
+    where: { partnerId },
     include: {
       hotel: {
         select: {
@@ -161,7 +161,7 @@ const getAllMyHotelBookings = async (userId: string) => {
   }
 
   const result = await prisma.hotel_Booking.findMany({
-    where: { userId },
+    where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       hotel: {
         select: {
