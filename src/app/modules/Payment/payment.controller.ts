@@ -221,6 +221,18 @@ const cancelPayStackBooking = catchAsync(async (req, res) => {
   });
 });
 
+// get my all my transactions
+const getMyTransactions = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const result = await PaymentService.getMyTransactions(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "My transactions fetched successfully",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   stripeAccountOnboarding,
   createCheckoutSession,
@@ -233,4 +245,5 @@ export const PaymentController = {
   createCheckoutSessionPayStack,
   payStackHandleWebhook,
   cancelPayStackBooking,
+  getMyTransactions,
 };

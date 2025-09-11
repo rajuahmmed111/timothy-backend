@@ -971,6 +971,19 @@ const cancelPayStackBooking = async (
   return { bookingId, status: "CANCELLED" };
 };
 
+// get my all my transactions
+const getMyTransactions = async (userId: string) => {
+  const transactions = await prisma.payment.findMany({
+    where: { userId, status: PaymentStatus.PAID },
+  });
+
+  if (!transactions || transactions.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No transactions found");
+  }
+
+  return transactions;
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
   createCheckoutSession,
@@ -983,4 +996,5 @@ export const PaymentService = {
   createCheckoutSessionPayStack,
   payStackHandleWebhook,
   cancelPayStackBooking,
+  getMyTransactions,
 };

@@ -47,7 +47,12 @@ router.post(
   PaymentController.verifyPayStackAccount
 );
 
-// get my
+// get my all my transactions
+router.get(
+  "/my-transactions",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.getMyTransactions
+);
 
 // pay-stack account sub-account
 router.post(
