@@ -238,6 +238,7 @@ const getAllHotels = async (
     data: result,
   };
 };
+
 // get all my created hotels for partner
 const getAllHotelsForPartner = async (
   partnerId: string,
