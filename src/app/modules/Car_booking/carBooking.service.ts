@@ -227,6 +227,13 @@ const getAllMyCarBookings = async (userId: string) => {
           partnerId: true,
         },
       },
+      payment: {
+        select: {
+          id: true,
+          provider: true,
+          status: true,
+        },
+      },
     },
   });
   if (result.length === 0) {

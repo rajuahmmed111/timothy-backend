@@ -136,7 +136,7 @@ const getAllSecurityBookings = async (userId: string) => {
   }
 
   const result = await prisma.security_Booking.findMany({
- where: { userId, bookingStatus: BookingStatus.CONFIRMED },
+    where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       security: {
         select: {
@@ -183,7 +183,7 @@ const getAllMySecurityBookings = async (userId: string) => {
   }
 
   const result = await prisma.security_Booking.findMany({
- where: { userId, bookingStatus: BookingStatus.CONFIRMED },
+    where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       security: {
         select: {
@@ -193,6 +193,13 @@ const getAllMySecurityBookings = async (userId: string) => {
           discount: true,
           category: true,
           partnerId: true,
+        },
+      },
+      payment: {
+        select: {
+          id: true,
+          provider: true,
+          status: true,
         },
       },
     },

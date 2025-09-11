@@ -208,6 +208,13 @@ const getAllMyAttractionBookings = async (userId: string) => {
           partnerId: true,
         },
       },
+      payment: {
+        select: {
+          id: true,
+          provider: true,
+          status: true,
+        },
+      },
     },
   });
   return result;
