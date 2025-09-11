@@ -88,6 +88,9 @@ const createHotel = async (req: Request) => {
     category,
     discount,
     hotelReviewCount,
+    hotelNumberOfRooms,
+    hotelNumAdults,
+    hotelNumChildren,
   } = req.body;
 
   const result = await prisma.hotel.create({
@@ -127,6 +130,9 @@ const createHotel = async (req: Request) => {
       category: category || undefined,
       discount: discount ? parseFloat(discount) : 0,
       hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
+      hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
+      hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
+      hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
       partnerId: partnerId,
     },
   });

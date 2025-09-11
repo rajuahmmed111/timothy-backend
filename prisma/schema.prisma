@@ -178,6 +178,9 @@ model Hotel {
   hotelCountry           String
   hotelRoomImages        String[] // 5 image
   hotelRoomCapacity      String
+  hotelNumberOfRooms     Int
+  hotelNumAdults         Int
+  hotelNumChildren       Int
 
   category         String?
   discount         Float?             @default(0)
