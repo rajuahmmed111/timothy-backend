@@ -130,6 +130,62 @@ const stripeAccountOnboarding = async (userId: string) => {
   };
 };
 
+const ensureUserStripeAccount = async (userId: string) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+  // Create onboarding link helper
+  const createOnboardingLink = async (accountId: string) => {
+    const link = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${config.stripe.refreshUrl}?accountId=${accountId}`,
+      return_url: `${config.stripe.returnUrl}?accountId=${accountId}`,
+      type: "account_onboarding",
+    });
+    return link.url;
+  };
+
+  // If user has no Stripe account → create one
+  if (!user.stripeAccountId) {
+    const account = await stripe.accounts.create({
+      type: "express",
+      country: "US",
+      email: user.email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+      settings: { payouts: { schedule: { delay_days: 2 } } },
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { stripeAccountId: account.id, isStripeConnected: false },
+    });
+
+    const onboardingLink = await createOnboardingLink(account.id);
+    return { status: "onboarding_required", onboardingLink };
+  }
+
+  // User has a Stripe account → check capabilities
+  const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+  if (
+    account.capabilities?.card_payments !== "active" ||
+    account.capabilities?.transfers !== "active"
+  ) {
+    const onboardingLink = await createOnboardingLink(user.stripeAccountId);
+    return { status: "onboarding_required", onboardingLink };
+  }
+
+  // Optional: check balance
+  const balance = await stripe.balance.retrieve({
+    stripeAccount: user.stripeAccountId,
+  });
+
+  return { status: "active", stripeAccountId: user.stripeAccountId, balance };
+};
+
 // checkout session on stripe
 const createCheckoutSession = async (
   userId: string,
@@ -143,6 +199,19 @@ const createCheckoutSession = async (
   let serviceName: string;
   let partnerId: string;
   let totalPrice: number;
+
+  // find user
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+  // Step 1: Ensure user has an active Stripe account
+  const stripeStatus = await ensureUserStripeAccount(userId);
+  if (stripeStatus.status === "onboarding_required") {
+    return {
+      message: "Stripe account onboarding required",
+      onboardingLink: stripeStatus.onboardingLink,
+    };
+  }
 
   switch (serviceType) {
     case "CAR":
