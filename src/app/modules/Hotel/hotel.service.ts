@@ -8,7 +8,7 @@ import { Hotel, EveryServiceStatus, Prisma } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
-import { searchableFields } from "./hotel.constant";
+import { numericFields, searchableFields } from "./hotel.constant";
 
 // create hotel
 const createHotel = async (req: Request) => {
@@ -147,7 +147,7 @@ const getAllHotels = async (
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, minPrice, maxPrice, ...filterData } = params;
 
   const filters: Prisma.HotelWhereInput[] = [];
 
@@ -163,21 +163,47 @@ const getAllHotels = async (
     });
   }
 
+  // numeric match
+  const exactNumericFields = numericFields.filter(
+    (f) => f !== "hotelRoomPriceNight"
+  );
+
   // Exact search filter
+
   if (Object.keys(filterData).length > 0) {
     filters.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
+      AND: Object.keys(filterData)
+        .filter(
+          (key) =>
+            exactNumericFields.includes(key) || !numericFields.includes(key)
+        )
+        .map((key) => {
+          let value: any = (filterData as any)[key];
+
+          if (exactNumericFields.includes(key)) value = Number(value);
+
+          return {
+            [key]: { equals: value },
+          };
+        }),
+    });
+  }
+
+  // price range filter
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    const priceFilter: any = {};
+    if (minPrice !== undefined) priceFilter.gte = parseFloat(minPrice as any);
+    if (maxPrice !== undefined) priceFilter.lte = parseFloat(maxPrice as any);
+
+    filters.push({
+      hotelRoomPriceNight: priceFilter,
     });
   }
 
   // get only isBooked  AVAILABLE hotels
-  filters.push({
-    isBooked: EveryServiceStatus.AVAILABLE,
-  });
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
 
   const where: Prisma.HotelWhereInput = { AND: filters };
 
@@ -212,7 +238,6 @@ const getAllHotels = async (
     data: result,
   };
 };
-
 // get all my created hotels for partner
 const getAllHotelsForPartner = async (
   partnerId: string,

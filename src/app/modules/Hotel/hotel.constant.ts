@@ -6,8 +6,13 @@ export const filterField: string[] = [
   "hotelCity",
   "hotelCountry",
   "category",
-//   "hotelRoomPriceNight",
+  "hotelNumberOfRooms",
+  "hotelNumAdults",
+  "hotelNumChildren",
+  "minPrice",
+  "maxPrice", // add these
 ];
+
 
 export const searchableFields: string[] = [
   "hotelName",
@@ -15,6 +20,13 @@ export const searchableFields: string[] = [
   "hotelRating",
   "hotelCity",
   "hotelCountry",
-   "category",
-//   "hotelRoomPriceNight",
+  "category",
 ];
+
+export const numericFields = [
+  "hotelNumberOfRooms",
+  "hotelNumAdults",
+  "hotelNumChildren",
+  "hotelRoomPriceNight",
+];
+
