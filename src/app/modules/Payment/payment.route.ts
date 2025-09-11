@@ -47,6 +47,8 @@ router.post(
   PaymentController.verifyPayStackAccount
 );
 
+// get my
+
 // pay-stack account sub-account
 router.post(
   "/paystack-account-sub-account",

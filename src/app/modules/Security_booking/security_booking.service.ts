@@ -128,15 +128,15 @@ const createSecurityBooking = async (
 };
 
 // get all security bookings
-const getAllSecurityBookings = async (partnerId: string) => {
+const getAllSecurityBookings = async (userId: string) => {
   // find partner
-  const partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  const partner = await prisma.user.findUnique({ where: { id: userId } });
   if (!partner) {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
   const result = await prisma.security_Booking.findMany({
-    where: { partnerId },
+ where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       security: {
         select: {
@@ -183,7 +183,7 @@ const getAllMySecurityBookings = async (userId: string) => {
   }
 
   const result = await prisma.security_Booking.findMany({
-    where: { userId: user.id },
+ where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       security: {
         select: {

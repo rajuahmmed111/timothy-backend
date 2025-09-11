@@ -24,7 +24,7 @@ const createHotelBooking = async (
   }
 
   const hotel = await prisma.hotel.findUnique({
-    where: { id: hotelId},
+    where: { id: hotelId },
     select: {
       hotelRoomPriceNight: true,
       partnerId: true,
@@ -54,7 +54,7 @@ const createHotelBooking = async (
   // calculate number of nights
   const fromDate = parse(bookedFromDate, "yyyy-MM-dd", new Date());
   const toDate = parse(bookedToDate, "yyyy-MM-dd", new Date());
- const today = startOfDay(new Date());
+  const today = startOfDay(new Date());
 
   if (fromDate < today) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
@@ -126,15 +126,15 @@ const createHotelBooking = async (
 };
 
 // get all hotel bookings
-const getAllHotelBookings = async (partnerId: string) => {
+const getAllHotelBookings = async (userId: string) => {
   // find partner
-  const partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  const partner = await prisma.user.findUnique({ where: { id: userId } });
   if (!partner) {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
   const result = await prisma.hotel_Booking.findMany({
-    where: { partnerId },
+    where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       hotel: {
         select: {
