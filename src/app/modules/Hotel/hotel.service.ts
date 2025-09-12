@@ -147,7 +147,8 @@ const getAllHotels = async (
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, minPrice, maxPrice, ...filterData } = params;
+  const { searchTerm, minPrice, maxPrice, fromDate, toDate, ...filterData } =
+    params;
 
   const filters: Prisma.HotelWhereInput[] = [];
 
@@ -197,6 +198,23 @@ const getAllHotels = async (
 
     filters.push({
       hotelRoomPriceNight: priceFilter,
+    });
+  }
+
+  // Availability filter
+  if (fromDate && toDate) {
+    filters.push({
+      hotel_bookings: {
+        none: {
+          bookingStatus: "CONFIRMED",
+          OR: [
+            {
+              bookedFromDate: { lte: toDate },
+              bookedToDate: { gte: fromDate },
+            },
+          ],
+        },
+      },
     });
   }
 

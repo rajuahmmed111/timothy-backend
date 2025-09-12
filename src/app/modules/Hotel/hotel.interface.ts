@@ -8,4 +8,6 @@ export type IHotelFilterRequest = {
   category?: string | undefined;
   minPrice?: number | undefined;
   maxPrice?: number | undefined;
+  fromDate?: string | undefined;
+  toDate?: string | undefined;
 };

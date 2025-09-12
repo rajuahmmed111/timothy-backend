@@ -1,5 +1,5 @@
 export const filterField: string[] = [
-  "searchTerm",
+"searchTerm",
   "hotelName",
   "hotelRoomType",
   "hotelRating",
@@ -10,7 +10,9 @@ export const filterField: string[] = [
   "hotelNumAdults",
   "hotelNumChildren",
   "minPrice",
-  "maxPrice", // add these
+  "maxPrice",
+  "fromDate",
+  "toDate",
 ];
 
 
