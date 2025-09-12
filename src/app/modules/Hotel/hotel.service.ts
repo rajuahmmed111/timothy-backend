@@ -4,7 +4,12 @@ import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
-import { Hotel, EveryServiceStatus, Prisma } from "@prisma/client";
+import {
+  Hotel,
+  EveryServiceStatus,
+  Prisma,
+  BookingStatus,
+} from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
@@ -206,7 +211,7 @@ const getAllHotels = async (
     filters.push({
       hotel_bookings: {
         none: {
-          bookingStatus: "CONFIRMED",
+          bookingStatus: BookingStatus.CONFIRMED,
           OR: [
             {
               bookedFromDate: { lte: toDate },
@@ -241,6 +246,13 @@ const getAllHotels = async (
           id: true,
           fullName: true,
           profileImage: true,
+        },
+      },
+      hotel_bookings: {
+        select: {
+          bookedFromDate: true,
+          bookedToDate: true,
+          bookingStatus: true,
         },
       },
     },
