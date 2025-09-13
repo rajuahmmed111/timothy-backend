@@ -66,8 +66,6 @@ router.get(
   auth(
     UserRole.ADMIN,
     UserRole.SUPER_ADMIN,
-    UserRole.USER,
-    UserRole.BUSINESS_PARTNER
   ),
   UserController.getPartnerById
 );
