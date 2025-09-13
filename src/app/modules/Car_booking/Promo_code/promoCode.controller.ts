@@ -38,8 +38,34 @@ const getPromoCodeById = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+// update promo code only for admin
+const updatePromoCode = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await PromoCodeService.updatePromoCode(id, req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Promo code updated successfully",
+      data: result,
+    });
+})
+
+// delete promo code only for admin
+const deletePromoCode = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await PromoCodeService.deletePromoCode(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Promo code deleted successfully",
+      data: result,
+    });
+})
+
 export const PromoCodeController = {
     createPromoCode,
     getAllPromoCodes,
-    getPromoCodeById
+    getPromoCodeById,
+    updatePromoCode,
+    deletePromoCode,
 }

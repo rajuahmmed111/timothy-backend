@@ -122,8 +122,27 @@ const getPromoCodeById = async (id: string) => {
   return result;
 };
 
+// update promo code only for admin
+const updatePromoCode = async (id: string, data: ICreatePromoCode) => {
+  const result = await prisma.promoCode.update({
+    where: { id },
+    data,
+  });
+  return result;
+}
+
+// delete promo code only for admin
+const deletePromoCode = async (id: string) => {
+  const result = await prisma.promoCode.delete({
+    where: { id },
+  });
+  return result;
+}
+
 export const PromoCodeService = {
   createPromoCode,
   getAllPromoCodes,
   getPromoCodeById,
+  updatePromoCode,
+  deletePromoCode
 };

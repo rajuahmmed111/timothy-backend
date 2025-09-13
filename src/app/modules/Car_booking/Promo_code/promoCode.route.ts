@@ -26,4 +26,18 @@ router.post(
   PromoCodeController.createPromoCode
 );
 
+// update promo code only for admin
+router.patch(
+  "/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  PromoCodeController.updatePromoCode
+);
+
+// delete promo code only for admin
+router.delete(
+  "/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  PromoCodeController.deletePromoCode
+);
+
 export const promoCodeRoute = router;
