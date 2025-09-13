@@ -1,21 +1,87 @@
 import e from "express";
 import prisma from "../../../shared/prisma";
+import { IPaginationOptions } from "../../../interfaces/paginations";
+import { IContractFilterRequest } from "./contract.interface";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
+import { searchableFields } from "./contract.constant";
+import { getDateRange } from "../../../helpars/filterByDate";
 
 // get all contracts (bookings)
-const getAllContracts = async () => {
-  // find all hotel bookings
+const getAllContracts = async (
+  params: IContractFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+  const { searchTerm, timeRange, bookingStatus, ...filterData } = params;
+
+  // fetch all bookings
   const hotel = await prisma.hotel_Booking.findMany();
-
-  // find all security bookings
   const security = await prisma.security_Booking.findMany();
-
-  // find all car bookings
   const car = await prisma.car_Booking.findMany();
-
-  // find all attraction bookings
   const attraction = await prisma.attraction_Booking.findMany();
 
-  return { hotel, security, car, attraction };
+  // merge all into one array and add type
+  let allContracts = [
+    ...hotel.map((item) => ({ type: "hotel", ...item })),
+    ...security.map((item) => ({ type: "security", ...item })),
+    ...car.map((item) => ({ type: "car", ...item })),
+    ...attraction.map((item) => ({ type: "attraction", ...item })),
+  ];
+
+  // search
+  if (searchTerm) {
+    allContracts = allContracts.filter((contract) =>
+      searchableFields.some((field) => {
+        const value = (contract as any)[field];
+        return (
+          value &&
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      })
+    );
+  }
+
+  // exact filter bookingStatus
+  if (bookingStatus) {
+    allContracts = allContracts.filter(
+      (contract) => contract.bookingStatus === bookingStatus
+    );
+  }
+
+  // pagination
+  const total = allContracts.length;
+  const paginatedContracts = allContracts.slice(skip, skip + limit);
+
+  // sorting
+  if (options.sortBy && options.sortOrder) {
+    const sortField = options.sortBy as keyof (typeof allContracts)[0];
+    paginatedContracts.sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      // null/undefined check
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return options.sortOrder === "asc" ? -1 : 1;
+      if (bValue == null) return options.sortOrder === "asc" ? 1 : -1;
+
+      if (options.sortOrder === "asc") return aValue > bValue ? 1 : -1;
+      return aValue < bValue ? 1 : -1;
+    });
+  } else {
+    paginatedContracts.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: paginatedContracts,
+  };
 };
 
 // get single contract

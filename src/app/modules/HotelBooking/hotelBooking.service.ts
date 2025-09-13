@@ -175,6 +175,7 @@ const getAllMyHotelBookings = async (userId: string) => {
           discount: true,
           category: true,
           partnerId: true,
+          
         },
       },
       payment: {

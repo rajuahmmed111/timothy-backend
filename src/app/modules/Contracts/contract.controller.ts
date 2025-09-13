@@ -3,10 +3,15 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 import { ContractService } from "./contract.service";
+import { pick } from "../../../shared/pick";
+import { filterField } from "./contract.constant";
+import { paginationFields } from "../../../constants/pagination";
 
 // get all contracts (bookings)
 const getAllContracts = catchAsync(async (req: Request, res: Response) => {
-  const result = await ContractService.getAllContracts();
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+  const result = await ContractService.getAllContracts(filter, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
