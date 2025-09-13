@@ -339,6 +339,9 @@ const createCheckoutSession = async (
       serviceType,
     },
   });
+  console.log("checkoutSession", checkoutSession);
+
+  // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
 
   // update booking with checkoutSessionId
   switch (serviceType) {
