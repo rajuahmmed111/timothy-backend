@@ -542,19 +542,19 @@ model Favorite {
 }
 
 model Notifications {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  receiverId  String?  @db.ObjectId
-  partnerId   String?  @db.ObjectId
-  title       String
-  message     String?
-  body        String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  receiverId   String?  @db.ObjectId
+  partnerId    String?  @db.ObjectId
+  title        String
+  message      String?
+  body         String
   serviceTypes String?
-  bookingId   String?
-  read        Boolean  @default(false)
-  isClicked   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User?    @relation(fields: [receiverId], references: [id])
+  bookingId    String?
+  read         Boolean  @default(false)
+  isClicked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User?    @relation(fields: [receiverId], references: [id])
 
   @@map("notifications")
 }
