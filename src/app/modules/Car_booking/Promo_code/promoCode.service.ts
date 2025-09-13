@@ -62,15 +62,13 @@ const createPromoCode = async (data: ICreatePromoCode) => {
   if (existing)
     throw new ApiError(httpStatus.CONFLICT, "Promo code already exists");
 
-  
-
   // Create promo code
   const promo = await prisma.promoCode.create({
     data: {
       code,
       discountType,
       discountValue,
-     validFrom: fromDate,
+      validFrom: fromDate,
       validTo: toDate,
       usageLimit,
       perUserLimit,
@@ -86,13 +84,13 @@ const createPromoCode = async (data: ICreatePromoCode) => {
 const getAllPromoCodes = async () => {
   const result = await prisma.promoCode.findMany({
     where: { status: PromoStatus.ACTIVE },
-     select: {
+    select: {
       id: true,
       code: true,
       discountValue: true,
       minimumAmount: true,
       validFrom: true,
-      validTo: true
+      validTo: true,
     },
   });
 
@@ -113,7 +111,7 @@ const getPromoCodeById = async (id: string) => {
       discountValue: true,
       minimumAmount: true,
       validFrom: true,
-      validTo: true
+      validTo: true,
     },
   });
   if (!result) {
@@ -129,7 +127,7 @@ const updatePromoCode = async (id: string, data: ICreatePromoCode) => {
     data,
   });
   return result;
-}
+};
 
 // delete promo code only for admin
 const deletePromoCode = async (id: string) => {
@@ -137,12 +135,12 @@ const deletePromoCode = async (id: string) => {
     where: { id },
   });
   return result;
-}
+};
 
 export const PromoCodeService = {
   createPromoCode,
   getAllPromoCodes,
   getPromoCodeById,
   updatePromoCode,
-  deletePromoCode
+  deletePromoCode,
 };
