@@ -22,8 +22,8 @@ const getAllContracts = catchAsync(async (req: Request, res: Response) => {
 
 // get single contract
 const getSingleContract = catchAsync(async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const result = await ContractService.getSingleContract(id);
+  const { id, type } = req.params;
+  const result = await ContractService.getSingleContract(id, type);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

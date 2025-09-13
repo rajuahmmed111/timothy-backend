@@ -4,7 +4,7 @@ import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IContractFilterRequest } from "./contract.interface";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./contract.constant";
-import { getDateRange } from "../../../helpars/filterByDate";
+import ApiError from "../../../errors/ApiErrors";
 
 // get all contracts (bookings)
 const getAllContracts = async (
@@ -19,6 +19,7 @@ const getAllContracts = async (
   const security = await prisma.security_Booking.findMany();
   const car = await prisma.car_Booking.findMany();
   const attraction = await prisma.attraction_Booking.findMany();
+  
 
   // merge all into one array and add type
   let allContracts = [
@@ -84,8 +85,33 @@ const getAllContracts = async (
   };
 };
 
-// get single contract
-const getSingleContract = async (id: string) => {};
+// get single contract by id
+const getSingleContract = async (id: string, type: string) => {
+  let contract;
+
+  switch (type) {
+    case "hotel":
+      contract = await prisma.hotel_Booking.findUnique({ where: { id } });
+      break;
+    case "security":
+      contract = await prisma.security_Booking.findUnique({ where: { id } });
+      break;
+    case "car":
+      contract = await prisma.car_Booking.findUnique({ where: { id } });
+      break;
+    case "attraction":
+      contract = await prisma.attraction_Booking.findUnique({ where: { id } });
+      break;
+    default:
+      throw new Error("Invalid contract type");
+  }
+
+  if (!contract) {
+    throw new Error("Contract not found");
+  }
+
+  return { type, ...contract };
+};
 
 export const ContractService = {
   getAllContracts,
