@@ -49,7 +49,28 @@ router.get(
 );
 
 // get user by id
-router.get("/:id", UserController.getUserById);
+router.get(
+  "/:id",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER
+  ),
+  UserController.getUserById
+);
+
+// get user only partner
+router.get(
+  "/inactive-partner/:id",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER
+  ),
+  UserController.getPartnerById
+);
 
 // create user
 router.post(

@@ -339,7 +339,7 @@ const createCheckoutSession = async (
       serviceType,
     },
   });
-  console.log("checkoutSession", checkoutSession);
+  // console.log("checkoutSession", checkoutSession);
 
   // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
 

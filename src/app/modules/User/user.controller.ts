@@ -23,16 +23,18 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 // verify user
-const verifyOtpAndCreateUser = catchAsync(async (req: Request, res: Response) => {
-const { email, otp } = req.body;
-  const result = await UserService.verifyOtpAndCreateUser(email, otp);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "User verified successfully",
-    data: result,
-  });
-});
+const verifyOtpAndCreateUser = catchAsync(
+  async (req: Request, res: Response) => {
+    const { email, otp } = req.body;
+    const result = await UserService.verifyOtpAndCreateUser(email, otp);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User verified successfully",
+      data: result,
+    });
+  }
+);
 
 // get all users
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
@@ -167,6 +169,20 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get user by only partner
+const getPartnerById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const user = await UserService.getPartnerById(id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User fetched successfully",
+    data: { ...user, password: undefined },
+  });
+});
+
 // update user
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
@@ -263,4 +279,5 @@ export const UserController = {
   updateUserProfileImage,
   deleteMyAccount,
   deleteUser,
+  getPartnerById,
 };

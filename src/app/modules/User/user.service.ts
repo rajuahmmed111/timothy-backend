@@ -640,6 +640,32 @@ const getUserById = async (id: string): Promise<SafeUser> => {
   return user;
 };
 
+// get user by only partner
+const getPartnerById = async (id: string): Promise<SafeUser> => {
+  const user = await prisma.user.findUnique({
+    where: { id, role: UserRole.BUSINESS_PARTNER },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      fcmToken: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+  return user;
+};
+
 // update user
 const updateUser = async (
   id: string,
@@ -808,4 +834,5 @@ export const UserService = {
   updateUserProfileImage,
   deleteMyAccount,
   deleteUser,
+  getPartnerById,
 };
