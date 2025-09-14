@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
+import { UserRole, UserStatus } from "@prisma/client";
 // import channelClients from '../../../server';
 
 // send message
@@ -91,14 +92,85 @@ const sendMessage = async (
 
 // get my channel by my id
 const getMyChannelByMyId = async (userId: string) => {
+  // user active + role USER | BUSINESS_PARTNER
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (
+    !user ||
+    user.status !== UserStatus.ACTIVE ||
+    (user.role !== UserRole.USER && user.role !== UserRole.BUSINESS_PARTNER)
+  ) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found or invalid role");
+  }
+
+  // find channels where person1 or person2
   const channels = await prisma.channel.findMany({
-    where: {id: userId},
+    where: {
+      OR: [{ person1Id: userId }, { person2Id: userId }],
+    },
     include: {
-      person1: true,
-      person2: true,
+      person1: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+      person2: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
     },
   });
-  return channels;
+
+  // keep USER or BUSINESS_PARTNER + active
+  const result = channels.map((channel) => {
+    let receiverUser = null;
+
+    if (channel.person1Id === userId) {
+      receiverUser =
+        channel.person2 &&
+        channel.person2.status === UserStatus.ACTIVE &&
+        ([UserRole.USER, UserRole.BUSINESS_PARTNER] as UserRole[]).includes(
+          channel.person2.role
+        )
+          ? channel.person2
+          : null;
+    } else if (channel.person2Id === userId) {
+      receiverUser =
+        channel.person1 &&
+        channel.person1.status === UserStatus.ACTIVE &&
+        ([UserRole.USER, UserRole.BUSINESS_PARTNER] as UserRole[]).includes(
+          channel.person1.role
+        )
+          ? channel.person1
+          : null;
+    }
+
+    return {
+      id: channel.id,
+      channelName: channel.channelName,
+      createdAt: channel.createdAt,
+      updatedAt: channel.updatedAt,
+      receiverUser,
+    };
+  });
+
+  // only return channels receiverUser
+  return result.filter((ch) => ch.receiverUser !== null);
 };
 
 // get my channel through my id and receiver id
@@ -120,6 +192,7 @@ const getMyChannel = async (userId: string, receiverId: string) => {
   return channel;
 };
 
+// get all messages
 const getMessagesFromDB = async (channelName: string) => {
   const message = await prisma.channel.findMany({
     where: {
@@ -143,6 +216,7 @@ const getMessagesFromDB = async (channelName: string) => {
   return message;
 };
 
+// get user channels
 const getUserChannels = async (userId: string) => {
   const channels = await prisma.channel.findMany({
     where: {
@@ -168,10 +242,43 @@ const getUserChannels = async (userId: string) => {
   return channels;
 };
 
+// get single channel
+const getSingleChannel = async (channelId: string) => {
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+    include: {
+      messages: {
+        select: {
+          id: true,
+          senderId: true,
+          message: true,
+          createdAt: true,
+          sender: {
+            select: {
+              id: true,
+              fullName: true,
+              profileImage: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!channel) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Channel not found");
+  }
+
+  // const receiverUser 
+
+  return channel;
+};
+
 export const messageServices = {
   sendMessage,
   getMyChannel,
   getMyChannelByMyId,
   getMessagesFromDB,
   getUserChannels,
+  getSingleChannel,
 };

@@ -96,10 +96,24 @@ const getUserChannels = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get single channel
+const getSingleChannel = catchAsync(async (req: Request, res: Response) => {
+  const channelId = req.params.channelId;
+  const result = await messageServices.getSingleChannel(channelId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Channel fetched successfully",
+    data: result,
+  });
+});
+
 export const messageControllers = {
   sendMessage,
   getMyChannel,
   getMyChannelByMyId,
   getMessagesFromDB,
   getUserChannels,
+  getSingleChannel,
 };

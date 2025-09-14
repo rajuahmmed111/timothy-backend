@@ -35,4 +35,11 @@ router.get(
   messageControllers.getMessagesFromDB
 );
 
+// get single channel
+router.get(
+  "/channel/:channelId",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER, UserRole.BUSINESS_PARTNER),
+  messageControllers.getSingleChannel
+);
+
 export const messageRoutes = router;
