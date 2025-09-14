@@ -283,7 +283,7 @@ const getSingleChannel = async (channelId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Channel not found");
   }
 
-  // Determine receiver user
+  // receiver user
   let receiverUser = null;
 
   if (channel.messages.length > 0) {
@@ -295,7 +295,7 @@ const getSingleChannel = async (channelId: string) => {
       receiverUser = channel.person1;
     }
   } else {
-    // No messages yet → choose any (e.g., person2 as receiver)
+    // no messages
     receiverUser = channel.person2;
   }
 
