@@ -89,6 +89,18 @@ const sendMessage = async (
   return allMessages;
 };
 
+// get my channel by my id
+const getMyChannelByMyId = async (userId: string) => {
+  const channels = await prisma.channel.findMany({
+    where: {id: userId},
+    include: {
+      person1: true,
+      person2: true,
+    },
+  });
+  return channels;
+};
+
 // get my channel through my id and receiver id
 const getMyChannel = async (userId: string, receiverId: string) => {
   // find person1 and person2
@@ -159,6 +171,7 @@ const getUserChannels = async (userId: string) => {
 export const messageServices = {
   sendMessage,
   getMyChannel,
+  getMyChannelByMyId,
   getMessagesFromDB,
   getUserChannels,
 };
