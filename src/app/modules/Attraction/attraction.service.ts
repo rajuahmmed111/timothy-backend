@@ -233,9 +233,9 @@ const getAllAttractions = async (
   }
 
   // get only isBooked  AVAILABLE hotels
-  filters.push({
-    isBooked: EveryServiceStatus.AVAILABLE,
-  });
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
 
   const where: Prisma.AttractionWhereInput = { AND: filters };
 

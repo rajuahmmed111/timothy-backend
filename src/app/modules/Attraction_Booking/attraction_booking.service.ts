@@ -40,12 +40,12 @@ const createAttractionBooking = async (
     const bookingTime = new Date(today);
     bookingTime.setHours(hours, minutes, seconds, 0);
 
-    if (isBefore(bookingTime, now)) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        "Cannot book for past time slots today"
-      );
-    }
+    // if (isBefore(bookingTime, now)) {
+    //   throw new ApiError(
+    //     httpStatus.BAD_REQUEST,
+    //     "Cannot book for past time slots today"
+    //   );
+    // }
   }
 
   // get day from date automatically

@@ -518,7 +518,6 @@ const cancelStripeBooking = async (
   bookingId: string,
   userId: string
 ) => {
-  // detect booking model dynamically
   const bookingModelMap: Record<string, any> = {
     car: prisma.car_Booking,
     hotel: prisma.hotel_Booking,
@@ -540,64 +539,55 @@ const cancelStripeBooking = async (
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
 
-  // find booking with payment & user
+  // 1️⃣ Booking with payment and user
   const booking = await bookingModel.findUnique({
     where: { id: bookingId, userId },
     include: { payment: true, user: true },
   });
 
-  if (!booking) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
-  }
+  if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
-  // const user = booking.user;
-  // if (!user.stripeAccountId) {
-  //   throw new ApiError(
-  //     httpStatus.BAD_REQUEST,
-  //     "User has no connected Stripe account"
-  //   );
-  // }
+  const user = booking.user;
+  if (!user.stripeAccountId)
+    throw new ApiError(httpStatus.BAD_REQUEST, "User has no connected Stripe account");
 
-  // get payment
   const payment = booking.payment?.[0];
-  if (!payment || !payment.payment_intent) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "No payment found for this booking"
-    );
+  if (!payment || !payment.payment_intent)
+    throw new ApiError(httpStatus.BAD_REQUEST, "No payment found for this booking");
+
+  // 2️⃣ Full refund for main payment_intent
+  await stripe.refunds.create({
+    payment_intent: payment.payment_intent,
+    amount: payment.amount, // full amount
+  });
+
+  // 3️⃣ Reverse transfer to connected account (provider)
+  if (payment.transfer_id && payment.service_fee > 0) {
+    await stripe.transfers.createReversal(payment.transfer_id, {
+      amount: payment.service_fee, // provider portion
+    });
   }
 
-  // stripe full refund on connected account
-  await stripe.refunds.create(
-    {
-      payment_intent: payment.payment_intent,
-      amount: payment.amount, // full refund
-    },
-    {
-      // stripeAccount: user.stripeAccountId, // connected account
-    }
-  );
-
-  // update payment status
+  // 4️⃣ Update payment status
   await prisma.payment.update({
     where: { id: payment.id },
     data: { status: PaymentStatus.REFUNDED },
   });
 
-  // update booking status to CANCELLED
+  // 5️⃣ Update booking status to CANCELLED
   await bookingModel.update({
     where: { id: bookingId },
     data: { bookingStatus: BookingStatus.CANCELLED },
   });
 
-  // free the service again (isBooked = AVAILABLE)
+  // 6️⃣ Free the service
   const serviceIdField = `${serviceType.toLowerCase()}Id`;
   await serviceModel.update({
     where: { id: booking[serviceIdField] },
     data: { isBooked: EveryServiceStatus.AVAILABLE },
   });
 
-  // -------- send cancel notification --------
+  // 7️⃣ Send cancel notification
   const service = await serviceModel.findUnique({
     where: { id: booking[serviceIdField] },
   });
@@ -615,6 +605,7 @@ const cancelStripeBooking = async (
 
   return { bookingId, status: "CANCELLED" };
 };
+
 
 //
 // get banks
