@@ -72,27 +72,130 @@ const getAllContracts = async (
 
 // get single contract by id
 const getSingleContract = async (id: string, type: string) => {
-  let contract;
+  let contract: any;
 
   switch (type) {
     case "hotel":
-      contract = await prisma.hotel_Booking.findUnique({ where: { id } });
+      contract = await prisma.hotel_Booking.findUnique({
+        where: { id },
+        include: {
+          hotel: {
+            select: {
+              id: true,
+              hotelName: true,
+              hotelRoomDescription: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profileImage: true,
+              contactNumber: true,
+            },
+          },
+        },
+      });
       break;
+
     case "security":
-      contract = await prisma.security_Booking.findUnique({ where: { id } });
+      contract = await prisma.security_Booking.findUnique({
+        where: { id },
+        include: {
+          security: {
+            select: {
+              id: true,
+              securityName: true,
+              securityDescription: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profileImage: true,
+              contactNumber: true,
+            },
+          },
+        },
+      });
       break;
+
     case "car":
-      contract = await prisma.car_Booking.findUnique({ where: { id } });
+      contract = await prisma.car_Booking.findUnique({
+        where: { id },
+        include: {
+          car: {
+            select: {
+              id: true,
+              carModel: true,
+              carType: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profileImage: true,
+              contactNumber: true,
+            },
+          },
+        },
+      });
       break;
+
     case "attraction":
-      contract = await prisma.attraction_Booking.findUnique({ where: { id } });
+      contract = await prisma.attraction_Booking.findUnique({
+        where: { id },
+        include: {
+          attraction: {
+            select: {
+              id: true,
+              attractionName: true,
+              attractionDescription: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profileImage: true,
+              contactNumber: true,
+            },
+          },
+        },
+      });
       break;
+
     default:
       throw new Error("Invalid contract type");
   }
 
   if (!contract) {
     throw new Error("Contract not found");
+  }
+
+  // partner fetch (সব টেবিলে partnerId field আছে ধরে নিচ্ছি)
+  if (contract?.partnerId) {
+    const partner = await prisma.user.findUnique({
+      where: { id: contract.partnerId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        profileImage: true,
+        contactNumber: true,
+      },
+    });
+
+    contract = {
+      ...contract,
+      partner,
+    };
   }
 
   return { type, ...contract };

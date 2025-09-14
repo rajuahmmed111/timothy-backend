@@ -550,13 +550,13 @@ const cancelStripeBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
-  const user = booking.user;
-  if (!user.stripeAccountId) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "User has no connected Stripe account"
-    );
-  }
+  // const user = booking.user;
+  // if (!user.stripeAccountId) {
+  //   throw new ApiError(
+  //     httpStatus.BAD_REQUEST,
+  //     "User has no connected Stripe account"
+  //   );
+  // }
 
   // get payment
   const payment = booking.payment?.[0];
@@ -574,7 +574,7 @@ const cancelStripeBooking = async (
       amount: payment.amount, // full refund
     },
     {
-      stripeAccount: user.stripeAccountId, // connected account
+      // stripeAccount: user.stripeAccountId, // connected account
     }
   );
 
