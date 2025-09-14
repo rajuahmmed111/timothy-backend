@@ -242,6 +242,74 @@ const getUserChannels = async (userId: string) => {
   return channels;
 };
 
+// get all channels only user and admin
+const getUserAdminChannels = async () => {
+  // find all channels
+  const channels = await prisma.channel.findMany({
+    include: {
+      person1: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+      person2: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+
+  // filter: keep only channels where both persons are active & role in ADMIN | USER
+  const result = channels.map((channel) => {
+    let receiverUser = null;
+
+    // person1 is valid receiver?
+    if (
+      channel.person1 &&
+      channel.person1.status === UserStatus.ACTIVE &&
+      (channel.person1.role === UserRole.USER || channel.person1.role === UserRole.ADMIN)
+    ) {
+      receiverUser = channel.person1;
+    }
+
+    // person2 is valid receiver?
+    if (
+      channel.person2 &&
+      channel.person2.status === UserStatus.ACTIVE &&
+      (channel.person2.role === UserRole.USER || channel.person2.role === UserRole.ADMIN)
+    ) {
+      // decide receiverUser based on some logic, e.g., prefer person2
+      // or you can keep both in array if you want
+      receiverUser = receiverUser ? [receiverUser, channel.person2] : channel.person2;
+    }
+
+    return {
+      id: channel.id,
+      channelName: channel.channelName,
+      createdAt: channel.createdAt,
+      updatedAt: channel.updatedAt,
+      receiverUser,
+    };
+  });
+
+  // only return channels where valid receiver exists
+  return result.filter((ch) => ch.receiverUser !== null);
+};
+
+
 // get single channel
 const getSingleChannel = async (channelId: string) => {
   const channel = await prisma.channel.findUnique({
@@ -315,5 +383,6 @@ export const messageServices = {
   getMyChannelByMyId,
   getMessagesFromDB,
   getUserChannels,
+  getUserAdminChannels,
   getSingleChannel,
 };

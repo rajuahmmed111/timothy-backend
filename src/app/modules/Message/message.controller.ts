@@ -96,6 +96,17 @@ const getUserChannels = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all channels only user and admin
+const getUserAdminChannels = catchAsync(async (req: Request, res: Response) => {
+  const channels = await messageServices.getUserAdminChannels();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Channels retrieved successfully",
+    data: channels,
+  });
+});
+
 // get single channel
 const getSingleChannel = catchAsync(async (req: Request, res: Response) => {
   const channelId = req.params.channelId;
@@ -115,5 +126,6 @@ export const messageControllers = {
   getMyChannelByMyId,
   getMessagesFromDB,
   getUserChannels,
+  getUserAdminChannels,
   getSingleChannel,
 };
