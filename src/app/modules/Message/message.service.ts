@@ -247,6 +247,20 @@ const getSingleChannel = async (channelId: string) => {
   const channel = await prisma.channel.findUnique({
     where: { id: channelId },
     include: {
+      person1: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+      person2: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
       messages: {
         select: {
           id: true,
@@ -269,9 +283,30 @@ const getSingleChannel = async (channelId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Channel not found");
   }
 
-  // const receiverUser 
+  // Determine receiver user
+  let receiverUser = null;
 
-  return channel;
+  if (channel.messages.length > 0) {
+    const firstMessageSenderId = channel.messages[0].senderId;
+
+    if (firstMessageSenderId === channel.person1Id) {
+      receiverUser = channel.person2;
+    } else if (firstMessageSenderId === channel.person2Id) {
+      receiverUser = channel.person1;
+    }
+  } else {
+    // No messages yet → choose any (e.g., person2 as receiver)
+    receiverUser = channel.person2;
+  }
+
+  return {
+    id: channel.id,
+    channelName: channel.channelName,
+    createdAt: channel.createdAt,
+    updatedAt: channel.updatedAt,
+    receiverUser,
+    messages: channel.messages,
+  };
 };
 
 export const messageServices = {
