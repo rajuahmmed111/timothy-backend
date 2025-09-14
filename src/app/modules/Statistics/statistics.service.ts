@@ -69,41 +69,22 @@ const getOverview = async () => {
 };
 
 // get payment with user analysis
-const paymentWithUserAnalysis = async (params: IFilterRequest) => {
-  const { yearRange } = params;
-
-  // Get date range for filtering
-  const dateRange = getYearRange(yearRange);
-
-  // Total users with date filtering
+const paymentWithUserAnalysis = async () => {
+  // Total users (all-time)
   const totalUsers = await prisma.user.count({
-    where: {
-      role: UserRole.USER,
-      ...(dateRange && { createdAt: dateRange }),
-    },
+    where: { role: UserRole.USER },
   });
 
-  // Total partners with date filtering
+  // Total partners (all-time)
   const totalPartners = await prisma.user.count({
-    where: {
-      role: UserRole.BUSINESS_PARTNER,
-      ...(dateRange && { createdAt: dateRange }),
-    },
+    where: { role: UserRole.BUSINESS_PARTNER },
   });
 
   // Monthly payment aggregation - ONLY include PAID payments
   const paymentPipeline = [
-    // Filter by date range if provided
-    ...(dateRange
-      ? [
-          {
-            $match: {
-              createdAt: { $gte: dateRange.gte, $lte: dateRange.lte },
-              status: "PAID", // Only include paid payments
-            },
-          },
-        ]
-      : [{ $match: { status: "PAID" } }]), // Always filter for paid payments
+    {
+      $match: { status: "PAID" }, // Always only PAID
+    },
     {
       $group: {
         _id: { month: { $month: "$createdAt" } },
@@ -123,16 +104,6 @@ const paymentWithUserAnalysis = async (params: IFilterRequest) => {
 
   // Monthly user aggregation
   const userPipeline = [
-    // Filter by date range if provided
-    ...(dateRange
-      ? [
-          {
-            $match: {
-              createdAt: { $gte: dateRange.gte, $lte: dateRange.lte },
-            },
-          },
-        ]
-      : []),
     {
       $group: {
         _id: { month: { $month: "$createdAt" }, role: "$role" },
@@ -170,6 +141,7 @@ const paymentWithUserAnalysis = async (params: IFilterRequest) => {
     month: name,
     totalAmount: 0,
   }));
+
   const userMonthsData = months.map((name) => ({
     month: name,
     userCount: 0,
@@ -203,6 +175,8 @@ const paymentWithUserAnalysis = async (params: IFilterRequest) => {
     userMonthsData,
   };
 };
+
+
 
 // financial metrics
 const financialMetrics = async () => {

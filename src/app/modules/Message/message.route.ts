@@ -21,7 +21,7 @@ router.get("/channels", auth(), messageControllers.getUserChannels);
 // get my channel by my id
 router.get(
   "/my-channel-by-my-id",
-  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   messageControllers.getMyChannelByMyId
 );
 

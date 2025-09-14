@@ -22,7 +22,7 @@ const getOverview = catchAsync(async (req: Request, res: Response) => {
 const paymentWithUserAnalysis = catchAsync(
   async (req: Request, res: Response) => {
     const filter = pick(req.query, filterField);
-    const result = await StatisticsService.paymentWithUserAnalysis(filter);
+    const result = await StatisticsService.paymentWithUserAnalysis();
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
