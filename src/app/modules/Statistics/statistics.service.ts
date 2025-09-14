@@ -80,10 +80,10 @@ const paymentWithUserAnalysis = async () => {
     where: { role: UserRole.BUSINESS_PARTNER },
   });
 
-  // Monthly payment aggregation - ONLY include PAID payments
+  // monthly payment aggregation
   const paymentPipeline = [
     {
-      $match: { status: "PAID" }, // Always only PAID
+      $match: { status: "PAID" },
     },
     {
       $group: {

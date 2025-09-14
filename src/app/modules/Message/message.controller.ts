@@ -44,7 +44,7 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 
 // get my channel by my id
 const getMyChannelByMyId = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
+  const userId = req.params.userId;
   const result = await messageServices.getMyChannelByMyId(userId!);
   sendResponse(res, {
     statusCode: httpStatus.OK,
