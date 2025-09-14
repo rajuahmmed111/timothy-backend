@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import app from "./app";
 import config from "./config";
 import prisma from "./shared/prisma";
+import { UserRole } from "@prisma/client";
 
 // ---------- WebSocket state ----------
 type channelName = string;
@@ -60,129 +61,118 @@ async function main() {
   wss = new WebSocketServer({ server });
   installHeartbeat(wss);
 
-  wss.on(
-    "connection",
-    (ws: WebSocket & { isAlive?: boolean }, req) => {
-      console.log("🔌 New WebSocket connection");
-      let currentChannel: string | null = null;
+  wss.on("connection", (ws: WebSocket & { isAlive?: boolean }, req) => {
+    console.log("🔌 New WebSocket connection");
+    let currentChannel: string | null = null;
 
-      ws.on("message", async (raw: Buffer) => {
-        try {
-          const msgStr = raw.toString().trim();
-          // console.log("Received WS message:", msgStr);
+    ws.on("message", async (raw: Buffer) => {
+      try {
+        const msgStr = raw.toString().trim();
+        // console.log("Received WS message:", msgStr);
 
-          const parsed = JSON.parse(msgStr);
+        const parsed = JSON.parse(msgStr);
 
-          switch (parsed?.type) {
-            case "subscribe": {
-              const channelName: string = parsed.channelName;
-              if (!channelName || typeof channelName !== "string") {
-                safeSend(ws, { type: "error", message: "Invalid channelName" });
-                return;
-              }
-
-              if (!channelClients.has(channelName)) {
-                channelClients.set(channelName, new Set());
-              }
-              channelClients.get(channelName)!.add(ws);
-              currentChannel = channelName;
-
-              safeSend(ws, { type: "subscribed", channelName });
-              break;
+        switch (parsed?.type) {
+          case "subscribe": {
+            const channelName: string = parsed.channelName;
+            if (!channelName || typeof channelName !== "string") {
+              safeSend(ws, { type: "error", message: "Invalid channelName" });
+              return;
             }
 
-            case "message": {
-              const channelName: string = parsed.channelName;
-              const messageText: string = parsed.message;
-              const senderId: string = parsed.senderId || "";
+            if (!channelClients.has(channelName)) {
+              channelClients.set(channelName, new Set());
+            }
+            channelClients.get(channelName)!.add(ws);
+            currentChannel = channelName;
 
-              if (!channelName || typeof channelName !== "string") {
-                safeSend(ws, { type: "error", message: "Invalid channelName" });
-                return;
-              }
+            safeSend(ws, { type: "subscribed", channelName });
+            break;
+          }
 
-              if (!senderId) {
-                safeSend(ws, { type: "error", message: "senderId is required" });
-                return;
-              }
+          case "message": {
+            const { channelName, message, senderId, receiverId, messageType } =
+              parsed;
 
-              // find or create channel
-              let channel = await prisma.channel.findUnique({
-                where: { channelName },
-              });
+            const sender = await prisma.user.findUnique({
+              where: { id: senderId },
+              select: { role: true },
+            });
 
-              if (!channel) {
-                channel = await prisma.channel.create({
-                  data: {
-                    channelName,
-                    person1Id: senderId,
-                    person2Id: parsed.receiverId || "",
-                  },
-                });
-              }
-
-              // save message
-              const newMessage = await prisma.message.create({
-                data: {
-                  message: messageText,
-                  senderId,
-                  channelName: channel.channelName,
-                  files: parsed.files || [],
-                },
-                include: {
-                  sender: {
-                    select: {
-                      id: true,
-                      fullName: true,
-                      profileImage: true,
-                    },
-                  },
-                },
-              });
-
-              // broadcast to all clients in this channel
-              broadcastToChannel(
-                channel.channelName,
-                {
-                  type: "message",
-                  channelName: channel.channelName,
-                  data: newMessage,
-                },
-                ws
-              );
-
-              break;
+            if (!sender) {
+              safeSend(ws, { type: "error", message: "Invalid sender" });
+              return;
             }
 
-            default:
-              safeSend(ws, { type: "error", message: "Unknown message type" });
-          }
-        } catch (err: any) {
-          console.error("WS message error:", err?.message || err);
-          safeSend(ws, {
-            type: "error",
-            message: "Malformed JSON",
-            raw: raw.toString(),
-          });
-        }
-      });
+            if (sender.role === UserRole.ADMIN && !messageType) {
+              safeSend(ws, {
+                type: "error",
+                message: "messageType is required for ADMIN",
+              });
+              return;
+            }
 
-      ws.on("close", () => {
-        if (currentChannel) {
-          const set = channelClients.get(currentChannel);
-          if (set) {
-            set.delete(ws);
-            if (set.size === 0) channelClients.delete(currentChannel);
-          }
-        }
-        console.log("❌ Client disconnected");
-      });
+            if (sender.role !== UserRole.ADMIN && messageType) {
+              safeSend(ws, {
+                type: "error",
+                message: "Only ADMIN can send messageType",
+              });
+              return;
+            }
 
-      ws.on("error", (err) => {
-        console.error("WS socket error:", err);
-      });
-    }
-  );
+            // save message as before
+            const newMessage = await prisma.message.create({
+              data: {
+                message,
+                senderId,
+                channelName,
+                files: parsed.files || [],
+                messageType:
+                  sender.role === UserRole.ADMIN ? messageType : null,
+              },
+              include: {
+                sender: {
+                  select: { id: true, fullName: true, profileImage: true },
+                },
+              },
+            });
+
+            broadcastToChannel(
+              channelName,
+              { type: "message", data: newMessage },
+              ws
+            );
+            break;
+          }
+
+          default:
+            safeSend(ws, { type: "error", message: "Unknown message type" });
+        }
+      } catch (err: any) {
+        console.error("WS message error:", err?.message || err);
+        safeSend(ws, {
+          type: "error",
+          message: "Malformed JSON",
+          raw: raw.toString(),
+        });
+      }
+    });
+
+    ws.on("close", () => {
+      if (currentChannel) {
+        const set = channelClients.get(currentChannel);
+        if (set) {
+          set.delete(ws);
+          if (set.size === 0) channelClients.delete(currentChannel);
+        }
+      }
+      console.log("❌ Client disconnected");
+    });
+
+    ws.on("error", (err) => {
+      console.error("WS socket error:", err);
+    });
+  });
 }
 
 main().catch((e) => {
