@@ -68,6 +68,18 @@ enum DiscountType {
   FLAT
 }
 
+enum SupportType {
+  Critical
+  High
+  Medium
+  Low
+}
+
+enum SupportStatus {
+  Pending
+  Closed
+}
+
 // ---------------------------------------------------------
 //  MODEL
 // ---------------------------------------------------------
@@ -121,6 +133,7 @@ model User {
   sender             Channel[]            @relation("ChannelPerson1")
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
+  support            Support[]
 
   @@map("users")
 }
@@ -698,4 +711,20 @@ model Payment {
   updatedAt DateTime @updatedAt
 
   @@map("payments")
+}
+
+model Support {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  subject     String
+  description String
+  supportType SupportType
+  status      SupportStatus @default(Pending)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+
+  @@map("supports")
 }
