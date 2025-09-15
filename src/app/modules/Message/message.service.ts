@@ -10,31 +10,31 @@ const sendMessage = async (
   receiverId: string,
   message: string,
   imageUrls: string[],
-  messageType?: string
+  messageType?: "Critical" | "High" | "Medium" | "Low"
 ) => {
-  // sender role check
-  const sender = await prisma.user.findUnique({
-    where: { id: senderId },
+  // receiver role check
+  const receiver = await prisma.user.findUnique({
+    where: { id: receiverId },
     select: { role: true },
   });
 
-  if (!sender) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid sender");
+  if (!receiver) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Invalid receiver");
   }
 
-  // if sender is ADMIN => messageType required
-  if (sender.role === UserRole.ADMIN && !messageType) {
+  // if receiver is ADMIN => messageType required
+  if (receiver.role === UserRole.ADMIN && !messageType) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      "messageType is required for ADMIN messages"
+      "messageType is required when sending message to ADMIN"
     );
   }
 
-  // if sender is not ADMIN => messageType must not be set
-  if (sender.role !== UserRole.ADMIN && messageType) {
+  // if receiver is not ADMIN => messageType must not be set
+  if (receiver.role !== UserRole.ADMIN && messageType) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      "Only ADMIN can send messageType"
+      "messageType can only be set when sending message to ADMIN"
     );
   }
 
@@ -59,7 +59,7 @@ const sendMessage = async (
           senderId,
           channelName,
           files: imageUrls,
-          messageType: sender.role === UserRole.ADMIN ? messageType : null,
+          messageType: receiver.role === UserRole.ADMIN ? messageType : null,
         },
         include: {
           sender: {
@@ -72,9 +72,21 @@ const sendMessage = async (
     }
   );
 
-  return newMessage;
-};
+  //  all messages channel for the sender and receiver
+  const allMessages = await prisma.channel.findMany({
+    where: {
+      channelName: channelName,
+    },
+    include: {
+      messages: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
+  return allMessages;
+};
 
 // get my channel by my id
 const getMyChannelByMyId = async (userId: string) => {
@@ -266,7 +278,8 @@ const getUserAdminChannels = async () => {
     if (
       channel.person1 &&
       channel.person1.status === UserStatus.ACTIVE &&
-      (channel.person1.role === UserRole.USER || channel.person1.role === UserRole.ADMIN)
+      (channel.person1.role === UserRole.USER ||
+        channel.person1.role === UserRole.ADMIN)
     ) {
       receiverUser = channel.person1;
     }
@@ -275,11 +288,14 @@ const getUserAdminChannels = async () => {
     if (
       channel.person2 &&
       channel.person2.status === UserStatus.ACTIVE &&
-      (channel.person2.role === UserRole.USER || channel.person2.role === UserRole.ADMIN)
+      (channel.person2.role === UserRole.USER ||
+        channel.person2.role === UserRole.ADMIN)
     ) {
       // decide receiverUser based on some logic, e.g., prefer person2
       // or you can keep both in array if you want
-      receiverUser = receiverUser ? [receiverUser, channel.person2] : channel.person2;
+      receiverUser = receiverUser
+        ? [receiverUser, channel.person2]
+        : channel.person2;
     }
 
     return {
@@ -294,7 +310,6 @@ const getUserAdminChannels = async () => {
   // only return channels where valid receiver exists
   return result.filter((ch) => ch.receiverUser !== null);
 };
-
 
 // get single channel
 const getSingleChannel = async (channelId: string) => {

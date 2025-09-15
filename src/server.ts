@@ -3,7 +3,6 @@ import { WebSocketServer, WebSocket } from "ws";
 import app from "./app";
 import config from "./config";
 import prisma from "./shared/prisma";
-import { UserRole } from "@prisma/client";
 
 // ---------- WebSocket state ----------
 type channelName = string;
@@ -91,57 +90,84 @@ async function main() {
           }
 
           case "message": {
-            const { channelName, message, senderId, receiverId, messageType } =
-              parsed;
+            const channelName: string = parsed.channelName;
+            const messageText: string = parsed.message;
+            const senderId: string = parsed.senderId || "";
+            const receiverId: string = parsed.receiverId || "";
+            const messageType: string = parsed.messageType;
 
-            const sender = await prisma.user.findUnique({
-              where: { id: senderId },
-              select: { role: true },
+            if (!channelName || typeof channelName !== "string") {
+              safeSend(ws, { type: "error", message: "Invalid channelName" });
+              return;
+            }
+
+            if (!senderId) {
+              safeSend(ws, { type: "error", message: "senderId is required" });
+              return;
+            }
+
+            // Check if receiver is Admin (replace this with your actual role check)
+            const receiverUser = receiverId
+              ? await prisma.user.findUnique({ where: { id: receiverId } })
+              : null;
+            const isAdminReceiver = receiverUser?.role === "ADMIN";
+
+            // If receiver is admin, messageType is required
+            if (isAdminReceiver && !messageType) {
+              safeSend(ws, {
+                type: "error",
+                message:
+                  "messageType is required when sending message to ADMIN",
+              });
+              return;
+            }
+
+            // find or create channel
+            let channel = await prisma.channel.findUnique({
+              where: { channelName },
             });
 
-            if (!sender) {
-              safeSend(ws, { type: "error", message: "Invalid sender" });
-              return;
-            }
-
-            if (sender.role === UserRole.ADMIN && !messageType) {
-              safeSend(ws, {
-                type: "error",
-                message: "messageType is required for ADMIN",
+            if (!channel) {
+              channel = await prisma.channel.create({
+                data: {
+                  channelName,
+                  person1Id: senderId,
+                  person2Id: receiverId,
+                },
               });
-              return;
             }
 
-            if (sender.role !== UserRole.ADMIN && messageType) {
-              safeSend(ws, {
-                type: "error",
-                message: "Only ADMIN can send messageType",
-              });
-              return;
-            }
-
-            // save message as before
+            // save message
             const newMessage = await prisma.message.create({
               data: {
-                message,
+                message: messageText,
                 senderId,
-                channelName,
+                channelName: channel.channelName,
                 files: parsed.files || [],
-                messageType:
-                  sender.role === UserRole.ADMIN ? messageType : null,
+                messageType: messageType || null, // optional if not admin
               },
               include: {
                 sender: {
-                  select: { id: true, fullName: true, profileImage: true },
+                  select: {
+                    id: true,
+                    fullName: true,
+                    profileImage: true,
+                  },
                 },
               },
             });
 
+            // broadcast to all clients in this channel
             broadcastToChannel(
-              channelName,
-              { type: "message", data: newMessage },
+              channel.channelName,
+              {
+                type: "message",
+                channelName: channel.channelName,
+                data: newMessage,
+              },
               ws
             );
+
             break;
           }
 
