@@ -1,6 +1,8 @@
 import {
   BookingStatus,
   PaymentStatus,
+  SupportStatus,
+  SupportType,
   UserRole,
   UserStatus,
 } from "@prisma/client";
@@ -58,6 +60,34 @@ const getOverview = async () => {
     where: { role: UserRole.BUSINESS_PARTNER, status: UserStatus.ACTIVE },
   });
 
+  // total supports
+  const totalSupports = await prisma.support.count();
+
+  // total pending support
+  const totalPendingSupport = await prisma.support.count({
+    where: { status: SupportStatus.Pending },
+  });
+
+  // total Critical support
+  const totalCriticalSupport = await prisma.support.count({
+    where: { supportType: SupportType.Critical },
+  });
+
+  // total High support
+  const totalHighSupport = await prisma.support.count({
+    where: { supportType: SupportType.High },
+  });
+
+  // total Medium support
+  const totalMediumSupport = await prisma.support.count({
+    where: { supportType: SupportType.High },
+  });
+
+  // total Low support
+  const totalLowSupport = await prisma.support.count({
+    where: { supportType: SupportType.Low },
+  });
+
   return {
     totalUsers,
     totalPartners,
@@ -65,6 +95,14 @@ const getOverview = async () => {
     adminEarnings: adminEarnings._sum.admin_commission,
     totalPendingPartners,
     totalCompletedPartners,
+    Supports: {
+      totalSupports: totalSupports,
+      totalPendingSupport: totalPendingSupport,
+      Critical: totalCriticalSupport,
+      High: totalHighSupport,
+      Medium: totalMediumSupport,
+      Low: totalLowSupport,
+    },
   };
 };
 
