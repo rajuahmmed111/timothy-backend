@@ -2,91 +2,9 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { UserRole, UserStatus } from "@prisma/client";
+import { IPaginationOptions } from "../../../interfaces/paginations";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
 // import channelClients from '../../../server';
-
-// send message
-// const sendMessage = async (
-//   senderId: string,
-//   receiverId: string,
-//   message: string,
-//   imageUrls: string[],
-//   messageType?: "Critical" | "High" | "Medium" | "Low"
-// ) => {
-//   // receiver role check
-//   const receiver = await prisma.user.findUnique({
-//     where: { id: receiverId },
-//     select: { role: true },
-//   });
-
-//   if (!receiver) {
-//     throw new ApiError(httpStatus.NOT_FOUND, "Invalid receiver");
-//   }
-
-//   // if receiver is ADMIN => messageType required
-//   if (receiver.role === UserRole.ADMIN && !messageType) {
-//     throw new ApiError(
-//       httpStatus.BAD_REQUEST,
-//       "messageType is required when sending message to ADMIN"
-//     );
-//   }
-
-//   // if receiver is not ADMIN => messageType must not be set
-//   if (receiver.role !== UserRole.ADMIN && messageType) {
-//     throw new ApiError(
-//       httpStatus.BAD_REQUEST,
-//       "messageType can only be set when sending message to ADMIN"
-//     );
-//   }
-
-//   const [person1, person2] = [senderId, receiverId].sort();
-//   const channelName = person1 + person2;
-
-//   const [channel, newMessage] = await prisma.$transaction(
-//     async (prismaTransaction) => {
-//       let channel = await prismaTransaction.channel.findFirst({
-//         where: { channelName },
-//       });
-
-//       if (!channel) {
-//         channel = await prismaTransaction.channel.create({
-//           data: { channelName, person1Id: senderId, person2Id: receiverId },
-//         });
-//       }
-
-//       const newMessage = await prismaTransaction.message.create({
-//         data: {
-//           message,
-//           senderId,
-//           channelName,
-//           files: imageUrls,
-//           messageType: receiver.role === UserRole.ADMIN ? messageType : null,
-//         },
-//         include: {
-//           sender: {
-//             select: { id: true, fullName: true, profileImage: true },
-//           },
-//         },
-//       });
-
-//       return [channel, newMessage];
-//     }
-//   );
-
-//   //  all messages channel for the sender and receiver
-//   const allMessages = await prisma.channel.findMany({
-//     where: {
-//       channelName: channelName,
-//     },
-//     include: {
-//       messages: true,
-//     },
-//     orderBy: {
-//       createdAt: "desc",
-//     },
-//   });
-
-//   return allMessages;
-// };
 
 // send message
 const sendMessage = async (
@@ -94,7 +12,6 @@ const sendMessage = async (
   receiverId: string,
   message: string,
   imageUrls: string[]
-  
 ) => {
   const [person1, person2] = [senderId, receiverId].sort();
   const channelName = person1 + person2;
@@ -174,7 +91,6 @@ const sendMessage = async (
 
   return allMessages;
 };
-
 
 // get my channel by my id
 const getMyChannelByMyId = async (userId: string) => {
@@ -279,11 +195,24 @@ const getMyChannel = async (userId: string, receiverId: string) => {
 };
 
 // get all messages
-const getMessagesFromDB = async (channelName: string) => {
+const getMessagesFromDB = async (
+  channelName: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
   const message = await prisma.channel.findMany({
     where: {
       channelName: channelName,
     },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
     select: {
       messages: {
         include: {
@@ -299,7 +228,16 @@ const getMessagesFromDB = async (channelName: string) => {
     },
   });
 
-  return message;
+  const total = await prisma.channel.count();
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: message,
+  };
 };
 
 // get user channels
@@ -466,7 +404,7 @@ const getSingleChannel = async (channelId: string) => {
   };
 };
 
-export const messageServices = {
+export const MessageServices = {
   sendMessage,
   getMyChannel,
   getMyChannelByMyId,

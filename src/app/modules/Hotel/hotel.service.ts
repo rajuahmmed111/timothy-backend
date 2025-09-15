@@ -257,6 +257,7 @@ const getAllHotels = async (
       },
     },
   });
+  
   const total = await prisma.hotel.count({ where });
 
   return {
