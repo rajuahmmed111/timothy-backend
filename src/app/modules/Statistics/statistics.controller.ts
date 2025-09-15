@@ -104,6 +104,21 @@ const sendReportToServiceProviderThroughEmail = catchAsync(
   }
 );
 
+  // partner total earings
+  const getPartnerTotalEarnings = catchAsync(
+    async (req: Request, res: Response) => {
+      const partnerId = req.user?.id;
+      const result = await StatisticsService.getPartnerTotalEarnings(partnerId);
+  
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Statistics fetched successfully",
+        data: result,
+      });
+    }
+  );
+
 export const StatisticsController = {
   getOverview,
   paymentWithUserAnalysis,
@@ -112,4 +127,5 @@ export const StatisticsController = {
   getAllServiceProviders,
   getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
+  getPartnerTotalEarnings
 };

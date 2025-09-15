@@ -5,65 +5,138 @@ import { UserRole, UserStatus } from "@prisma/client";
 // import channelClients from '../../../server';
 
 // send message
+// const sendMessage = async (
+//   senderId: string,
+//   receiverId: string,
+//   message: string,
+//   imageUrls: string[],
+//   messageType?: "Critical" | "High" | "Medium" | "Low"
+// ) => {
+//   // receiver role check
+//   const receiver = await prisma.user.findUnique({
+//     where: { id: receiverId },
+//     select: { role: true },
+//   });
+
+//   if (!receiver) {
+//     throw new ApiError(httpStatus.NOT_FOUND, "Invalid receiver");
+//   }
+
+//   // if receiver is ADMIN => messageType required
+//   if (receiver.role === UserRole.ADMIN && !messageType) {
+//     throw new ApiError(
+//       httpStatus.BAD_REQUEST,
+//       "messageType is required when sending message to ADMIN"
+//     );
+//   }
+
+//   // if receiver is not ADMIN => messageType must not be set
+//   if (receiver.role !== UserRole.ADMIN && messageType) {
+//     throw new ApiError(
+//       httpStatus.BAD_REQUEST,
+//       "messageType can only be set when sending message to ADMIN"
+//     );
+//   }
+
+//   const [person1, person2] = [senderId, receiverId].sort();
+//   const channelName = person1 + person2;
+
+//   const [channel, newMessage] = await prisma.$transaction(
+//     async (prismaTransaction) => {
+//       let channel = await prismaTransaction.channel.findFirst({
+//         where: { channelName },
+//       });
+
+//       if (!channel) {
+//         channel = await prismaTransaction.channel.create({
+//           data: { channelName, person1Id: senderId, person2Id: receiverId },
+//         });
+//       }
+
+//       const newMessage = await prismaTransaction.message.create({
+//         data: {
+//           message,
+//           senderId,
+//           channelName,
+//           files: imageUrls,
+//           messageType: receiver.role === UserRole.ADMIN ? messageType : null,
+//         },
+//         include: {
+//           sender: {
+//             select: { id: true, fullName: true, profileImage: true },
+//           },
+//         },
+//       });
+
+//       return [channel, newMessage];
+//     }
+//   );
+
+//   //  all messages channel for the sender and receiver
+//   const allMessages = await prisma.channel.findMany({
+//     where: {
+//       channelName: channelName,
+//     },
+//     include: {
+//       messages: true,
+//     },
+//     orderBy: {
+//       createdAt: "desc",
+//     },
+//   });
+
+//   return allMessages;
+// };
+
+// send message
 const sendMessage = async (
   senderId: string,
   receiverId: string,
   message: string,
-  imageUrls: string[],
-  messageType?: "Critical" | "High" | "Medium" | "Low"
+  imageUrls: string[]
+  
 ) => {
-  // receiver role check
-  const receiver = await prisma.user.findUnique({
-    where: { id: receiverId },
-    select: { role: true },
-  });
-
-  if (!receiver) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Invalid receiver");
-  }
-
-  // if receiver is ADMIN => messageType required
-  if (receiver.role === UserRole.ADMIN && !messageType) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "messageType is required when sending message to ADMIN"
-    );
-  }
-
-  // if receiver is not ADMIN => messageType must not be set
-  if (receiver.role !== UserRole.ADMIN && messageType) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "messageType can only be set when sending message to ADMIN"
-    );
-  }
-
   const [person1, person2] = [senderId, receiverId].sort();
   const channelName = person1 + person2;
 
+  if (!senderId) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "UNAUTHORIZED");
+  }
+
+  // use transaction
   const [channel, newMessage] = await prisma.$transaction(
     async (prismaTransaction) => {
       let channel = await prismaTransaction.channel.findFirst({
-        where: { channelName },
+        where: {
+          channelName: channelName,
+        },
       });
 
       if (!channel) {
         channel = await prismaTransaction.channel.create({
-          data: { channelName, person1Id: senderId, person2Id: receiverId },
+          data: {
+            channelName,
+            person1Id: senderId,
+            person2Id: receiverId,
+          },
         });
       }
 
+      //  message created
       const newMessage = await prismaTransaction.message.create({
         data: {
           message,
           senderId,
-          channelName,
+          channelName: channelName,
           files: imageUrls,
-          messageType: receiver.role === UserRole.ADMIN ? messageType : null,
         },
         include: {
           sender: {
-            select: { id: true, fullName: true, profileImage: true },
+            select: {
+              id: true,
+              fullName: true,
+              profileImage: true,
+            },
           },
         },
       });
@@ -85,8 +158,23 @@ const sendMessage = async (
     },
   });
 
+  // // Broadcast the new message to all WebSocket clients subscribed to the channel
+  // const connectedClients = channelClients.get(channel.id) || new Set();
+  // const messagePayload = {
+  //   type: 'newMessage',
+  //   channelId: channel.id,
+  //   data: newMessage,
+  // };
+
+  // connectedClients.forEach((client: any) => {
+  //   if (client.readyState === WebSocket.OPEN) {
+  //     client.send(JSON.stringify(messagePayload));
+  //   }
+  // });
+
   return allMessages;
 };
+
 
 // get my channel by my id
 const getMyChannelByMyId = async (userId: string) => {

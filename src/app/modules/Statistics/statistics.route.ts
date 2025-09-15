@@ -54,4 +54,11 @@ router.post(
   StatisticsController.sendReportToServiceProviderThroughEmail
 );
 
+  // partner total earings
+router.get(
+  "/partner-total-earnings",
+  auth(UserRole.BUSINESS_PARTNER),
+  StatisticsController.getPartnerTotalEarnings
+);
+
 export const statisticsRoutes = router;

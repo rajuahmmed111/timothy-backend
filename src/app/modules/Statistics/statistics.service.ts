@@ -176,8 +176,6 @@ const paymentWithUserAnalysis = async () => {
   };
 };
 
-
-
 // financial metrics
 const financialMetrics = async () => {
   // total admin and service earnings (only PAID payments)
@@ -797,6 +795,32 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
   // return partner
 };
 
+  // partner total earings
+  const getPartnerTotalEarnings = async (partnerId: string) => {
+// find partner
+    const partner = await prisma.user.findUnique({
+      where: {
+        id: partnerId,
+      },
+    });
+    if (!partner) {
+      throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+    }
+
+    // calculate earnings
+    const earnings = await prisma.payment.aggregate({
+      where: {
+        partnerId: partnerId,
+        status: PaymentStatus.PAID,
+      },
+      _sum: {
+        service_fee: true,
+      },
+    });
+    
+    return earnings._sum.service_fee ?? 0;
+  }
+
 export const StatisticsService = {
   getOverview,
   paymentWithUserAnalysis,
@@ -805,4 +829,5 @@ export const StatisticsService = {
   getAllServiceProviders,
   getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
+  getPartnerTotalEarnings
 };

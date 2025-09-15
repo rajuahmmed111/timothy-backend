@@ -93,8 +93,6 @@ async function main() {
             const channelName: string = parsed.channelName;
             const messageText: string = parsed.message;
             const senderId: string = parsed.senderId || "";
-            const receiverId: string = parsed.receiverId || "";
-            const messageType: string = parsed.messageType;
 
             if (!channelName || typeof channelName !== "string") {
               safeSend(ws, { type: "error", message: "Invalid channelName" });
@@ -103,22 +101,6 @@ async function main() {
 
             if (!senderId) {
               safeSend(ws, { type: "error", message: "senderId is required" });
-              return;
-            }
-
-            // Check if receiver is Admin (replace this with your actual role check)
-            const receiverUser = receiverId
-              ? await prisma.user.findUnique({ where: { id: receiverId } })
-              : null;
-            const isAdminReceiver = receiverUser?.role === "ADMIN";
-
-            // If receiver is admin, messageType is required
-            if (isAdminReceiver && !messageType) {
-              safeSend(ws, {
-                type: "error",
-                message:
-                  "messageType is required when sending message to ADMIN",
-              });
               return;
             }
 
@@ -132,7 +114,7 @@ async function main() {
                 data: {
                   channelName,
                   person1Id: senderId,
-                  person2Id: receiverId,
+                  person2Id: parsed.receiverId || "",
                 },
               });
             }
@@ -144,7 +126,6 @@ async function main() {
                 senderId,
                 channelName: channel.channelName,
                 files: parsed.files || [],
-                messageType: messageType || null, // optional if not admin
               },
               include: {
                 sender: {

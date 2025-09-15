@@ -9,7 +9,7 @@ import { uploadFile } from "../../../helpars/fileUploader";
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const senderId = req.user?.id;
   const receiverId = req.params.receiverId;
-  const { message, messageType } = req.body;
+  const { message } = req.body;
 
   // multer array => req.files as Express.Multer.File[]
   const files = req.files as Express.Multer.File[] | undefined;
@@ -32,7 +32,6 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
     receiverId,
     message,
     imageUrls,
-    messageType
   );
 
   sendResponse(res, {
