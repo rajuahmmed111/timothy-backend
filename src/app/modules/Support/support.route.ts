@@ -19,4 +19,37 @@ router.post(
   SupportController.createSupport
 );
 
+// get my support
+router.get(
+  "/my-support",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  SupportController.getMySupport
+);
+
+// get support by id
+router.get(
+  "/:id",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER
+  ),
+  SupportController.getSupportById
+);
+
+// update my support
+router.patch(
+  "/update-my-support/:supportId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  SupportController.updateMySupport
+);
+
+// delete my support
+router.delete(
+  "/delete-my-support/:supportId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  SupportController.deleteMySupport
+);
+
 export const supportRoutes = router;
