@@ -52,4 +52,11 @@ router.delete(
   SupportController.deleteMySupport
 );
 
+// update support status
+router.patch(
+  "/update-support-status/:supportId",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  SupportController.updateSupportStatus
+);
+
 export const supportRoutes = router;

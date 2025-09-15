@@ -1,7 +1,11 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { UserStatus } from "@prisma/client";
+import { Prisma, SupportStatus, UserStatus } from "@prisma/client";
+import { IFilterRequest } from "./support.interface";
+import { IPaginationOptions } from "../../../interfaces/paginations";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
+import { searchableFields } from "./support.constant";
 
 // create support
 const createSupport = async (userId: string, data: any) => {
@@ -25,9 +29,74 @@ const createSupport = async (userId: string, data: any) => {
 };
 
 // get all support
-const getAllSupport = async () => {
-  const result = await prisma.support.findMany();
-  return result;
+const getAllSupport = async (
+  params: IFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.SupportWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // always get only Pending status
+  filters.push({
+    status: SupportStatus.Pending,
+  });
+
+  const where: Prisma.SupportWhereInput = {
+    AND: filters,
+  };
+
+  const result = await prisma.support.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.support.count({
+    where,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
 // get my support
@@ -105,6 +174,15 @@ const deleteMySupport = async (userId: string, supportId: string) => {
   return result;
 };
 
+// update support status
+const updateSupportStatus = async (supportId: string) => {
+  const result = await prisma.support.update({
+    where: { id: supportId },
+    data: { status: SupportStatus.Closed },
+  });
+  return result;
+};
+
 export const SupportService = {
   createSupport,
   getAllSupport,
@@ -112,4 +190,5 @@ export const SupportService = {
   getSupportById,
   updateMySupport,
   deleteMySupport,
+  updateSupportStatus,
 };

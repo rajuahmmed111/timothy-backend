@@ -3,6 +3,9 @@ import catchAsync from "../../../shared/catchAsync";
 import { SupportService } from "./support.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
+import { pick } from "../../../shared/pick";
+import { filterField } from "./support.constant";
+import { paginationFields } from "../../../constants/pagination";
 
 // create support
 const createSupport = catchAsync(async (req: Request, res: Response) => {
@@ -19,7 +22,9 @@ const createSupport = catchAsync(async (req: Request, res: Response) => {
 
 // get all support
 const getAllSupport = catchAsync(async (req: Request, res: Response) => {
-  const result = await SupportService.getAllSupport();
+      const filter = pick(req.query, filterField);
+      const options = pick(req.query, paginationFields);
+  const result = await SupportService.getAllSupport(filter, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -81,6 +86,19 @@ const deleteMySupport = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update support status
+const updateSupportStatus = catchAsync(async (req: Request, res: Response) => {
+  const supportId = req.params.supportId;
+  const result = await SupportService.updateSupportStatus(supportId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Support status updated successfully",
+    data: result,
+  });
+});
+
 export const SupportController = {
   createSupport,
   getAllSupport,
@@ -88,4 +106,5 @@ export const SupportController = {
   getSupportById,
   updateMySupport,
   deleteMySupport,
+  updateSupportStatus,
 };
