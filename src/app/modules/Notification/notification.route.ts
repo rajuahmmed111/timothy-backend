@@ -47,4 +47,11 @@ router.delete(
   NotificationController.deleteNotification
 );
 
+// mark as read notification
+router.patch(
+  "/:notificationId",
+  auth(),
+  NotificationController.markAsReadNotification
+);
+
 export const notificationsRoute = router;

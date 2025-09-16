@@ -164,14 +164,41 @@ const getMyNotifications = async (userId: string) => {
 
 // delete notification
 const deleteNotification = async (notificationId: string) => {
-  const result = await prisma.notifications.delete({
-    where: { id: notificationId },
+  // find notification
+  const notification = await prisma.notifications.findUnique({
+    where: {
+      id: notificationId,
+    },
   });
-  if (!result) {
+
+  if (!notification) {
     throw new ApiError(404, "Notification not found");
   }
 
+  const result = await prisma.notifications.delete({
+    where: { id: notificationId },
+  });
+
   return result;
+};
+
+// mark as read notification
+const markAsReadNotification = async (notificationId: string) => {
+  // find notification
+  const notification = await prisma.notifications.findUnique({
+    where: {
+      id: notificationId,
+    },
+  });
+
+  if (!notification) {
+    throw new ApiError(404, "Notification not found");
+  }
+
+  return prisma.notifications.update({
+    where: { id: notificationId },
+    data: { read: true },
+  });
 };
 
 export const NotificationService = {
@@ -181,4 +208,5 @@ export const NotificationService = {
   getSingleNotificationFromDB,
   getMyNotifications,
   deleteNotification,
+  markAsReadNotification,
 };

@@ -89,6 +89,20 @@ const deleteNotification = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// mark as read notification
+const markAsReadNotification = catchAsync(async (req: Request, res: Response) => {
+  const notificationId = req.params.notificationId;
+  const notification = await NotificationService.markAsReadNotification(
+    notificationId
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Notification marked as read successfully",
+    data: notification,
+  });
+});
+
 export const NotificationController = {
   sendSingleNotification,
   sendNotifications,
@@ -96,4 +110,5 @@ export const NotificationController = {
   getSingleNotificationById,
   getMyNotifications,
   deleteNotification,
+  markAsReadNotification,
 };
