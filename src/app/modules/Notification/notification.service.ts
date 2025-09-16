@@ -115,17 +115,26 @@ const sendNotifications = async (req: any) => {
 const getAllNotifications = async (options: IPaginationOptions) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const result = await prisma.notifications.findMany();
-  // const total = await prisma.notifications.count();
+  const result = await prisma.notifications.findMany({
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+  });
+  const total = await prisma.notifications.count();
 
-  // return {
-  //   meta: {
-  //     total,
-  //     page,
-  //     limit,
-  //   },
-  //   data: result,
-  // };
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 
   return result;
 };
