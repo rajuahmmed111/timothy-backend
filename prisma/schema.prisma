@@ -110,6 +110,12 @@ model User {
   payStackSubAccountId String?
   payStackSubAccount   String?
 
+  // service flags
+  hotelHave      Boolean @default(false)
+  carHave        Boolean @default(false)
+  securityHave   Boolean @default(false)
+  attractionHave Boolean @default(false)
+
   otp        String?
   otpExpiry  DateTime?
   identifier String?

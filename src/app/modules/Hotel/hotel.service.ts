@@ -142,6 +142,12 @@ const createHotel = async (req: Request) => {
     },
   });
 
+  // update partner hotel count
+  await prisma.user.update({
+    where: { id: partnerExists.id },
+    data: { hotelHave: true },
+  });
+
   return result;
 };
 
@@ -257,7 +263,7 @@ const getAllHotels = async (
       },
     },
   });
-  
+
   const total = await prisma.hotel.count({ where });
 
   return {
