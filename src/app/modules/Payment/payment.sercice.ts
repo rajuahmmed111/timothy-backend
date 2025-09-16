@@ -539,7 +539,7 @@ const cancelStripeBooking = async (
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
 
-  // 1️⃣ Booking with payment and user
+  // Booking with payment and user
   const booking = await bookingModel.findUnique({
     where: { id: bookingId, userId },
     include: { payment: true, user: true },
@@ -555,39 +555,39 @@ const cancelStripeBooking = async (
   if (!payment || !payment.payment_intent)
     throw new ApiError(httpStatus.BAD_REQUEST, "No payment found for this booking");
 
-  // 2️⃣ Full refund for main payment_intent
+  // Full refund for main payment_intent
   await stripe.refunds.create({
     payment_intent: payment.payment_intent,
     amount: payment.amount, // full amount
   });
 
-  // 3️⃣ Reverse transfer to connected account (provider)
+  // Reverse transfer to connected account (provider)
   if (payment.transfer_id && payment.service_fee > 0) {
     await stripe.transfers.createReversal(payment.transfer_id, {
       amount: payment.service_fee, // provider portion
     });
   }
 
-  // 4️⃣ Update payment status
+  // Update payment status
   await prisma.payment.update({
     where: { id: payment.id },
     data: { status: PaymentStatus.REFUNDED },
   });
 
-  // 5️⃣ Update booking status to CANCELLED
+  // Update booking status to CANCELLED
   await bookingModel.update({
     where: { id: bookingId },
     data: { bookingStatus: BookingStatus.CANCELLED },
   });
 
-  // 6️⃣ Free the service
+  // Free the service
   const serviceIdField = `${serviceType.toLowerCase()}Id`;
   await serviceModel.update({
     where: { id: booking[serviceIdField] },
     data: { isBooked: EveryServiceStatus.AVAILABLE },
   });
 
-  // 7️⃣ Send cancel notification
+  // Send cancel notification
   const service = await serviceModel.findUnique({
     where: { id: booking[serviceIdField] },
   });
