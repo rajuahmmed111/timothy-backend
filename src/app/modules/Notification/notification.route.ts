@@ -49,7 +49,7 @@ router.delete(
 
 // mark as read notification
 router.patch(
-  "/:notificationId",
+  "/mark-as-read/:notificationId",
   auth(),
   NotificationController.markAsReadNotification
 );
