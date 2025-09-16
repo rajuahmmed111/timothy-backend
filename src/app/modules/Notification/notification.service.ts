@@ -1,5 +1,7 @@
 import ApiError from "../../../errors/ApiErrors";
 import admin from "../../../helpars/firebaseAdmin";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
+import { IPaginationOptions } from "../../../interfaces/paginations";
 import prisma from "../../../shared/prisma";
 
 // Send notification to a single user
@@ -109,21 +111,26 @@ const sendNotifications = async (req: any) => {
   };
 };
 
-const getNotificationsFromDB = async (req: any) => {
-  const notifications = await prisma.notifications.findMany({
-    where: {
-      receiverId: req.user.id,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+// get all notifications
+const getAllNotifications = async (options: IPaginationOptions) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  if (notifications.length === 0) {
-    throw new ApiError(404, "No notifications found for the user");
-  }
+  const result = await prisma.notifications.findMany();
+  // const total = await prisma.notifications.count();
 
-  return notifications;
+  // return {
+  //   meta: {
+  //     total,
+  //     page,
+  //     limit,
+  //   },
+  //   data: result,
+  // };
+
+  return result;
 };
 
+// get single notification
 const getSingleNotificationFromDB = async (
   req: any,
   notificationId: string
@@ -149,16 +156,29 @@ const getSingleNotificationFromDB = async (
 
 // get my all notifications
 const getMyNotifications = async (userId: string) => {
-return prisma.notifications.findMany({
-      where: { receiverId: userId },
-      orderBy: { createdAt: "desc" }, // newest first
-    });
+  return prisma.notifications.findMany({
+    where: { receiverId: userId },
+    orderBy: { createdAt: "desc" }, // newest first
+  });
+};
+
+// delete notification
+const deleteNotification = async (notificationId: string) => {
+  const result = await prisma.notifications.delete({
+    where: { id: notificationId },
+  });
+  if (!result) {
+    throw new ApiError(404, "Notification not found");
+  }
+
+  return result;
 };
 
 export const NotificationService = {
   sendSingleNotification,
   sendNotifications,
-  getNotificationsFromDB,
+  getAllNotifications,
   getSingleNotificationFromDB,
   getMyNotifications,
+  deleteNotification,
 };

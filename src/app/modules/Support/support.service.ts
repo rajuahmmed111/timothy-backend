@@ -19,13 +19,25 @@ const createSupport = async (userId: string, data: any) => {
   if (!findUser) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
-  const result = await prisma.support.create({
+  const support = await prisma.support.create({
     data: {
       userId,
       ...data,
     },
   });
-  return result;
+
+  // create notification
+  await prisma.notifications.create({
+    data: {
+      title: "New Support Ticket Created",
+      body: `A new support ticket has been created by ${findUser.fullName}`,
+      message: `Support Subject: ${subject}`,
+      partnerId: userId,
+      supportId : support.id
+    },
+  });
+
+  return support;
 };
 
 // get all support

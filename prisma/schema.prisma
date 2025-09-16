@@ -564,6 +564,7 @@ model Notifications {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   receiverId   String?  @db.ObjectId
   partnerId    String?  @db.ObjectId
+  supportId    String?  @db.ObjectId
   title        String
   message      String?
   body         String

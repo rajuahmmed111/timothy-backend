@@ -1,6 +1,7 @@
 import express from "express";
 import auth from "../../middlewares/auth";
 import { NotificationController } from "./notification.controller";
+import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
@@ -11,23 +12,39 @@ router.get(
   NotificationController.getMyNotifications
 );
 
+// send single notification
 router.post(
   "/send-notification/:userId",
   auth(),
-  NotificationController.sendNotification
+  NotificationController.sendSingleNotification
 );
 
+// send notifications
 router.post(
   "/send-notification",
   auth(),
   NotificationController.sendNotifications
 );
 
-router.get("/", auth(), NotificationController.getNotifications);
+// get all notifications
+router.get(
+  "/all-notifications",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  NotificationController.getAllNotifications
+);
+
+// get single notification
 router.get(
   "/:notificationId",
   auth(),
   NotificationController.getSingleNotificationById
+);
+
+// delete notification
+router.delete(
+  "/:notificationId",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  NotificationController.deleteNotification
 );
 
 export const notificationsRoute = router;

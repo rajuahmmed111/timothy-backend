@@ -82,7 +82,6 @@ const createHotel = async (req: Request) => {
     hotelWashing,
     hotelBookingCondition,
     hotelCancelationPolicy,
-    // hotelDocs,
     hotelRoomDescription,
     hotelAddress,
     hotelCity,
@@ -150,6 +149,99 @@ const createHotel = async (req: Request) => {
 
   return result;
 };
+
+// create hotel active list
+// const createHotelActiveList = async (req: Request) => {
+//   const partnerId = req.user?.id;
+
+//   const partnerExists = await prisma.user.findUnique({
+//     where: { id: partnerId },
+//   });
+//   if (!partnerExists) {
+//     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+//   }
+
+//   const files = req.files as {
+//     [fieldname: string]: Express.Multer.File[];
+//   };
+
+//   const roomImageFiles = files?.hotelRoomImages || [];
+
+//   // Upload multiple room images
+//   let roomImageUrls: string[] = [];
+//   if (roomImageFiles.length > 0) {
+//     const uploads = await Promise.all(
+//       roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+//     );
+//     roomImageUrls = uploads.map((img) => img?.secure_url || "");
+//   }
+
+//   const {
+//     hotelName,
+//     hotelRoomType,
+//     hotelRoomPriceNight,
+//     hotelAC,
+//     hotelParking,
+//     hoitelWifi,
+//     hotelBreakfast,
+//     hotelPool,
+//     hotelRating,
+//     hotelSmoking,
+//     hotelTv,
+//     hotelWashing,
+//     hotelBookingCondition,
+//     hotelCancelationPolicy,
+//     hotelRoomDescription,
+//     hotelAddress,
+//     hotelCity,
+//     hotelPostalCode,
+//     hotelDistrict,
+//     hotelCountry,
+//     hotelRoomCapacity,
+//     category,
+//     discount,
+//     hotelReviewCount,
+//     hotelNumberOfRooms,
+//     hotelNumAdults,
+//     hotelNumChildren,
+//   } = req.body;
+
+//   const result = await prisma.hotel.create({
+//     data: {
+//       hotelName,
+//       hotelRoomType,
+//       hotelRoomPriceNight: parseInt(hotelRoomPriceNight),
+//       hotelAC: hotelAC === "true",
+//       hotelParking: hotelParking === "true",
+//       hoitelWifi: hoitelWifi === "true",
+//       hotelBreakfast: hotelBreakfast === "true",
+//       hotelPool: hotelPool === "true",
+//       hotelRating,
+//       hotelSmoking: hotelSmoking === "true",
+//       hotelTv: hotelTv === "true",
+//       hotelWashing: hotelWashing === "true",
+//       hotelBookingCondition,
+//       hotelCancelationPolicy,
+//       hotelRoomDescription,
+//       hotelAddress,
+//       hotelCity,
+//       hotelPostalCode,
+//       hotelDistrict,
+//       hotelCountry,
+//       hotelRoomCapacity,
+//       hotelRoomImages: roomImageUrls,
+//       category: category || undefined,
+//       discount: discount ? parseFloat(discount) : 0,
+//       hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
+//       hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
+//       hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
+//       hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
+//       partnerId: partnerId,
+//     },
+//   });
+
+//   return result;
+// };
 
 // get all hotels with search filtering and pagination
 const getAllHotels = async (

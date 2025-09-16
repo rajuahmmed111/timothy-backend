@@ -2,20 +2,25 @@ import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import { NotificationService } from "./notification.service";
 import sendResponse from "../../../shared/sendResponse";
+import { pick } from "../../../shared/pick";
+import { paginationFields } from "../../../constants/pagination";
 
-// send notification
-const sendNotification = catchAsync(async (req: Request, res: Response) => {
-  // const payload = req.body;
-  const notification = await NotificationService.sendSingleNotification(req);
+// send single notification
+const sendSingleNotification = catchAsync(
+  async (req: Request, res: Response) => {
+    // const payload = req.body;
+    const notification = await NotificationService.sendSingleNotification(req);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "notification sent successfully",
-    data: notification,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "notification sent successfully",
+      data: notification,
+    });
+  }
+);
 
+// send notifications
 const sendNotifications = catchAsync(async (req: Request, res: Response) => {
   const notifications = await NotificationService.sendNotifications(req);
 
@@ -27,8 +32,10 @@ const sendNotifications = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getNotifications = catchAsync(async (req: Request, res: Response) => {
-  const notifications = await NotificationService.getNotificationsFromDB(req);
+// get all notifications
+const getAllNotifications = catchAsync(async (req: Request, res: Response) => {
+  const options = pick(req.query, paginationFields);
+  const notifications = await NotificationService.getAllNotifications(options);
 
   sendResponse(res, {
     statusCode: 200,
@@ -38,6 +45,7 @@ const getNotifications = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get single notification
 const getSingleNotificationById = catchAsync(
   async (req: Request, res: Response) => {
     const notificationId = req.params.notificationId;
@@ -67,10 +75,25 @@ const getMyNotifications = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete notification
+const deleteNotification = catchAsync(async (req: Request, res: Response) => {
+  const notificationId = req.params.notificationId;
+  const notification = await NotificationService.deleteNotification(
+    notificationId
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Notification deleted successfully",
+    data: notification,
+  });
+});
+
 export const NotificationController = {
-  sendNotification,
+  sendSingleNotification,
   sendNotifications,
-  getNotifications,
+  getAllNotifications,
   getSingleNotificationById,
   getMyNotifications,
+  deleteNotification,
 };
