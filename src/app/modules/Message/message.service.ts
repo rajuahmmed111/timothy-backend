@@ -5,6 +5,7 @@ import { UserRole, UserStatus } from "@prisma/client";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 // import channelClients from '../../../server';
+import { ObjectId } from "mongodb";
 
 // send message
 const sendMessage = async (
@@ -174,6 +175,83 @@ const getMyChannelByMyId = async (userId: string) => {
   // only return channels receiverUser
   return result.filter((ch) => ch.receiverUser !== null);
 };
+
+// get my channel by my id for user support
+const getMyChannelByMyIdForUserSupport = async (userId: string) => {
+  // ensure valid ObjectId
+  if (!ObjectId.isValid(userId)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid user id format");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: new ObjectId(userId).toString() },
+  });
+
+  if (!user || user.status !== UserStatus.ACTIVE) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
+  }
+
+
+  // get all channels for this user
+  const channels = await prisma.channel.findMany({
+    where: {
+      OR: [{ person1Id: userId }, { person2Id: userId }],
+    },
+    include: {
+      person1: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+          role: true,
+          status: true,
+        },
+      },
+      person2: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+          role: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  // filter: only USER ↔ ADMIN pairs (ACTIVE only), exclude BUSINESS_PARTNER
+  const result = channels
+    .map((channel) => {
+      const p1 = channel.person1;
+      const p2 = channel.person2;
+
+      if (!p1 || !p2) return null;
+
+      const bothActive =
+        p1.status === UserStatus.ACTIVE && p2.status === UserStatus.ACTIVE;
+
+      const isUserAdminPair =
+        bothActive &&
+        ((p1.role === UserRole.USER && p2.role === UserRole.ADMIN) ||
+          (p1.role === UserRole.ADMIN && p2.role === UserRole.USER));
+
+      if (!isUserAdminPair) return null;
+
+      const receiverUser = channel.person1Id === userId ? p2 : p1;
+
+      return {
+        id: channel.id,
+        channelName: channel.channelName,
+        createdAt: channel.createdAt,
+        updatedAt: channel.updatedAt,
+        receiverUser,
+      };
+    })
+    .filter((ch) => ch !== null);
+
+  return result;
+};
+
 
 // get my channel through my id and receiver id
 const getMyChannel = async (userId: string, receiverId: string) => {
@@ -408,6 +486,7 @@ export const MessageServices = {
   sendMessage,
   getMyChannel,
   getMyChannelByMyId,
+  getMyChannelByMyIdForUserSupport,
   getMessagesFromDB,
   getUserChannels,
   getUserAdminChannels,

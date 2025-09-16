@@ -56,6 +56,20 @@ const getMyChannelByMyId = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get my channel by my id for user support
+const getMyChannelByMyIdForUserSupport = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const result = await MessageServices.getMyChannelByMyId(userId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Channel retrieved successfully",
+      data: result,
+    });
+  }
+);
+
 // get my channel through my id and receiver id
 const getMyChannel = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
@@ -128,6 +142,7 @@ export const messageControllers = {
   sendMessage,
   getMyChannel,
   getMyChannelByMyId,
+  getMyChannelByMyIdForUserSupport,
   getMessagesFromDB,
   getUserChannels,
   getUserAdminChannels,
