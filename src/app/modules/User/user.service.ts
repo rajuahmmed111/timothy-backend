@@ -67,6 +67,42 @@ const createUser = async (payload: any) => {
   };
 };
 
+// create role for supper admin
+const createRoleSupperAdmin = async (payload: any) => {
+  // check if email exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: payload.email, status: UserStatus.ACTIVE },
+  });
+  if (existingUser) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "User already exists");
+  }
+
+  // hash password
+  const hashedPassword = await bcrypt.hash(payload.password, 12);
+
+  const user = await prisma.user.create({
+    data: {
+      ...payload,
+      password: hashedPassword,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      contactNumber: true,
+      address: true,
+      country: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return user;
+};
+
 // verify otp and create user
 const verifyOtpAndCreateUser = async (email: string, otp: string) => {
   const user = await prisma.user.findUnique({ where: { email } });
@@ -821,6 +857,7 @@ const deleteUser = async (
 
 export const UserService = {
   createUser,
+  createRoleSupperAdmin,
   verifyOtpAndCreateUser,
   getAllUsers,
   getAllAdmins,

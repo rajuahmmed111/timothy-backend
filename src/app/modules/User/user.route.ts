@@ -77,6 +77,14 @@ router.post(
   UserController.createUser
 );
 
+// create role for supper admin
+router.post(
+  "/add-role",
+  auth(UserRole.SUPER_ADMIN),
+  validateRequest(userValidation.createUserZodSchema),
+  UserController.createRoleSupperAdmin
+);
+
 // verify user
 router.post("/verify-user", UserController.verifyOtpAndCreateUser);
 
