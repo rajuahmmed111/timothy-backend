@@ -150,10 +150,12 @@ const getAllNotifications = async (
     where,
     skip,
     take: limit,
-    orderBy:
+    orderBy: [
+      { read: "asc" },
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
+    ],
   });
 
   const total = await prisma.notifications.count({ where });
