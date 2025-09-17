@@ -112,7 +112,7 @@ const sendNotifications = async (req: any) => {
 };
 
 // get all notifications
-const getAllNotifications = async (options: IPaginationOptions) => {
+const getAllNotifications = async (adminId: string, options: IPaginationOptions) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
   const result = await prisma.notifications.findMany({
