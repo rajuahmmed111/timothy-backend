@@ -32,8 +32,9 @@ const createSupport = async (userId: string, data: any) => {
       title: "New Support Ticket Created",
       body: `A new support ticket has been created by ${findUser.fullName}`,
       message: `Support Subject: ${subject}`,
+      serviceTypes: "SUPPORT",
       partnerId: userId,
-      supportId : support.id
+      supportId: support.id,
     },
   });
 

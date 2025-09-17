@@ -112,20 +112,51 @@ const sendNotifications = async (req: any) => {
 };
 
 // get all notifications
-const getAllNotifications = async (adminId: string, options: IPaginationOptions) => {
+const getAllNotifications = async (
+  adminId: string,
+  options: IPaginationOptions
+) => {
+  // find admin
+  const user = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: {
+      supportNotification: true,
+      paymentNotification: true,
+      emailNotification: true,
+    },
+  });
+
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
+  // Build excluded service types dynamically
+  const excludedTypes: string[] = [];
+
+  if (user?.supportNotification === false) {
+    excludedTypes.push("SUPPORT");
+  }
+  if (user?.paymentNotification === false) {
+    excludedTypes.push("ATTRACTION", "CAR", "SECURITY", "HOTEL");
+  }
+  if (user?.emailNotification === false) {
+    excludedTypes.push("EMAIL");
+  }
+
+  const where: any = {};
+  if (excludedTypes.length > 0) {
+    where.serviceTypes = { notIn: excludedTypes };
+  }
+
   const result = await prisma.notifications.findMany({
+    where,
     skip,
     take: limit,
     orderBy:
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
-        : {
-            createdAt: "desc",
-          },
+        : { createdAt: "desc" },
   });
-  const total = await prisma.notifications.count();
+
+  const total = await prisma.notifications.count({ where });
 
   return {
     meta: {
@@ -135,8 +166,6 @@ const getAllNotifications = async (adminId: string, options: IPaginationOptions)
     },
     data: result,
   };
-
-  return result;
 };
 
 // get single notification
