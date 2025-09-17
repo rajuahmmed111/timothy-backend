@@ -18,13 +18,13 @@ declare global {
 const app: Application = express();
 
 export const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://timothy-dashboard.netlify.app",
-    "https://temothy-dashboard.vercel.app",
-  ],
-  // origin: "*",
+  // origin: [
+  //   "http://localhost:5173",
+  //   "http://localhost:3000",
+  //   "https://timothy-dashboard.netlify.app",
+  //   "https://temothy-dashboard.vercel.app",
+  // ],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
