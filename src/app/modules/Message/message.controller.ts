@@ -6,6 +6,7 @@ import httpStatus from "http-status";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
+import { filterField } from "./message.constant";
 
 // send message
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
@@ -60,7 +61,9 @@ const getMyChannelByMyId = catchAsync(async (req: Request, res: Response) => {
 const getMyChannelByMyIdForUserSupport = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const result = await MessageServices.getMyChannelByMyId(userId);
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result = await MessageServices.getMyChannelByMyIdForUserSupport(userId, filter, options);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

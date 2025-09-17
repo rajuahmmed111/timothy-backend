@@ -1,11 +1,13 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { UserRole, UserStatus } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 // import channelClients from '../../../server';
 import { ObjectId } from "mongodb";
+import { IMessageFilterRequest } from "./message.interface";
+import { searchableFields } from "./message.constant";
 
 // send message
 const sendMessage = async (
@@ -118,6 +120,7 @@ const getMyChannelByMyId = async (userId: string) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
           role: true,
           status: true,
@@ -129,6 +132,7 @@ const getMyChannelByMyId = async (userId: string) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
           role: true,
           status: true,
@@ -177,11 +181,17 @@ const getMyChannelByMyId = async (userId: string) => {
 };
 
 // get my channel by my id for user support
-const getMyChannelByMyIdForUserSupport = async (userId: string) => {
-  // ensure valid ObjectId
+const getMyChannelByMyIdForUserSupport = async (
+  userId: string,
+  params: IMessageFilterRequest,
+  options: IPaginationOptions
+) => {
   if (!ObjectId.isValid(userId)) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid user id format");
   }
+
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+  const { searchTerm } = params;
 
   const user = await prisma.user.findUnique({
     where: { id: new ObjectId(userId).toString() },
@@ -191,8 +201,6 @@ const getMyChannelByMyIdForUserSupport = async (userId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
   }
 
-
-  // get all channels for this user
   const channels = await prisma.channel.findMany({
     where: {
       OR: [{ person1Id: userId }, { person2Id: userId }],
@@ -202,6 +210,7 @@ const getMyChannelByMyIdForUserSupport = async (userId: string) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
           role: true,
           status: true,
@@ -211,20 +220,22 @@ const getMyChannelByMyIdForUserSupport = async (userId: string) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
           role: true,
           status: true,
         },
       },
     },
+    skip,
+    take: limit,
   });
 
-  // filter: only USER ↔ ADMIN pairs (ACTIVE only), exclude BUSINESS_PARTNER
-  const result = channels
+  // Transform and filter
+  let result = channels
     .map((channel) => {
       const p1 = channel.person1;
       const p2 = channel.person2;
-
       if (!p1 || !p2) return null;
 
       const bothActive =
@@ -249,9 +260,24 @@ const getMyChannelByMyIdForUserSupport = async (userId: string) => {
     })
     .filter((ch) => ch !== null);
 
-  return result;
-};
+  // search fullName and email
+  if (searchTerm) {
+    result = result.filter((ch) => {
+      const nameMatch = ch!.receiverUser.fullName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const emailMatch = ch!.receiverUser.email
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return nameMatch || emailMatch;
+    });
+  }
 
+  return {
+    meta: { page, limit },
+    data: result,
+  };
+};
 
 // get my channel through my id and receiver id
 const getMyChannel = async (userId: string, receiverId: string) => {
@@ -329,6 +355,7 @@ const getUserChannels = async (userId: string) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
         },
       },
@@ -336,6 +363,7 @@ const getUserChannels = async (userId: string) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
         },
       },
@@ -353,6 +381,7 @@ const getUserAdminChannels = async () => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
           role: true,
           status: true,
@@ -364,6 +393,7 @@ const getUserAdminChannels = async () => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           profileImage: true,
           role: true,
           status: true,
