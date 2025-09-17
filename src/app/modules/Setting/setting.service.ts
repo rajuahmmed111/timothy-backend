@@ -1,5 +1,7 @@
 import { UserStatus } from "@prisma/client";
 import prisma from "../../../shared/prisma";
+import ApiError from "../../../errors/ApiErrors";
+import httpStatus from "http-status";
 
 // verify email and phone number
 const verifyEmailAndPhoneNumber = async (userId: string) => {
@@ -69,14 +71,26 @@ const getCustomerContactInfo = async () => {
 const updateNotificationSettings = async (
   userId: string,
   payload: {
-    messageNotification?: boolean;
-    transactionNotification?: boolean;
+    supportNotification?: boolean;
+    paymentNotification?: boolean;
     emailNotification?: boolean;
   }
 ) => {
+  // find admin
+  const findAdmin = await prisma.user.findUnique({
+    where: { id: userId, status: UserStatus.ACTIVE },
+  });
+  if (!findAdmin) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
   return prisma.user.update({
-    where: { id: userId },
-    data: payload,
+    where: { id: findAdmin.id },
+    data: {
+      supportNotification: payload.supportNotification,
+      paymentNotification: payload.paymentNotification,
+      emailNotification: payload.emailNotification,
+    },
     select: {
       id: true,
       supportNotification: true,
