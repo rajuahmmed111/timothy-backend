@@ -128,7 +128,7 @@ const getAllNotifications = async (
 
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  // Build excluded service types dynamically
+  // serviceTypes dynamically excluded
   const excludedTypes: string[] = [];
 
   if (user?.supportNotification === false) {
