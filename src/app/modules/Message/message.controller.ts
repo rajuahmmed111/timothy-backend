@@ -105,7 +105,6 @@ const getMessagesFromDB = catchAsync(async (req: Request, res: Response) => {
 
 const getUserChannels = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  // console.log(userId);
 
   const channels = await MessageServices.getUserChannels(userId);
 
