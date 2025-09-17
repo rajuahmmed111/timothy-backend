@@ -70,10 +70,23 @@ const getCustomerContactInfo = catchAsync(
   }
 );
 
+// updateNotificationSettings
+const updateNotificationSettings = catchAsync(async (req: Request, res: Response) => {
+  const result = await SettingService.updateNotificationSettings(req.user.id, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Notification settings updated",
+    data: result,
+  });
+});
+
 export const SettingController = {
   verifyEmailAndPhoneNumber,
   createOrUpdateAbout,
   getAbout,
   createOrUpdateCustomerContactInfo,
   getCustomerContactInfo,
+  updateNotificationSettings
 };

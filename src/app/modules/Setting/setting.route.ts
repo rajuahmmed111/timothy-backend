@@ -53,4 +53,10 @@ router.post(
   SettingController.createOrUpdateCustomerContactInfo
 );
 
+// updateNotificationSettings only for admin
+router.patch(
+  "/notification-settings",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  SettingController.updateNotificationSettings
+)
 export const settingRoute = router;

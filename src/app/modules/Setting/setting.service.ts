@@ -65,10 +65,32 @@ const getCustomerContactInfo = async () => {
   return result;
 };
 
+// updateNotificationSettings
+const updateNotificationSettings = async (
+  userId: string,
+  payload: {
+    messageNotification?: boolean;
+    transactionNotification?: boolean;
+    emailNotification?: boolean;
+  }
+) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: payload,
+    select: {
+      id: true,
+      supportNotification: true,
+      paymentNotification: true,
+      emailNotification: true,
+    },
+  });
+};
+
 export const SettingService = {
   verifyEmailAndPhoneNumber,
   createOrUpdateAbout,
   getAbout,
   createOrUpdateCustomerContactInfo,
   getCustomerContactInfo,
+  updateNotificationSettings,
 };

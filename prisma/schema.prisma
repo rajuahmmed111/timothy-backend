@@ -116,6 +116,11 @@ model User {
   securityHave   Boolean @default(false)
   attractionHave Boolean @default(false)
 
+  // notification Preferences
+  supportNotification Boolean @default(true)
+  paymentNotification Boolean @default(true)
+  emailNotification   Boolean @default(true)
+
   otp        String?
   otpExpiry  DateTime?
   identifier String?
