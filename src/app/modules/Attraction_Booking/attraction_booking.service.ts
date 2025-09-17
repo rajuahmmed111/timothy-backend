@@ -122,19 +122,6 @@ const createAttractionBooking = async (
     },
   });
 
-  // send notifications
-  // const notificationData: IBookingNotificationData = {
-  //   bookingId: booking.id,
-  //   partnerId: booking.partnerId,
-  //   userId: booking.userId!,
-  //   serviceType: ServiceType.ATTRACTION,
-  //   serviceName: attraction.attractionName,
-  //   bookedFromDate: booking.date,
-  //   bookedToDate: booking.date,
-  //   totalPrice: booking.totalPrice,
-  // };
-  // BookingNotificationService.sendBookingNotifications(notificationData);
-
   return booking;
 };
 
@@ -202,7 +189,8 @@ const getAllMyAttractionBookings = async (userId: string) => {
           id: true,
           attractionName: true,
           attractionAdultPrice: true,
-          attractionChildPrice: true,
+          attractionImages: true,
+          attractionAddress: true,
           discount: true,
           category: true,
           partnerId: true,

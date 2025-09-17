@@ -172,10 +172,11 @@ const getAllMyHotelBookings = async (userId: string) => {
           id: true,
           hotelName: true,
           hotelRoomPriceNight: true,
+          hotelRoomImages: true,
+          hotelAddress: true,
           discount: true,
           category: true,
           partnerId: true,
-          
         },
       },
       payment: {
@@ -190,60 +191,6 @@ const getAllMyHotelBookings = async (userId: string) => {
   });
   return result;
 };
-
-// get my all (hotel, security, car, attraction) bookings
-// const getAllMyBookings = async (
-//   authUserId: string,
-//   params: IBookingFilterRequest
-// ) => {
-//   // Validate user exists
-//   const user = await prisma.user.findUnique({ where: { id: authUserId } });
-//   if (!user) {
-//     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-//   }
-
-//   if (!params.category) {
-//     // No filter, get all bookings
-//     const [hotels, securities, ] = await Promise.all([
-//       prisma.hotel_Booking.findMany({ where: { userId: authUserId } }),
-//       prisma.security_Booking.findMany({ where: { userId: authUserId } }),
-//       // prisma.car_Booking.findMany({ where: { userId: authUserId } }),
-//       // prisma.attraction_Booking.findMany({ where: { userId: authUserId } }),
-//     ]);
-
-//     return { hotels, securities, };
-//   }
-
-//   // Only fetch and return one category as per filter
-//   switch (params.category) {
-//     case "hotel":
-//       const hotels = await prisma.hotel_Booking.findMany({
-//         where: { userId: authUserId, category: "hotel" },
-//         include: { hotel: true },
-//       });
-//       return { hotels };
-//     case "security":
-//       const securities = await prisma.security_Booking.findMany({
-//         where: { userId: authUserId, category: "security" },
-//         include: { security: true },
-//       });
-//       return { securities };
-//     // case "car":
-//     //   const cars = await prisma.car_Booking.findMany({
-//     //     where: { userId: authUserId, category: "car" },
-//     //     include: { car: true },
-//     //   });
-//     //   return { cars };
-//     // case "attraction":
-//     //   const attractions = await prisma.attraction_Booking.findMany({
-//     //     where: { userId: authUserId, category: "attraction" },
-//     //     include: { attraction: true },
-//     //   });
-//     //   return { attractions };
-//     default:
-//       throw new ApiError(httpStatus.BAD_REQUEST, "Invalid category");
-//   }
-// };
 
 // get hotel booking by id
 const getHotelBookingById = async (partnerId: string, bookingId: string) => {
@@ -359,7 +306,6 @@ export const HotelBookingService = {
   createHotelBooking,
   getAllHotelBookings,
   getAllMyHotelBookings,
-  // getAllMyBookings,
   getHotelBookingById,
   cancelMyHotelBooking,
   updateBookingStatus,

@@ -223,6 +223,8 @@ const getAllMyCarBookings = async (userId: string) => {
           id: true,
           carName: true,
           carPriceDay: true,
+          carImages: true,
+          carAddress: true,
           discount: true,
           category: true,
           partnerId: true,

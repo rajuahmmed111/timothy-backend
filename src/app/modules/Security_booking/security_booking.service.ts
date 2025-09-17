@@ -1,4 +1,9 @@
-import { BookingStatus, EveryServiceStatus, PaymentStatus, UserStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  EveryServiceStatus,
+  PaymentStatus,
+  UserStatus,
+} from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
@@ -190,13 +195,15 @@ const getAllMySecurityBookings = async (userId: string) => {
           id: true,
           securityName: true,
           securityPriceDay: true,
+          securityImages: true,
+          securityAddress: true,
           discount: true,
           category: true,
           partnerId: true,
         },
       },
       payment: {
-        where: { status:PaymentStatus.PAID },
+        where: { status: PaymentStatus.PAID },
         select: {
           id: true,
           provider: true,

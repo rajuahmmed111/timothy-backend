@@ -47,21 +47,6 @@ const getAllMyHotelBookings = catchAsync(
   }
 );
 
-// // get my all (hotel, security, car, attraction) bookings
-// const getAllMyBookings = catchAsync(async (req: Request, res: Response) => {
-//   const userId = req.user?.id;
-//   const category = req.query.category as BookingCategory | undefined;
-//   const result = await HotelBookingService.getAllMyBookings(userId, {
-//     category,
-//   });
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "My all bookings fetched successfully",
-//     data: result,
-//   });
-// });
-
 // get hotel booking by id
 const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
   const partnerId = req.user?.id;
