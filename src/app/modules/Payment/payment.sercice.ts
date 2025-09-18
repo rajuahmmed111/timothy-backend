@@ -480,6 +480,14 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         });
       }
 
+      // if booking service type SECURITY hoy tahole security protocol ar id dore hiredCount +1 hobe
+      if (payment.serviceType === "SECURITY") {
+        await config.serviceModel.update({
+          where: { id: (booking as any).securityId },
+          data: { hiredCount: { increment: 1 } },
+        });
+      }
+
       // ---------- send notification ----------
       const service = await config.serviceModel.findUnique({
         where: { id: serviceId },
@@ -874,6 +882,14 @@ const payStackHandleWebhook = async (event: any) => {
       await config.serviceModel.update({
         where: { id: serviceId },
         data: { isBooked: EveryServiceStatus.BOOKED },
+      });
+    }
+
+    // if booking service type SECURITY hoy tahole security protocol ar id dore hiredCount +1 hobe
+    if (payment.serviceType === "SECURITY") {
+      await config.serviceModel.update({
+        where: { id: (booking as any).securityId },
+        data: { hiredCount: { increment: 1 } },
       });
     }
 
