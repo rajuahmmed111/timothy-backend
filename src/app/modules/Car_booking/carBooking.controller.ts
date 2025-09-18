@@ -9,7 +9,7 @@ const createCarBooking = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const carId = req.params.carId;
   const data = req.body;
-  console.log(userId, carId, data, "controller");
+  // console.log(userId, carId, data, "controller");
   const result = await CarRentalBookingService.createCarBooking(
     userId,
     carId,
