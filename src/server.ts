@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import app from "./app";
 import config from "./config";
 import prisma from "./shared/prisma";
+import { changeExpiryBookingStatus } from "./utils/cronFn/changeExpiryBookingStatus";
 
 // ---------- WebSocket state ----------
 type channelName = string;
@@ -56,6 +57,9 @@ async function main() {
   server = app.listen(config.port, () => {
     console.log("Server is running on port", config.port);
   });
+
+  // start cron jobs
+  changeExpiryBookingStatus();
 
   wss = new WebSocketServer({ server });
   installHeartbeat(wss);
