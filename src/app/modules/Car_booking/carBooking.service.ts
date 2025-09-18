@@ -204,7 +204,7 @@ const getAllMyCarBookings = async (userId: string) => {
   }
 
   const result = await prisma.car_Booking.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       car: {
         select: {
