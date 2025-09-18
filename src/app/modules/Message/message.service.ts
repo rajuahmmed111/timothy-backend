@@ -345,7 +345,21 @@ const getMessagesFromDB = async (
 };
 
 // get user channels
-const getUserChannels = async (userId: string) => {
+const getUserChannels = async (
+  userId: string,
+  params: IMessageFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { searchTerm } = params;
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const filters: Prisma.ChannelWhereInput[] = [];
+
   const channels = await prisma.channel.findMany({
     where: {
       OR: [{ person1Id: userId }, { person2Id: userId }],

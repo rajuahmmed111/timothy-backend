@@ -63,7 +63,11 @@ const getMyChannelByMyIdForUserSupport = catchAsync(
     const userId = req.user?.id;
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
-    const result = await MessageServices.getMyChannelByMyIdForUserSupport(userId, filter, options);
+    const result = await MessageServices.getMyChannelByMyIdForUserSupport(
+      userId,
+      filter,
+      options
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -105,10 +109,10 @@ const getMessagesFromDB = catchAsync(async (req: Request, res: Response) => {
 
 const getUserChannels = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-      const filter = pick(req.query, filterField);
-    const options = pick(req.query, paginationFields);
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
 
-  const channels = await MessageServices.getUserChannels(userId);
+  const channels = await MessageServices.getUserChannels(userId, filter, options);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
