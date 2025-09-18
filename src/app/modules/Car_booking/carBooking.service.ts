@@ -26,11 +26,13 @@ const createCarBooking = async (
   });
   if (!user)
     throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
+  console.log(user.id);
 
   // validate car
   const car = await prisma.car_Rental.findUnique({
     where: { id: carId },
     select: {
+      id: true,
       carPriceDay: true,
       partnerId: true,
       discount: true,
@@ -41,6 +43,7 @@ const createCarBooking = async (
   });
   if (!car)
     throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unavailable");
+  console.log(car.id);
 
   // required fields
   if (!carBookedFromDate || !carBookedToDate)
