@@ -344,7 +344,7 @@ const getMessagesFromDB = async (
   };
 };
 
-// get user channels
+// get user channels with search + pagination
 const getUserChannels = async (
   userId: string,
   params: IMessageFilterRequest,
@@ -353,6 +353,7 @@ const getUserChannels = async (
   const { searchTerm } = params;
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
+  // make sure user exists
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
@@ -360,10 +361,48 @@ const getUserChannels = async (
 
   const filters: Prisma.ChannelWhereInput[] = [];
 
+  // 🔎 search filter on person1 / person2
+  if (searchTerm) {
+    filters.push({
+      OR: [
+        {
+          person1: {
+            OR: [
+              { fullName: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+        {
+          person2: {
+            OR: [
+              { fullName: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+      ],
+    });
+  }
+
+  const where: Prisma.ChannelWhereInput = {
+    AND: [
+      {
+        OR: [{ person1Id: userId }, { person2Id: userId }],
+      },
+      ...filters,
+    ],
+  };
+
+  // fetch channels with pagination
   const channels = await prisma.channel.findMany({
-    where: {
-      OR: [{ person1Id: userId }, { person2Id: userId }],
-    },
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : { createdAt: "desc" },
     include: {
       person1: {
         select: {
@@ -383,7 +422,18 @@ const getUserChannels = async (
       },
     },
   });
-  return channels;
+
+  // total count for pagination
+  const total = await prisma.channel.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: channels,
+  };
 };
 
 // get all channels only user and admin
