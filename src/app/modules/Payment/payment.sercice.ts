@@ -28,6 +28,8 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+// --------------------------- Stripe ---------------------------
+
 // stripe account onboarding
 const stripeAccountOnboarding = async (userId: string) => {
   // find user
@@ -549,11 +551,17 @@ const cancelStripeBooking = async (
 
   const user = booking.user;
   if (!user.stripeAccountId)
-    throw new ApiError(httpStatus.BAD_REQUEST, "User has no connected Stripe account");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "User has no connected Stripe account"
+    );
 
   const payment = booking.payment?.[0];
   if (!payment || !payment.payment_intent)
-    throw new ApiError(httpStatus.BAD_REQUEST, "No payment found for this booking");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "No payment found for this booking"
+    );
 
   // Full refund for main payment_intent
   await stripe.refunds.create({
@@ -606,6 +614,7 @@ const cancelStripeBooking = async (
   return { bookingId, status: "CANCELLED" };
 };
 
+// --------------------------- pay-stack ---------------------------
 
 //
 // get banks
