@@ -361,7 +361,7 @@ const getUserChannels = async (
 
   const filters: Prisma.ChannelWhereInput[] = [];
 
-  // 🔎 search filter on person1 / person2
+  // search filter on person1 / person2
   if (searchTerm) {
     filters.push({
       OR: [
