@@ -885,10 +885,13 @@ const payStackHandleWebhook = async (event: any) => {
       });
     }
 
-    // if booking service type SECURITY hoy tahole security protocol ar id dore hiredCount +1 hobe
-    if (payment.serviceType === "SECURITY") {
+    // if booking service type SECURITY hoy tahole security protocol ar id dore hiredCount +1 hobe and payment status jodi paid hoy
+    if (
+      payment.serviceType === "SECURITY" &&
+      payment.status === PaymentStatus.PAID
+    ) {
       await config.serviceModel.update({
-        where: { id: (booking as any).securityId },
+        where: { id: serviceId },
         data: { hiredCount: { increment: 1 } },
       });
     }
