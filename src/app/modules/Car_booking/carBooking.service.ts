@@ -210,6 +210,10 @@ const getAllMyCarBookings = async (userId: string) => {
         select: {
           id: true,
           carName: true,
+          carModel: true,
+          carSeats: true,
+          carCity: true,
+          carCountry: true,
           carPriceDay: true,
           carImages: true,
           carAddress: true,
