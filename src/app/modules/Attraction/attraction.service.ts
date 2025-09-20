@@ -85,23 +85,23 @@ const createAttraction = async (req: Request) => {
     );
   }
 
-  for (const schedule of schedules) {
-    const existingSchedule = await prisma.attractionSchedule.findFirst({
-      where: {
-        attraction: {
-          partnerId,
-        },
-        // date: schedule.date,
-        day: schedule.day,
-      },
-    });
-    if (existingSchedule) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Schedule already exists for ${schedule.date} (${schedule.day})`
-      );
-    }
-  }
+  // for (const schedule of schedules) {
+  //   const existingSchedule = await prisma.attractionSchedule.findFirst({
+  //     where: {
+  //       attraction: {
+  //         partnerId,
+  //       },
+  //       // date: schedule.date,
+  //       day: schedule.day,
+  //     },
+  //   });
+  //   if (existingSchedule) {
+  //     throw new ApiError(
+  //       httpStatus.BAD_REQUEST,
+  //       `Schedule already exists for ${schedule.date} (${schedule.day})`
+  //     );
+  //   }
+  // }
 
   // transaction: Attraction + Schedule + Slots
   const { attractionId } = await prisma.$transaction(
