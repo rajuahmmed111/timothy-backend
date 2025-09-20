@@ -100,8 +100,8 @@ const createAttractionBooking = async (
 
   // calculate total price
   let totalPrice =
-    adults * (attraction.attractionAdultPrice || 0) +
-    children * (attraction.attractionChildPrice || 0);
+    adults * attraction.attractionAdultPrice +
+    children * attraction.attractionChildPrice;
 
   if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
   if (attraction.discount)
