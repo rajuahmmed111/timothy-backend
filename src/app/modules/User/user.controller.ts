@@ -202,6 +202,7 @@ const getPartnerById = catchAsync(async (req: Request, res: Response) => {
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
   const data = req.body;
+  console.log(data, "controller");
 
   const result = await UserService.updateUser(userId, data);
 

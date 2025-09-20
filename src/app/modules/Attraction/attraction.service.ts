@@ -75,7 +75,6 @@ const createAttraction = async (req: Request) => {
     attractionReviewCount,
     schedules, // [{ date: "2025-08-12", slots: [{ from, to }] }]
   } = req.body;
-  console.log(req.body, "req.body attraction service");
 
   // check same schedule exists
   if (!schedules || schedules.length === 0) {
