@@ -115,20 +115,6 @@ const createSecurityBooking = async (
     },
   });
 
-  // send notifications
-  // const notificationData: IBookingNotificationData = {
-  //   bookingId: result.id,
-  //   userId,
-  //   partnerId: security.partnerId,
-  //   serviceType: ServiceType.SECURITY,
-  //   quantity: number_of_security,
-  //   totalPrice,
-  //   bookedFromDate: securityBookedFromDate,
-  //   bookedToDate: securityBookedToDate,
-  //   serviceName: security.securityName,
-  // };
-  // BookingNotificationService.sendBookingNotifications(notificationData);
-
   return result;
 };
 
