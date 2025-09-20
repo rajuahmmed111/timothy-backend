@@ -125,7 +125,7 @@ router.patch(
     UserRole.BUSINESS_PARTNER,
     UserRole.USER
   ),
-  validateRequest(userValidation.updateUserZodSchema),
+  // validateRequest(userValidation.updateUserZodSchema),
   UserController.updateUser
 );
 
