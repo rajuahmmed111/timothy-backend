@@ -116,7 +116,7 @@ router.patch(
   UserController.updateAdminStatusRejected
 );
 
-// update user
+// single update user (info + profile image)
 router.patch(
   "/update",
   auth(
@@ -125,6 +125,7 @@ router.patch(
     UserRole.BUSINESS_PARTNER,
     UserRole.USER
   ),
+  uploadFile.profileImage,
   validateRequest(userValidation.updateUserZodSchema),
   UserController.updateUser
 );

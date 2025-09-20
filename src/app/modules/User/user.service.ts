@@ -704,12 +704,12 @@ const getPartnerById = async (id: string): Promise<SafeUser> => {
   return user;
 };
 
-// update user
+// update user (info + profile image)
 const updateUser = async (
   id: string,
-  updates: IUpdateUser
+  updates: IUpdateUser,
+  file?: IUploadedFile
 ): Promise<SafeUser> => {
-  console.log("updates", updates);
   const user = await prisma.user.findUnique({
     where: { id, status: UserStatus.ACTIVE },
   });
@@ -718,13 +718,21 @@ const updateUser = async (
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  // update fields
+  // profile image upload if provided
+  let profileImageUrl = user.profileImage;
+  if (file) {
+    const cloudinaryResponse = await uploadFile.uploadToCloudinary(file);
+    profileImageUrl = cloudinaryResponse?.secure_url!;
+  }
+
+  // allowed fields
   const allowedFields: Partial<IUpdateUser> = {
     fullName: updates.fullName,
     // email: updates.email,
     contactNumber: updates.contactNumber,
     address: updates.address,
     country: updates.country,
+    profileImage: profileImageUrl,
   };
 
   const updatedUser = await prisma.user.update({
@@ -748,6 +756,7 @@ const updateUser = async (
 
   return updatedUser;
 };
+
 
 // get my profile
 const getMyProfile = async (id: string) => {

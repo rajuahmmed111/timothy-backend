@@ -8,6 +8,7 @@ import { pick } from "../../../shared/pick";
 import { filterField } from "./user.constant";
 import { paginationFields } from "../../../constants/pagination";
 import { isValidObjectId } from "../../../utils/validateObjectId";
+import { IUploadedFile } from "../../../interfaces/file";
 
 // create user
 const createUser = catchAsync(async (req: Request, res: Response) => {
@@ -198,21 +199,22 @@ const getPartnerById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// update user
+// update user (info + profile image)
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
   const data = req.body;
-  console.log(data, "controller");
+  const file = req.file as IUploadedFile | undefined;
 
-  const result = await UserService.updateUser(userId, data);
+  const result = await UserService.updateUser(userId, data, file);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User information updated successfully",
+    message: "User profile updated successfully",
     data: result,
   });
 });
+
 
 // get my profile
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {

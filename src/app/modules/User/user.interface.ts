@@ -18,6 +18,7 @@ export type IUpdateUser = {
   contactNumber?: string;
   address?: string;
   country?: string;
+  profileImage?: string;
 };
 
 export type IFilterRequest = {
