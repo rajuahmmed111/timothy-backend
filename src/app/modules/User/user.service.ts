@@ -709,6 +709,7 @@ const updateUser = async (
   id: string,
   updates: IUpdateUser
 ): Promise<SafeUser> => {
+  console.log("updates", updates);
   const user = await prisma.user.findUnique({
     where: { id, status: UserStatus.ACTIVE },
   });
@@ -720,7 +721,7 @@ const updateUser = async (
   // update fields
   const allowedFields: Partial<IUpdateUser> = {
     fullName: updates.fullName,
-    email: updates.email,
+    // email: updates.email,
     contactNumber: updates.contactNumber,
     address: updates.address,
     country: updates.country,
