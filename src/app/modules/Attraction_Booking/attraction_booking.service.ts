@@ -129,27 +129,24 @@ const createAttractionBooking = async (
     },
   });
 
-  const overlappingBookings = (
-    await prisma.attraction_Booking.findMany({
-      where: {
-        id: { not: booking.id },
-        attractionId: booking.attractionId,
-        day: booking.day,
-      },
-    })
-  ).filter((b) => {
-    if (!b.timeSlot) return false;
+const overlappingBookings = (await prisma.attraction_Booking.findMany({
+  where: {
+    attractionId,
+    day,
+    id: { not: booking.id },
+  },
+})).filter(b => {
+  const slotData = b.timeSlot as { from: string; to: string };
+  const newSlotData = booking.timeSlot as { from: string; to: string };
 
-    const slotData = b.timeSlot as { from: string; to: string };
-    const slotFrom = parseTime(slotData.from);
-    const slotTo = parseTime(slotData.to);
+  const existingFrom = parseTime(slotData.from);
+  const existingTo = parseTime(slotData.to);
+  const newFrom = parseTime(newSlotData.from);
+  const newTo = parseTime(newSlotData.to);
 
-    const newSlotData = booking.timeSlot as { from: string; to: string };
-    const newFrom = parseTime(newSlotData.from);
-    const newTo = parseTime(newSlotData.to);
+  return newFrom < existingTo && newTo > existingFrom; // overlap check
+});
 
-    return newFrom < slotTo && newTo > slotFrom; // overlap check
-  });
 
   // jodi overlapping hoy tahole ami jeta booking koresi thik setai delete korbo and message dibo schedule not found
   if (overlappingBookings.length > 0) {
