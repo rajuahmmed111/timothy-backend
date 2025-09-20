@@ -415,7 +415,7 @@ const getSingleAttraction = async (id: string) => {
   return result;
 };
 
-// update attraction (without transaction)
+// update attraction (with consistent schedule handling)
 const updateAttraction = async (req: Request) => {
   const attractionId = req.params.id;
   const partnerId = req.user?.id;
@@ -502,7 +502,7 @@ const updateAttraction = async (req: Request) => {
     category,
     discount,
     attractionReviewCount,
-    schedules, // optional
+    schedules, // comes as JSON string just like create
   } = req.body;
 
   // update attraction
@@ -546,7 +546,10 @@ const updateAttraction = async (req: Request) => {
 
   // update schedules & slots if provided
   if (schedules && schedules.length > 0) {
-    // Delete old slots
+    // parse schedules same as create
+    const scheduleData = JSON.parse(schedules);
+
+    // delete old slots
     await prisma.scheduleSlot.deleteMany({
       where: {
         attractionScheduleId: {
@@ -557,11 +560,11 @@ const updateAttraction = async (req: Request) => {
 
     // delete old schedules
     await prisma.attractionSchedule.deleteMany({
-      where: { attractionId: attractionId },
+      where: { attractionId },
     });
 
     // create new schedules & slots
-    for (const schedule of schedules) {
+    for (const schedule of scheduleData) {
       const attractionSchedule = await prisma.attractionSchedule.create({
         data: {
           attractionId: updatedAttraction.id,
@@ -572,7 +575,7 @@ const updateAttraction = async (req: Request) => {
 
       const uniqueSlots = Array.from(
         new Map(
-          schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
+          (schedule.slots ?? []).map((s: any) => [`${s.from}-${s.to}`, s])
         ).values()
       ) as { from: string; to: string }[];
 
