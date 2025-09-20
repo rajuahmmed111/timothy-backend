@@ -9,6 +9,7 @@ const createAttractionBooking = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
     const attractionId = req.params.attractionId;
+    console.log(userId, attractionId, req.body, "controller");
     const result = await AttractionBookingService.createAttractionBooking(
       userId,
       attractionId,
