@@ -4,20 +4,27 @@ import prisma from "../../../shared/prisma";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { parse, startOfDay, isBefore, format } from "date-fns";
 
+interface IAttractionBookingData {
+  adults: number;
+  children: number;
+  date: string; // "2025-08-12"
+  from: string; // "10:00:00"
+}
+
+function parseTime(time: string) {
+  const [h, m, s] = time.split(":").map(Number);
+  return h * 60 + m + s / 60;
+}
+
 // create attraction booking
 const createAttractionBooking = async (
   userId: string,
   attractionId: string,
-  data: {
-    adults: number;
-    children: number;
-    date: string; // "2025-08-12"
-    from: string; // "10:00:00"
-  }
+  data: IAttractionBookingData
 ) => {
   const { adults, children, date, from } = data;
 
-  // validate required fields
+  // Validate required fields
   if (adults == null || children == null || !date || !from) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -25,7 +32,7 @@ const createAttractionBooking = async (
     );
   }
 
-  // convert date & time
+  // Convert date & time
   const bookingDate = parse(date, "yyyy-MM-dd", new Date());
   const today = startOfDay(new Date());
   const now = new Date();
@@ -34,24 +41,24 @@ const createAttractionBooking = async (
     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
   }
 
-  // same-day past time check
+  // Same-day past time check
   if (bookingDate.getTime() === today.getTime()) {
     const [hours, minutes, seconds] = from.split(":").map(Number);
     const bookingTime = new Date(today);
     bookingTime.setHours(hours, minutes, seconds, 0);
 
-    // if (isBefore(bookingTime, now)) {
-    //   throw new ApiError(
-    //     httpStatus.BAD_REQUEST,
-    //     "Cannot book for past time slots today"
-    //   );
-    // }
+    if (isBefore(bookingTime, now)) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Cannot book for past time slots today"
+      );
+    }
   }
 
-  // get day from date automatically
+  // Get day from date automatically
   const day = format(bookingDate, "EEEE").toUpperCase(); // MONDAY, TUESDAY...
 
-  // get attraction with schedules & slots (match by day)
+  // Get attraction with schedules & slots (match by day)
   const attraction = await prisma.attraction.findUnique({
     where: { id: attractionId },
     select: {
@@ -74,7 +81,7 @@ const createAttractionBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  // check schedule exists for that day
+  // Check schedule exists for that day
   if (
     !attraction.attractionSchedule ||
     attraction.attractionSchedule.length === 0
@@ -87,7 +94,7 @@ const createAttractionBooking = async (
 
   const schedule = attraction.attractionSchedule[0];
 
-  // find matching slot
+  // Find matching slot
   const slot = schedule.slots.find((s) => s.from === from);
   if (!slot) {
     throw new ApiError(
@@ -96,7 +103,7 @@ const createAttractionBooking = async (
     );
   }
 
-  // calculate total price
+  // Calculate total price
   let totalPrice =
     adults * (attraction.attractionAdultPrice || 0) +
     children * (attraction.attractionChildPrice || 0);
@@ -105,7 +112,7 @@ const createAttractionBooking = async (
   if (attraction.discount)
     totalPrice -= (totalPrice * attraction.discount) / 100;
 
-  // create booking
+  // Create booking
   const booking = await prisma.attraction_Booking.create({
     data: {
       userId,
@@ -121,6 +128,34 @@ const createAttractionBooking = async (
       bookingStatus: BookingStatus.PENDING,
     },
   });
+
+  const overlappingBookings = (
+    await prisma.attraction_Booking.findMany({
+      where: {
+        id: { not: booking.id },
+        attractionId: booking.attractionId,
+        day: booking.day,
+      },
+    })
+  ).filter((b) => {
+    if (!b.timeSlot) return false;
+
+    const slotData = b.timeSlot as { from: string; to: string };
+    const slotFrom = parseTime(slotData.from);
+    const slotTo = parseTime(slotData.to);
+
+    const newSlotData = booking.timeSlot as { from: string; to: string };
+    const newFrom = parseTime(newSlotData.from);
+    const newTo = parseTime(newSlotData.to);
+
+    return newFrom < slotTo && newTo > slotFrom; // overlap check
+  });
+
+  // jodi overlapping hoy tahole ami jeta booking koresi thik setai delete korbo and message dibo schedule not found
+  if (overlappingBookings.length > 0) {
+    await prisma.attraction_Booking.delete({ where: { id: booking.id } });
+    throw new ApiError(httpStatus.BAD_REQUEST, "Schedule not found");
+  }
 
   return booking;
 };
