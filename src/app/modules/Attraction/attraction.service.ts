@@ -153,7 +153,9 @@ const createAttraction = async (req: Request) => {
         );
       }
 
-      for (const schedule of schedules) {
+      const scheduleData = JSON.parse(schedules);
+
+      for (const schedule of scheduleData) {
         // date as string
         const attractionSchedule = await tx.attractionSchedule.create({
           data: {
@@ -181,6 +183,35 @@ const createAttraction = async (req: Request) => {
           });
         }
       }
+
+      // for (const schedule of schedules) {
+      //   // date as string
+      //   const attractionSchedule = await tx.attractionSchedule.create({
+      //     data: {
+      //       attractionId: attraction.id,
+      //       // date: schedule.date,
+      //       day: schedule.day,
+      //     },
+      //   });
+
+      //   // remove duplicate slots for same date
+      //   const uniqueSlots = Array.from(
+      //     new Map(
+      //       schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
+      //     ).values()
+      //   ) as ISlot[];
+
+      //   for (const slot of uniqueSlots) {
+      //     await tx.scheduleSlot.create({
+      //       data: {
+      //         attractionId: attraction.id,
+      //         attractionScheduleId: attractionSchedule.id,
+      //         from: slot.from,
+      //         to: slot.to,
+      //       },
+      //     });
+      //   }
+      // }
 
       return { attractionId: attraction.id };
     },
