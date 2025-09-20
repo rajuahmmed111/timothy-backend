@@ -11,11 +11,6 @@ interface IAttractionBookingData {
   from: string; // "10:00:00"
 }
 
-function parseTime(time: string) {
-  const [h, m, s] = time.split(":").map(Number);
-  return h * 60 + m + s / 60;
-}
-
 // create attraction booking
 const createAttractionBooking = async (
   userId: string,
@@ -24,7 +19,7 @@ const createAttractionBooking = async (
 ) => {
   const { adults, children, date, from } = data;
 
-  // Validate required fields
+  // validate required fields
   if (adults == null || children == null || !date || !from) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -32,7 +27,7 @@ const createAttractionBooking = async (
     );
   }
 
-  // Convert date & time
+  // convert date & time
   const bookingDate = parse(date, "yyyy-MM-dd", new Date());
   const today = startOfDay(new Date());
   const now = new Date();
@@ -41,24 +36,24 @@ const createAttractionBooking = async (
     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot book for past dates");
   }
 
-  // Same-day past time check
+  // same-day past time check
   if (bookingDate.getTime() === today.getTime()) {
     const [hours, minutes, seconds] = from.split(":").map(Number);
     const bookingTime = new Date(today);
     bookingTime.setHours(hours, minutes, seconds, 0);
 
-    if (isBefore(bookingTime, now)) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        "Cannot book for past time slots today"
-      );
-    }
+    // if (isBefore(bookingTime, now)) {
+    //   throw new ApiError(
+    //     httpStatus.BAD_REQUEST,
+    //     "Cannot book for past time slots today"
+    //   );
+    // }
   }
 
-  // Get day from date automatically
+  // get day from date automatically
   const day = format(bookingDate, "EEEE").toUpperCase(); // MONDAY, TUESDAY...
 
-  // Get attraction with schedules & slots (match by day)
+  // get attraction with schedules & slots (match by day)
   const attraction = await prisma.attraction.findUnique({
     where: { id: attractionId },
     select: {
@@ -81,7 +76,7 @@ const createAttractionBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  // Check schedule exists for that day
+  // check schedule exists for that day
   if (
     !attraction.attractionSchedule ||
     attraction.attractionSchedule.length === 0
@@ -94,7 +89,7 @@ const createAttractionBooking = async (
 
   const schedule = attraction.attractionSchedule[0];
 
-  // Find matching slot
+  // find matching slot
   const slot = schedule.slots.find((s) => s.from === from);
   if (!slot) {
     throw new ApiError(
@@ -103,7 +98,7 @@ const createAttractionBooking = async (
     );
   }
 
-  // Calculate total price
+  // calculate total price
   let totalPrice =
     adults * (attraction.attractionAdultPrice || 0) +
     children * (attraction.attractionChildPrice || 0);
@@ -112,7 +107,7 @@ const createAttractionBooking = async (
   if (attraction.discount)
     totalPrice -= (totalPrice * attraction.discount) / 100;
 
-  // Create booking
+  // create booking
   const booking = await prisma.attraction_Booking.create({
     data: {
       userId,
@@ -128,31 +123,6 @@ const createAttractionBooking = async (
       bookingStatus: BookingStatus.PENDING,
     },
   });
-
-const overlappingBookings = (await prisma.attraction_Booking.findMany({
-  where: {
-    attractionId,
-    day,
-    id: { not: booking.id },
-  },
-})).filter(b => {
-  const slotData = b.timeSlot as { from: string; to: string };
-  const newSlotData = booking.timeSlot as { from: string; to: string };
-
-  const existingFrom = parseTime(slotData.from);
-  const existingTo = parseTime(slotData.to);
-  const newFrom = parseTime(newSlotData.from);
-  const newTo = parseTime(newSlotData.to);
-
-  return newFrom < existingTo && newTo > existingFrom; // overlap check
-});
-
-
-  // jodi overlapping hoy tahole ami jeta booking koresi thik setai delete korbo and message dibo schedule not found
-  if (overlappingBookings.length > 0) {
-    await prisma.attraction_Booking.delete({ where: { id: booking.id } });
-    throw new ApiError(httpStatus.BAD_REQUEST, "Schedule not found");
-  }
 
   return booking;
 };
