@@ -4,17 +4,20 @@ import prisma from "../../../shared/prisma";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { parse, startOfDay, isBefore, format } from "date-fns";
 
+interface IAttractionBookingData {
+  adults: number;
+  children: number;
+  date: string; // "2025-08-12"
+  from: string; // "10:00:00"
+}
+
 // create attraction booking
 const createAttractionBooking = async (
   userId: string,
   attractionId: string,
-  data: {
-    adults: number;
-    children: number;
-    date: string; // "2025-08-12"
-    from: string; // "10:00:00"
-  }
+  data: IAttractionBookingData
 ) => {
+  console.log(userId, attractionId, data);
   const { adults, children, date, from } = data;
 
   // validate required fields
@@ -98,8 +101,8 @@ const createAttractionBooking = async (
 
   // calculate total price
   let totalPrice =
-    adults * (attraction.attractionAdultPrice || 0) +
-    children * (attraction.attractionChildPrice || 0);
+    adults * attraction.attractionAdultPrice +
+    children * attraction.attractionChildPrice;
 
   if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
   if (attraction.discount)
