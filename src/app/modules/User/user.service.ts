@@ -448,10 +448,7 @@ const getAllBusinessPartners = async (
   const where: Prisma.UserWhereInput = { AND: filters };
 
   const result = await prisma.user.findMany({
-    where: {
-      role: UserRole.BUSINESS_PARTNER,
-      status: UserStatus.ACTIVE,
-    },
+    where,
     skip,
     take: limit,
     orderBy:
