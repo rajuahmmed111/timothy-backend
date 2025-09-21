@@ -45,7 +45,7 @@ router.get(
 // get all channels only user and admin
 router.get(
   "/user-admin-channels",
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER),
   messageControllers.getUserAdminChannels
 );
 
