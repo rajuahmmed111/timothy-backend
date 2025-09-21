@@ -5,6 +5,7 @@ import { IContractFilterRequest } from "./contract.interface";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./contract.constant";
 import ApiError from "../../../errors/ApiErrors";
+import { getDateRange } from "../../../helpars/filterByDate";
 
 // get all contracts (bookings)
 const getAllContracts = async (
@@ -16,7 +17,7 @@ const getAllContracts = async (
   const page = options.page || 1;
   const skip = (page - 1) * limit || 0;
 
-  const { searchTerm, bookingStatus } = params;
+  const { searchTerm, bookingStatus, timeRange } = params;
 
   // fetch all bookings
   const hotel = await prisma.hotel_Booking.findMany();
@@ -31,7 +32,19 @@ const getAllContracts = async (
     ...attraction.map((item) => ({ type: "attraction", ...item })),
   ];
 
-  // optional search
+  // ✅ timeRange filter
+  let dateRange;
+  if (timeRange) {
+    dateRange = getDateRange(timeRange);
+  }
+  if (dateRange) {
+    allContracts = allContracts.filter((contract) => {
+      const createdAt = new Date((contract as any).createdAt);
+      return createdAt >= dateRange.gte && createdAt <= dateRange.lte;
+    });
+  }
+
+  // ✅ search filter
   if (searchTerm) {
     allContracts = allContracts.filter((contract) =>
       searchableFields.some((field) => {
@@ -44,21 +57,23 @@ const getAllContracts = async (
     );
   }
 
-  // optional bookingStatus filter
+  // ✅ bookingStatus filter
   if (bookingStatus) {
     allContracts = allContracts.filter(
       (contract) => contract.bookingStatus === bookingStatus
     );
   }
 
-  // pagination slice
+  // ✅ total count (before pagination)
   const total = allContracts.length;
-  const paginatedContracts = allContracts.slice(skip, skip + limit);
 
-  // sorting (optional)
-  paginatedContracts.sort(
+  // ✅ sorting (latest first)
+  allContracts.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+
+  // ✅ pagination slice
+  const paginatedContracts = allContracts.slice(skip, skip + limit);
 
   return {
     meta: {
@@ -179,7 +194,7 @@ const getSingleContract = async (id: string, type: string) => {
     throw new Error("Contract not found");
   }
 
-  // partner fetch (সব টেবিলে partnerId field আছে ধরে নিচ্ছি)
+  // partner fetch
   if (contract?.partnerId) {
     const partner = await prisma.user.findUnique({
       where: { id: contract.partnerId },
