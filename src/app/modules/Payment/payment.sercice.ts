@@ -393,7 +393,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
 
       // find Payment
       const payment = await prisma.payment.findFirst({
-        where: { payment_intent: paymentIntentId },
+        where: { sessionId: paymentIntentId },
       });
       console.log(payment, "payment");
       if (!payment) {
