@@ -413,7 +413,10 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
-          status: PaymentStatus.PAID,
+          status:
+            paymentIntent.status === "succeeded"
+              ? PaymentStatus.PAID
+              : PaymentStatus.UNPAID,
           payment_intent: paymentIntentId,
           service_fee: providerReceived,
         },
