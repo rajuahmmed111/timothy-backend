@@ -693,7 +693,8 @@ model Payment {
   currency         String?
   sessionId        String?
   paymentMethod    String?
-  status           PaymentStatus
+  // status           PaymentStatus
+  status           String
   provider         PaymentProvider
   payable_name     String?
   payable_email    String?
