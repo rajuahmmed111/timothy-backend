@@ -483,7 +483,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
     }
 
     default:
-      console.log(`Ignored Stripe event type: ${event.type}`);
+      // console.log(`Ignored Stripe event type: ${event.type}`);
       break;
   }
 };
