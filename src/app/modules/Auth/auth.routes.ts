@@ -14,7 +14,7 @@ router.post("/login", AuthController.loginUser);
 router.post("/social-login", AuthController.socialLogin);
 
 // refresh token
-router.post("/    ", AuthController.refreshToken);
+router.post("/refresh-token", AuthController.refreshToken);
 
 // user logout route
 router.post(

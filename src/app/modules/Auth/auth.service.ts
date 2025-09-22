@@ -48,6 +48,8 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
       // Don't throw error here, login should still work
     }
   }
+
+  // generate token
   const accessToken = jwtHelpers.generateToken(
     {
       id: userData.id,
@@ -79,26 +81,46 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
   return result;
 };
 
-// create user and login facebook and google
+// social login (Google / Facebook)
 const socialLogin = async (payload: any) => {
-  // check if email exists
-  const existingUser = await prisma.user.findUnique({
-    where: { email: payload.email, status: UserStatus.ACTIVE },
+  const { email, fcmToken, fullName, role } = payload;
+
+  // if user already exist
+  let user = await prisma.user.findFirst({
+    where: { email: email, status: UserStatus.ACTIVE },
   });
-  if (existingUser) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "User already exists");
+
+  // if user not exist then create
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email,
+        fullName,
+        role,
+        password: await bcrypt.hash(Math.random().toString(36).slice(-8), 12),
+        status: UserStatus.ACTIVE,
+      },
+    });
   }
 
-  // hash password
-  const hashedPassword = await bcrypt.hash(payload.password, 12);
+  // if user is inactive
+  if (user.status === UserStatus.INACTIVE) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Your account is inactive");
+  }
 
-  const user = await prisma.user.create({
-    data: {
-      ...payload,
-      password: hashedPassword,
-    },
-  });
+  // fcm token update
+  if (fcmToken) {
+    try {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { fcmToken },
+      });
+    } catch (error) {
+      console.error("Failed to update FCM token:", error);
+    }
+  }
 
+  // Access Token Generate
   const accessToken = jwtHelpers.generateToken(
     {
       id: user.id,
@@ -109,6 +131,7 @@ const socialLogin = async (payload: any) => {
     config.jwt.expires_in as string
   );
 
+  // Refresh Token Generate
   const refreshToken = jwtHelpers.generateToken(
     {
       id: user.id,
@@ -122,6 +145,7 @@ const socialLogin = async (payload: any) => {
   return {
     accessToken,
     refreshToken,
+    user,
   };
 };
 
