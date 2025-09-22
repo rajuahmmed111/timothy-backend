@@ -540,10 +540,7 @@ const getAllNeededApprovedPartners = async (
   const where: Prisma.UserWhereInput = { AND: filters };
 
   const result = await prisma.user.findMany({
-    where: {
-      role: UserRole.BUSINESS_PARTNER,
-      status: UserStatus.INACTIVE,
-    },
+    where,
     skip,
     take: limit,
     orderBy:
