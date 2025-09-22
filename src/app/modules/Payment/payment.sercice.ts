@@ -388,29 +388,6 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
     case "payment_intent.succeeded": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const paymentIntentId = paymentIntent.id;
-      // const session = event.data.object as Stripe.Checkout.Session;
-      // const sessionId = session.id;
-      // const paymentIntentId = session.payment_intent as string;
-
-      // // retrieve paymentIntent
-      // const paymentIntent = await stripe.paymentIntents.retrieve(
-      //   paymentIntentId
-      // );
-
-      // if (!paymentIntent.latest_charge) {
-      //   throw new ApiError(
-      //     httpStatus.BAD_REQUEST,
-      //     "No charge found in PaymentIntent"
-      //   );
-      // }
-
-      // calculate provider received
-      // let providerReceived = 0;
-      // if (paymentIntent.transfer_data?.destination) {
-      //   const amountReceived = paymentIntent.amount_received ?? 0;
-      //   const applicationFee = paymentIntent.application_fee_amount ?? 0;
-      //   providerReceived = amountReceived - applicationFee; // not USD
-      // }
 
       // find Payment
       const payment = await prisma.payment.findFirst({
@@ -506,7 +483,8 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
     }
 
     default:
-      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid event type");
+      console.log(`Ignored Stripe event type: ${event.type}`);
+      break;
   }
 };
 
