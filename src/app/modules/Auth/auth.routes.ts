@@ -10,6 +10,9 @@ const router = express.Router();
 // login user
 router.post("/login", AuthController.loginUser);
 
+// create user and login facebook and google
+router.post("/social-login", AuthController.socialLogin);
+
 // refresh token
 router.post("/    ", AuthController.refreshToken);
 

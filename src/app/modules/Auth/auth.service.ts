@@ -73,10 +73,56 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
     refreshToken,
     user: {
       fcmToken: updatedFcmToken.fcmToken,
-    }
+    },
   };
 
   return result;
+};
+
+// create user and login facebook and google
+const socialLogin = async (payload: any) => {
+  // check if email exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: payload.email, status: UserStatus.ACTIVE },
+  });
+  if (existingUser) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "User already exists");
+  }
+
+  // hash password
+  const hashedPassword = await bcrypt.hash(payload.password, 12);
+
+  const user = await prisma.user.create({
+    data: {
+      ...payload,
+      password: hashedPassword,
+    },
+  });
+
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  const refreshToken = jwtHelpers.generateToken(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.refresh_token_secret as Secret,
+    config.jwt.refresh_token_expires_in as string
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+  };
 };
 
 // refresh token
@@ -399,6 +445,7 @@ const resetPassword = async (
 
 export const AuthServices = {
   loginUser,
+  socialLogin,
   refreshToken,
   changePassword,
   forgotPassword,

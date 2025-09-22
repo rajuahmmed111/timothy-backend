@@ -24,6 +24,25 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create user and login facebook and google
+const socialLogin = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.socialLogin(req.body);
+
+  res.cookie("token", result.accessToken, {
+    secure: config.env === "production",
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User logged in successfully",
+    data: result,
+  });
+});
+
 // refresh token
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies;
@@ -132,6 +151,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
 export const AuthController = {
   loginUser,
+  socialLogin,
   refreshToken,
   logoutUser,
   changePassword,
