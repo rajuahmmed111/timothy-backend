@@ -1,3 +1,4 @@
 export type IFilterRequest = {
-  yearRange?: number | undefined;
+  searchTerm?: string | undefined;
+  timeRange?: string | undefined;
 };

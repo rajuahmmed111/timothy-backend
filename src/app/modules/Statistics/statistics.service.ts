@@ -1,6 +1,7 @@
 import {
   BookingStatus,
   PaymentStatus,
+  Prisma,
   SupportStatus,
   SupportType,
   UserRole,
@@ -8,11 +9,14 @@ import {
 } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./statistics.interface";
-import { getYearRange } from "../../../helpars/filterByDate";
+import { getDateRange, getYearRange } from "../../../helpars/filterByDate";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import emailSender from "../../../helpars/emailSender";
 import { format } from "date-fns";
+import { IPaginationOptions } from "../../../interfaces/paginations";
+import { searchableFields } from "./statistics.constant";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = async () => {
@@ -388,11 +392,54 @@ const cancelRefundAndContracts = async () => {
 };
 
 // get all service provider for send report
-const getAllServiceProviders = async () => {
+const getAllServiceProviders = async (
+  params: IFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { searchTerm, timeRange } = params;
+
+  // pagination calculate
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const filters: Prisma.UserWhereInput[] = [];
+
+  // searchTerm fullName, email
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // timeRange filter
+  if (timeRange) {
+    const dateRange = getDateRange(timeRange);
+    if (dateRange) {
+      filters.push({
+        createdAt: dateRange,
+      });
+    }
+  }
+
+  // only active business partners
+  filters.push({
+    role: UserRole.BUSINESS_PARTNER,
+    status: UserStatus.ACTIVE,
+  });
+
+  const where: Prisma.UserWhereInput = { AND: filters };
+
+  // fetch partners with pagination
   const partners = await prisma.user.findMany({
-    where: {
-      role: UserRole.BUSINESS_PARTNER,
-      status: UserStatus.ACTIVE,
+    where,
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
     },
     select: {
       id: true,
@@ -407,22 +454,24 @@ const getAllServiceProviders = async () => {
       updatedAt: true,
     },
   });
-  if (!partners || partners.length === 0) {
-    throw new ApiError(httpStatus.NOT_FOUND, "No partner found");
-  }
 
-  // add service_fee sum for each partner
+  // total count
+  const total = await prisma.user.count({ where });
+
+  // partner earnings
   const partnerEarnings = await Promise.all(
     partners.map(async (partner) => {
       const earnings = await prisma.payment.aggregate({
         where: {
           partnerId: partner.id,
           status: PaymentStatus.PAID,
+          ...(timeRange ? { createdAt: getDateRange(timeRange) } : {}),
         },
         _sum: {
           service_fee: true,
         },
       });
+
       return {
         ...partner,
         service_fee: earnings._sum.service_fee ?? 0,
@@ -430,7 +479,14 @@ const getAllServiceProviders = async () => {
     })
   );
 
-  return { partnerEarnings };
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: partnerEarnings,
+  };
 };
 
 // get single service provider

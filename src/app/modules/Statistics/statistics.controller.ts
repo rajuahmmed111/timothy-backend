@@ -5,6 +5,7 @@ import { StatisticsService } from "./statistics.service";
 import httpStatus from "http-status";
 import { pick } from "../../../shared/pick";
 import { filterField } from "./statistics.constant";
+import { paginationFields } from "../../../constants/pagination";
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = catchAsync(async (req: Request, res: Response) => {
@@ -62,7 +63,12 @@ const cancelRefundAndContracts = catchAsync(
 // get all service provider for send report
 const getAllServiceProviders = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await StatisticsService.getAllServiceProviders();
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result = await StatisticsService.getAllServiceProviders(
+      filter,
+      options
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -104,20 +110,20 @@ const sendReportToServiceProviderThroughEmail = catchAsync(
   }
 );
 
-  // partner total earings
-  const getPartnerTotalEarnings = catchAsync(
-    async (req: Request, res: Response) => {
-      const partnerId = req.user?.id;
-      const result = await StatisticsService.getPartnerTotalEarnings(partnerId);
-  
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Statistics fetched successfully",
-        data: result,
-      });
-    }
-  );
+// partner total earings
+const getPartnerTotalEarnings = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const result = await StatisticsService.getPartnerTotalEarnings(partnerId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Statistics fetched successfully",
+      data: result,
+    });
+  }
+);
 
 export const StatisticsController = {
   getOverview,
@@ -127,5 +133,5 @@ export const StatisticsController = {
   getAllServiceProviders,
   getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
-  getPartnerTotalEarnings
+  getPartnerTotalEarnings,
 };
