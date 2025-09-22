@@ -120,7 +120,7 @@ const socialLogin = async (payload: any) => {
     }
   }
 
-  // Access Token Generate
+  // access Token Generate
   const accessToken = jwtHelpers.generateToken(
     {
       id: user.id,
@@ -131,7 +131,7 @@ const socialLogin = async (payload: any) => {
     config.jwt.expires_in as string
   );
 
-  // Refresh Token Generate
+  // refresh Token Generate
   const refreshToken = jwtHelpers.generateToken(
     {
       id: user.id,
