@@ -206,15 +206,6 @@ const createCheckoutSession = async (
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 
-  // ensure user has an active Stripe account
-  // const stripeStatus = await ensureUserStripeAccount(userId);
-  // if (stripeStatus.status === "onboarding_required") {
-  //   return {
-  //     message: "Stripe account onboarding required",
-  //     onboardingLink: stripeStatus.onboardingLink,
-  //   };
-  // }
-
   switch (serviceType) {
     case "CAR":
       booking = await prisma.car_Booking.findUnique({
@@ -341,9 +332,7 @@ const createCheckoutSession = async (
       serviceType,
     },
   });
-  // console.log("checkoutSession", checkoutSession);
 
-  // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
 
   // update booking with checkoutSessionId
   switch (serviceType) {
