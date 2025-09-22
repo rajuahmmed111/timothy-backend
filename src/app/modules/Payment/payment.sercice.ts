@@ -799,14 +799,16 @@ const createCheckoutSessionPayStack = async (
 const payStackHandleWebhook = async (event: any) => {
   try {
     if (event.event !== "charge.success") return;
-    // console.log("Received Pay-stack event:", event);
+    console.log("Received Pay-stack event:", event);
 
     const reference = event.data.reference;
+    console.log("Reference:", reference);
 
     // find payment record
     const payment = await prisma.payment.findFirst({
       where: { sessionId: reference },
     });
+    console.log("Payment:", payment);
     if (!payment) {
       return;
     }
