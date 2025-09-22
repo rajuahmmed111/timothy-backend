@@ -387,15 +387,13 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
   switch (event.type) {
     case "payment_intent.succeeded": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      console.log(`Payment intent succeeded: `, paymentIntent);
+
       const paymentIntentId = paymentIntent.id;
-      console.log(`Payment intent ID: ${paymentIntentId}`);
 
       // find Payment
       const payment = await prisma.payment.findFirst({
         where: { sessionId: paymentIntentId },
       });
-      console.log(payment, "payment");
       if (!payment) {
         console.log(`No payment found for payment intent: ${paymentIntentId}`);
         break;
@@ -407,7 +405,6 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         const applicationFee = paymentIntent.application_fee_amount ?? 0;
         providerReceived = amountReceived - applicationFee;
       }
-      console.log(providerReceived, "providerReceived");
 
       // update Payment to PAID
       await prisma.payment.update({
