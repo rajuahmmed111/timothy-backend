@@ -15,9 +15,9 @@ router.post(
 
 // checkout session on stripe
 router.post(
-  "/create-checkout-session/:serviceType/:bookingId",
+"/create-payment-intent/:serviceType/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-  PaymentController.createCheckoutSession
+  PaymentController.createStripePaymentIntent
 );
 
 // stripe webhook payment

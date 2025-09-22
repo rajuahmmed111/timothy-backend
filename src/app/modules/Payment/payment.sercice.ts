@@ -189,7 +189,7 @@ const ensureUserStripeAccount = async (userId: string) => {
 };
 
 // checkout session on stripe
-const createCheckoutSession = async (
+const createStripePaymentIntent = async (
   userId: string,
   serviceType: string,
   bookingId: string,
@@ -302,62 +302,49 @@ const createCheckoutSession = async (
   // service fee (partner earnings)
   const serviceFee = amount - adminFee;
 
-  // create Stripe checkout session
-  const checkoutSession = await stripe.checkout.sessions.create({
+  // create Stripe payment intent
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
     payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: serviceName,
-            description,
-          },
-          unit_amount: amount,
-        },
-        quantity: 1,
-      },
-    ],
-    mode: "payment",
-    success_url: `${config.stripe.checkout_success_url}?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${config.stripe.checkout_cancel_url}`,
-    payment_intent_data: {
-      application_fee_amount: adminFee, // goes to Admin
-      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
-      description,
+    application_fee_amount: adminFee, // goes to Admin
+    transfer_data: {
+      destination: partner.stripeAccountId, // goes to Partner
     },
+    description: description,
     metadata: {
       bookingId: booking.id,
       userId,
       serviceType,
     },
+    // Optional: Setup future usage if you want to save card
+    // setup_future_usage: 'on_session',
   });
-
 
   // update booking with checkoutSessionId
   switch (serviceType) {
     case "CAR":
       await prisma.car_Booking.update({
         where: { id: booking.id },
-        data: { checkoutSessionId: checkoutSession.id },
+        data: { checkoutSessionId: paymentIntent.id },
       });
       break;
     case "HOTEL":
       await prisma.hotel_Booking.update({
         where: { id: booking.id },
-        data: { checkoutSessionId: checkoutSession.id },
+        data: { checkoutSessionId: paymentIntent.id },
       });
       break;
     case "SECURITY":
       await prisma.security_Booking.update({
         where: { id: booking.id },
-        data: { checkoutSessionId: checkoutSession.id },
+        data: { checkoutSessionId: paymentIntent.id },
       });
       break;
     case "ATTRACTION":
       await prisma.attraction_Booking.update({
         where: { id: booking.id },
-        data: { checkoutSessionId: checkoutSession.id },
+        data: { checkoutSessionId: paymentIntent.id },
       });
       break;
   }
@@ -367,16 +354,16 @@ const createCheckoutSession = async (
     data: {
       amount,
       description,
-      currency: checkoutSession.currency,
-      sessionId: checkoutSession.id,
-      paymentMethod: checkoutSession.payment_method_types.join(","),
+      currency: paymentIntent.currency,
+      sessionId: paymentIntent.id,
+      paymentMethod: paymentIntent.payment_method_types.join(","),
       status: PaymentStatus.UNPAID,
       provider: "STRIPE",
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
       admin_commission: adminFee,
-      service_fee: serviceFee, // 👈 Partner-এর earnings এখানে save হবে
+      service_fee: serviceFee,
       serviceType,
       partnerId,
       userId,
@@ -389,47 +376,56 @@ const createCheckoutSession = async (
   });
 
   return {
-    checkoutUrl: checkoutSession.url,
-    checkoutSessionId: checkoutSession.id,
+    clientSecret: paymentIntent.client_secret,
+    paymentIntentId: paymentIntent.id,
+    amount: totalPrice,
   };
 };
 
 // stripe webhook payment
 const stripeHandleWebhook = async (event: Stripe.Event) => {
   switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const sessionId = session.id;
-      const paymentIntentId = session.payment_intent as string;
+    case "payment_intent.succeeded": {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const paymentIntentId = paymentIntent.id;
+      // const session = event.data.object as Stripe.Checkout.Session;
+      // const sessionId = session.id;
+      // const paymentIntentId = session.payment_intent as string;
 
-      // retrieve paymentIntent
-      const paymentIntent = await stripe.paymentIntents.retrieve(
-        paymentIntentId
-      );
+      // // retrieve paymentIntent
+      // const paymentIntent = await stripe.paymentIntents.retrieve(
+      //   paymentIntentId
+      // );
 
-      if (!paymentIntent.latest_charge) {
-        throw new ApiError(
-          httpStatus.BAD_REQUEST,
-          "No charge found in PaymentIntent"
-        );
-      }
+      // if (!paymentIntent.latest_charge) {
+      //   throw new ApiError(
+      //     httpStatus.BAD_REQUEST,
+      //     "No charge found in PaymentIntent"
+      //   );
+      // }
 
       // calculate provider received
+      // let providerReceived = 0;
+      // if (paymentIntent.transfer_data?.destination) {
+      //   const amountReceived = paymentIntent.amount_received ?? 0;
+      //   const applicationFee = paymentIntent.application_fee_amount ?? 0;
+      //   providerReceived = amountReceived - applicationFee; // not USD
+      // }
+
+      // find Payment
+      const payment = await prisma.payment.findFirst({
+        where: { payment_intent: paymentIntentId },
+      });
+      if (!payment) {
+        console.log(`No payment found for payment intent: ${paymentIntentId}`);
+        break;
+      }
+
       let providerReceived = 0;
       if (paymentIntent.transfer_data?.destination) {
         const amountReceived = paymentIntent.amount_received ?? 0;
         const applicationFee = paymentIntent.application_fee_amount ?? 0;
-        providerReceived = amountReceived - applicationFee; // not USD
-      }
-
-      // find Payment
-      const payment = await prisma.payment.findFirst({
-        where: { sessionId },
-      });
-
-      if (!payment) {
-        console.log(`No payment found for session: ${sessionId}`);
-        break;
+        providerReceived = amountReceived - applicationFee;
       }
 
       // update Payment to PAID
@@ -1000,7 +996,7 @@ const getMyTransactions = async (userId: string) => {
 
 export const PaymentService = {
   stripeAccountOnboarding,
-  createCheckoutSession,
+  createStripePaymentIntent,
   stripeHandleWebhook,
   cancelStripeBooking,
   getPayStackBanks,

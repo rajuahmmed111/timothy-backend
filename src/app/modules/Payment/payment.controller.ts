@@ -23,7 +23,7 @@ const stripeAccountOnboarding = catchAsync(
 );
 
 // checkout session on stripe
-const createCheckoutSession = catchAsync(
+const createStripePaymentIntent = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
     const { serviceType, bookingId } = req.params;
@@ -35,7 +35,7 @@ const createCheckoutSession = catchAsync(
       | "SECURITY"
       | "ATTRACTION";
 
-    const result = await PaymentService.createCheckoutSession(
+    const result = await PaymentService.createStripePaymentIntent(
       userId,
       normalizedServiceType,
       bookingId,
@@ -235,7 +235,7 @@ const getMyTransactions = catchAsync(async (req: Request, res: Response) => {
 
 export const PaymentController = {
   stripeAccountOnboarding,
-  createCheckoutSession,
+  createStripePaymentIntent,
   stripeHandleWebhook,
   cancelStripeBooking,
   getPayStackBanks,
