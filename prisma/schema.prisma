@@ -691,7 +691,7 @@ model Payment {
   amount           Float
   description      String?
   currency         String?
-  sessionId        String?
+  sessionId        String?          @unique
   paymentMethod    String?
   status           PaymentStatus
   // status           String

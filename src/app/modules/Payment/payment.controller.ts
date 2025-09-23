@@ -189,12 +189,25 @@ const createCheckoutSessionPayStack = catchAsync(
   }
 );
 
+// charge card (in-app payment)
+const chargeCardPayStack = catchAsync(async (req: Request, res: Response) => {
+  const { reference, card, amount } = req.body;
+  const result = await PaymentService.chargeCardPayStack(reference, card, amount);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: result.success ? "Payment successful" : "Payment failed",
+    data: result,
+  });
+});
+
 // pay-stack webhook payment
 const payStackHandleWebhook = catchAsync(
   async (req: Request, res: Response) => {
     let event: any;
 
-    const result = await PaymentService.payStackHandleWebhook(req.body);
+    const result = await PaymentService.payStackHandleWebhook(event);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -243,6 +256,7 @@ export const PaymentController = {
   verifyPayStackAccount,
   payStackAccountSubAccount,
   createCheckoutSessionPayStack,
+  chargeCardPayStack,
   payStackHandleWebhook,
   cancelPayStackBooking,
   getMyTransactions,

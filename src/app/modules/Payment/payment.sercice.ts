@@ -759,7 +759,7 @@ const createCheckoutSessionPayStack = async (
         adminFee,
         providerAmount,
       },
-      // callback_url: `${config.frontend_url}/payment/success`,
+      callback_url: `${config.frontend_url}/payment/success`,
     },
     {
       headers,
@@ -790,9 +790,51 @@ const createCheckoutSessionPayStack = async (
   });
 
   return {
-    // checkoutUrl: data.authorization_url,
+    checkoutUrl: data.authorization_url,
     reference: data.reference,
   };
+};
+
+// charge card (in-app payment)
+const chargeCardPayStack = async (
+  reference: string,
+  card: any,
+  amount: number
+) => {
+  const [expiryMonth, expiryYear] = card.expiry.split("/");
+
+  const response = await axios.post(
+    `${payStackBaseUrl}/transaction/charge_authorization`,
+    {
+      reference,
+      email: card.email,
+      amount,
+      card: {
+        number: card.number,
+        cvv: card.cvc,
+        expiry_month: expiryMonth,
+        expiry_year: expiryYear,
+        pin: card.pin || undefined,
+      },
+    },
+    { headers }
+  );
+
+  const data = response.data.data;
+  console.log(response, "response");
+  console.log(response.data.data, "response.data.data");
+  console.log(data, "data");
+
+  await prisma.payment.update({
+    where: { sessionId: reference },
+    data: {
+      status:
+        data.status === "success" ? PaymentStatus.PAID : PaymentStatus.UNPAID,
+      metadata: data,
+    },
+  });
+
+  return { success: data.status === "success", data };
 };
 
 // handle pay-stack webhook
@@ -988,6 +1030,7 @@ export const PaymentService = {
   verifyPayStackAccount,
   payStackAccountSubAccount,
   createCheckoutSessionPayStack,
+  chargeCardPayStack,
   payStackHandleWebhook,
   cancelPayStackBooking,
   getMyTransactions,

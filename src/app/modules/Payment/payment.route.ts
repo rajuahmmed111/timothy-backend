@@ -68,6 +68,14 @@ router.post(
   PaymentController.createCheckoutSessionPayStack
 );
 
+// charge card (in-app payment)
+router.post(
+  "/charge-card",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.chargeCardPayStack
+);
+
+
 // pay-stack webhook payment
 router.post(
   "/paystack-webhook",
