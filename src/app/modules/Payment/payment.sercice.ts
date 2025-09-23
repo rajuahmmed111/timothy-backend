@@ -23,6 +23,7 @@ import {
 } from "../../../shared/notificationService";
 import * as crypto from "crypto";
 
+const callback_url = "https://paystack.com/pay";
 const payStackBaseUrl = "https://api.paystack.co";
 const headers = {
   Authorization: `Bearer ${config.payStack.secretKey}`,
@@ -761,7 +762,7 @@ const createCheckoutSessionPayStack = async (
         adminFee,
         providerAmount,
       },
-      callback_url: `${config.frontend_url}/payment/success`,
+      callback_url: `${callback_url}/payment/success`,
     },
     {
       headers,
