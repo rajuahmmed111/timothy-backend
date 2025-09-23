@@ -767,6 +767,9 @@ const createCheckoutSessionPayStack = async (
     }
   );
 
+  console.log(response, "response");
+  console.log(response.data, "response.data");
+
   const data = response.data.data;
 
   // --- Save payment record in DB ---
@@ -802,10 +805,10 @@ const chargeCardPayStack = async (payload: any) => {
   const [expiryMonth, expiryYear] = payload.expiry.split("/");
 
   const response = await axios.post(
-    `${payStackBaseUrl}/transaction/charge_authorization`,
+    `${payStackBaseUrl}/transaction/charge`,
     {
       reference: payload.reference,
-      // email: payload.card.email,
+      email: payload?.card?.email,
       amount: payload.amount,
       card: {
         number: payload.number,
