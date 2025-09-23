@@ -194,7 +194,8 @@ const createStripePaymentIntent = async (
   userId: string,
   serviceType: string,
   bookingId: string,
-  description: string
+  description: string,
+  country: string
 ) => {
   let booking: any;
   let service: any;
@@ -760,7 +761,7 @@ const createCheckoutSessionPayStack = async (
         adminFee,
         providerAmount,
       },
-      // callback_url: `${config.frontend_url}/payment/success`,
+      callback_url: `${config.frontend_url}/payment/success`,
     },
     {
       headers,

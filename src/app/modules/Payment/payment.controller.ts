@@ -27,7 +27,7 @@ const createStripePaymentIntent = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
     const { serviceType, bookingId } = req.params;
-    const { description } = req.body;
+    const { description, country } = req.body;
 
     const normalizedServiceType = serviceType.toUpperCase() as
       | "CAR"
@@ -39,7 +39,8 @@ const createStripePaymentIntent = catchAsync(
       userId,
       normalizedServiceType,
       bookingId,
-      description
+      description,
+      country
     );
 
     sendResponse(res, {
@@ -196,7 +197,7 @@ const createCheckoutSessionPayStack = catchAsync(
 
 // charge card (in-app payment)
 const chargeCardPayStack = catchAsync(async (req: Request, res: Response) => {
-  const { reference, card, amount } = req.body;
+  // const { reference, card, amount } = req.body;
   console.log(req.body, "req.body");
   const result = await PaymentService.chargeCardPayStack(
    req.body
