@@ -133,16 +133,21 @@ const getPayStackSubAccounts = catchAsync(
 );
 
 // account verify
-const verifyPayStackAccount = catchAsync(async (req: Request, res: Response) => {
-  const { account_number, bank_code } = req.body;
-  const result = await PaymentService.verifyPayStackAccount(account_number, bank_code);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Account verified successfully",
-    data: result,
-  });
-});
+const verifyPayStackAccount = catchAsync(
+  async (req: Request, res: Response) => {
+    const { account_number, bank_code } = req.body;
+    const result = await PaymentService.verifyPayStackAccount(
+      account_number,
+      bank_code
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Account verified successfully",
+      data: result,
+    });
+  }
+);
 
 // pay-stack sub account
 const payStackAccountSubAccount = catchAsync(
@@ -192,7 +197,12 @@ const createCheckoutSessionPayStack = catchAsync(
 // charge card (in-app payment)
 const chargeCardPayStack = catchAsync(async (req: Request, res: Response) => {
   const { reference, card, amount } = req.body;
-  const result = await PaymentService.chargeCardPayStack(reference, card, amount);
+  console.log(req.body, "req.body");
+  const result = await PaymentService.chargeCardPayStack(
+    reference,
+    card,
+    amount
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
