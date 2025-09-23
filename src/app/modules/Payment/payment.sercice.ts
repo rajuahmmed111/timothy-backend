@@ -802,6 +802,7 @@ const chargeCardPayStack = async (
   card: any,
   amount: number
 ) => {
+  console.log(reference, card, amount, "reference, card, amount");
   const [expiryMonth, expiryYear] = card.expiry.split("/");
 
   const response = await axios.post(
