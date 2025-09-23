@@ -21,6 +21,7 @@ import {
   IBookingNotificationData,
   ServiceTypes,
 } from "../../../shared/notificationService";
+import * as crypto from "crypto";
 
 const payStackBaseUrl = "https://api.paystack.co";
 const headers = {
@@ -838,24 +839,41 @@ const chargeCardPayStack = async (
 };
 
 // handle pay-stack webhook
-const payStackHandleWebhook = async (event: any) => {
+const payStackHandleWebhook = async (req: any) => {
   try {
-    if (event.event !== "charge.success") return;
-    console.log("Received Pay-stack event:", event);
+    const signature = req.headers["x-paystack-signature"];
+
+    // verify pay-stack signature
+    const hash = crypto
+      .createHmac("sha512", config.payStack.secretKey as string)
+      .update(req.body)
+      .digest("hex");
+
+    if (hash !== signature) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid webhook signature");
+    }
+
+    // parse raw body
+    const event = JSON.parse(req.body.toString());
+    console.log("received Pay-stack Event:", event.event);
+
+    if (event.event !== "charge.success") {
+      return { received: true }; // ignore other events
+    }
 
     const reference = event.data.reference;
-    console.log("Reference:", reference);
 
-    // find payment record
+    // find payment
     const payment = await prisma.payment.findFirst({
       where: { sessionId: reference },
     });
-    console.log("Payment:", payment);
+
     if (!payment) {
-      return;
+      console.log("Payment not found for reference:", reference);
+      return { received: true };
     }
 
-    // update payment to PAID with fees
+    // update payment → PAID
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
@@ -864,77 +882,77 @@ const payStackHandleWebhook = async (event: any) => {
         admin_commission: event.data.fees_split?.integration ?? 0,
         service_fee: event.data.fees_split?.subaccount ?? 0,
         paystack_fee: event.data.fees_split?.paystack ?? 0,
+        metadata: event.data,
       },
     });
 
-    // update booking status → CONFIRMED
-    const config = serviceConfig[payment.serviceType as ServiceType];
+    // update booking + service
+    const configs = serviceConfig[payment.serviceType as ServiceType];
     if (!config) {
-      console.log("Service config not found for type:", payment.serviceType);
-      return;
+      console.log("Service config not found:", payment.serviceType);
+      return { received: true };
     }
 
-    const bookingId = (payment as any)[config.serviceTypeField];
-    const booking = await config.bookingModel.findUnique({
+    const bookingId = (payment as any)[configs.serviceTypeField];
+    const booking = await configs.bookingModel.findUnique({
       where: { id: bookingId },
     });
+
     if (!booking) {
-      console.log("Booking not found for id:", bookingId);
-      return;
+      console.log("Booking not found:", bookingId);
+      return { received: true };
     }
 
-    await config.bookingModel.update({
+    // booking → CONFIRMED
+    await configs.bookingModel.update({
       where: { id: booking.id },
       data: { bookingStatus: BookingStatus.CONFIRMED },
     });
 
-    // update service status → BOOKED
+    // service → BOOKED
     const serviceId = (booking as any)[
       `${payment.serviceType.toLowerCase()}Id`
     ];
     if (serviceId) {
-      await config.serviceModel.update({
+      await configs.serviceModel.update({
         where: { id: serviceId },
         data: { isBooked: EveryServiceStatus.BOOKED },
       });
     }
 
-    // if booking service type SECURITY hoy tahole security protocol ar id dore hiredCount +1 hobe and payment status jodi paid hoy
+    // SECURITY service → hiredCount++
     if (
       payment.serviceType === "SECURITY" &&
       payment.status === PaymentStatus.PAID
     ) {
-      await config.serviceModel.update({
+      await configs.serviceModel.update({
         where: { id: serviceId },
         data: { hiredCount: { increment: 1 } },
       });
     }
 
-    // ---------- send notifications ----------
-    const service = await config.serviceModel.findUnique({
+    // send booking notifications
+    const service = await configs.serviceModel.findUnique({
       where: { id: serviceId },
     });
-    if (!service) return;
+    if (service) {
+      await BookingNotificationService.sendBookingNotifications({
+        bookingId: booking.id,
+        userId: booking.userId,
+        partnerId: booking.partnerId,
+        serviceTypes: payment.serviceType as ServiceTypes,
+        serviceName: service[configs.nameField],
+        totalPrice: booking.totalPrice,
+      });
+    }
 
-    const notificationData: IBookingNotificationData = {
-      bookingId: booking.id,
-      userId: booking.userId,
-      partnerId: booking.partnerId,
-      serviceTypes: payment.serviceType as ServiceTypes,
-      serviceName: service[config.nameField],
-      totalPrice: booking.totalPrice,
-      // bookedFromDate: (booking as any).bookedFromDate || (booking as any).date,
-      // bookedToDate: (booking as any).bookedToDate,
-      // quantity:
-      //   (booking as any).rooms ||
-      //   (booking as any).adults ||
-      //   (booking as any).number_of_security ||
-      //   1,
-    };
-
-    await BookingNotificationService.sendBookingNotifications(notificationData);
+    return { received: true };
   } catch (error) {
     console.error("Error handling Pay-stack webhook:", error);
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Webhook handling failed"
+    );
   }
 };
 

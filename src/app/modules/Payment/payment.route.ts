@@ -15,7 +15,7 @@ router.post(
 
 // checkout session on stripe
 router.post(
-"/create-payment-intent/:serviceType/:bookingId",
+  "/create-payment-intent/:serviceType/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
   PaymentController.createStripePaymentIntent
 );
@@ -75,11 +75,10 @@ router.post(
   PaymentController.chargeCardPayStack
 );
 
-
 // pay-stack webhook payment
 router.post(
   "/paystack-webhook",
-  express.raw({ type: "application/json" }), // important: keep raw body
+  express.raw({ type: "*/*" }), // important: keep raw body
   PaymentController.payStackHandleWebhook
 );
 

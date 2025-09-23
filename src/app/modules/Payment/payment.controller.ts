@@ -205,9 +205,9 @@ const chargeCardPayStack = catchAsync(async (req: Request, res: Response) => {
 // pay-stack webhook payment
 const payStackHandleWebhook = catchAsync(
   async (req: Request, res: Response) => {
-    let event: any;
+    // let event: any;
 
-    const result = await PaymentService.payStackHandleWebhook(event);
+    const result = await PaymentService.payStackHandleWebhook(req);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
