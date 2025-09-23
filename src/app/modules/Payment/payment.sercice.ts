@@ -743,7 +743,7 @@ const createCheckoutSessionPayStack = async (
   const adminFee = Math.round(amount * 0.2); // 20% for app
   const providerAmount = amount - adminFee; // 80% for provider
 
-  // --- Initialize Paystack transaction ---
+  // --- Initialize Pay-stack transaction ---
   const response = await axios.post(
     `${payStackBaseUrl}/transaction/initialize`,
     {
@@ -759,7 +759,7 @@ const createCheckoutSessionPayStack = async (
         adminFee,
         providerAmount,
       },
-      callback_url: `${config.frontend_url}/payment/success`,
+      // callback_url: `${config.frontend_url}/payment/success`,
     },
     {
       headers,
@@ -790,7 +790,7 @@ const createCheckoutSessionPayStack = async (
   });
 
   return {
-    checkoutUrl: data.authorization_url,
+    // checkoutUrl: data.authorization_url,
     reference: data.reference,
   };
 };
