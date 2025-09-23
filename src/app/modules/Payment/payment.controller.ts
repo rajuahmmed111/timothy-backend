@@ -199,9 +199,7 @@ const chargeCardPayStack = catchAsync(async (req: Request, res: Response) => {
   const { reference, card, amount } = req.body;
   console.log(req.body, "req.body");
   const result = await PaymentService.chargeCardPayStack(
-    reference,
-    card,
-    amount
+   req.body
   );
 
   sendResponse(res, {

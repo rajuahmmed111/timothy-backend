@@ -797,26 +797,22 @@ const createCheckoutSessionPayStack = async (
 };
 
 // charge card (in-app payment)
-const chargeCardPayStack = async (
-  reference: string,
-  card: any,
-  amount: number
-) => {
-  console.log(reference, card, amount, "reference, card, amount");
-  const [expiryMonth, expiryYear] = card.expiry.split("/");
+const chargeCardPayStack = async (payload: any) => {
+  console.log(payload, "payload");
+  const [expiryMonth, expiryYear] = payload.card.expiry.split("/");
 
   const response = await axios.post(
     `${payStackBaseUrl}/transaction/charge_authorization`,
     {
-      reference,
-      email: card.email,
-      amount,
+      reference: payload.reference,
+      // email: payload.card.email,
+      amount: payload.amount,
       card: {
-        number: card.number,
-        cvv: card.cvc,
+        number: payload.card.number,
+        cvv: payload.card.cvc,
         expiry_month: expiryMonth,
         expiry_year: expiryYear,
-        pin: card.pin || undefined,
+        pin: payload.card.pin || undefined,
       },
     },
     { headers }
@@ -828,7 +824,7 @@ const chargeCardPayStack = async (
   console.log(data, "data");
 
   await prisma.payment.update({
-    where: { sessionId: reference },
+    where: { sessionId: payload.reference },
     data: {
       status:
         data.status === "success" ? PaymentStatus.PAID : PaymentStatus.UNPAID,
