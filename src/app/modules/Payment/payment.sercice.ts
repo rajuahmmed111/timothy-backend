@@ -760,7 +760,7 @@ const createCheckoutSessionPayStack = async (
         adminFee,
         providerAmount,
       },
-      callback_url: `${config.frontend_url}/payment/success`,
+      // callback_url: `${config.frontend_url}/payment/success`,
     },
     {
       headers,
@@ -791,7 +791,7 @@ const createCheckoutSessionPayStack = async (
   });
 
   return {
-    checkoutUrl: data.authorization_url,
+    // checkoutUrl: data.authorization_url,
     reference: data.reference,
   };
 };
