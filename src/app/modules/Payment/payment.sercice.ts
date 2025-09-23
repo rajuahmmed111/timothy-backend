@@ -799,7 +799,7 @@ const createCheckoutSessionPayStack = async (
 // charge card (in-app payment)
 const chargeCardPayStack = async (payload: any) => {
   console.log(payload, "payload");
-  const [expiryMonth, expiryYear] = payload.card.expiry.split("/");
+  const [expiryMonth, expiryYear] = payload.expiry.split("/");
 
   const response = await axios.post(
     `${payStackBaseUrl}/transaction/charge_authorization`,
@@ -808,11 +808,11 @@ const chargeCardPayStack = async (payload: any) => {
       // email: payload.card.email,
       amount: payload.amount,
       card: {
-        number: payload.card.number,
-        cvv: payload.card.cvc,
+        number: payload.number,
+        cvv: payload.cvc,
         expiry_month: expiryMonth,
         expiry_year: expiryYear,
-        pin: payload.card.pin || undefined,
+        pin: payload.pin || undefined,
       },
     },
     { headers }
