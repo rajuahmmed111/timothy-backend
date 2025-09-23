@@ -11,10 +11,10 @@ import { ILoginRequest, ILoginResponse } from "./auth.interface";
 
 // login user
 const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
-  const { email, password, fcmToken } = payload;
+  const { email, password, fcmToken, role } = payload;
 
-  const userData = await prisma.user.findUnique({
-    where: { email: email, status: UserStatus.ACTIVE },
+  const userData = await prisma.user.findFirst({
+    where: { email: email, status: UserStatus.ACTIVE, role: role as UserRole },
   });
 
   if (!userData) {

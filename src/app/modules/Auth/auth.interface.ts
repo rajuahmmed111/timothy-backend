@@ -1,14 +1,14 @@
 export type ILoginResponse = {
   accessToken: string;
   refreshToken: string;
-    user?: {
+  user?: {
     fcmToken?: string | null;
   };
 };
-
 
 export interface ILoginRequest {
   email: string;
   password: string;
   fcmToken?: string;
+  role: string;
 }
