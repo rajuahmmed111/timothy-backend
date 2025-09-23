@@ -843,10 +843,14 @@ const payStackHandleWebhook = async (req: any) => {
   try {
     const signature = req.headers["x-paystack-signature"];
 
+    const rawBody = Buffer.isBuffer(req.body)
+      ? req.body.toString()
+      : JSON.stringify(req.body);
+
     // verify pay-stack signature
     const hash = crypto
       .createHmac("sha512", config.payStack.secretKey as string)
-      .update(req.body)
+      .update(rawBody)
       .digest("hex");
 
     if (hash !== signature) {
@@ -854,22 +858,24 @@ const payStackHandleWebhook = async (req: any) => {
     }
 
     // parse raw body
-    const event = JSON.parse(req.body.toString());
-    console.log("received Pay-stack Event:", event.event);
+    const event = JSON.parse(rawBody);
+    // console.log("received Pay-stack Event:", event);
 
     if (event.event !== "charge.success") {
       return { received: true }; // ignore other events
     }
 
     const reference = event.data.reference;
+    // console.log("event.data.reference:", event.data.reference);
 
     // find payment
     const payment = await prisma.payment.findFirst({
       where: { sessionId: reference },
     });
+    // console.log("payment:", payment);
 
     if (!payment) {
-      console.log("Payment not found for reference:", reference);
+      // console.log("Payment not found for reference:", reference);
       return { received: true };
     }
 
@@ -889,7 +895,7 @@ const payStackHandleWebhook = async (req: any) => {
     // update booking + service
     const configs = serviceConfig[payment.serviceType as ServiceType];
     if (!config) {
-      console.log("Service config not found:", payment.serviceType);
+      // console.log("Service config not found:", payment.serviceType);
       return { received: true };
     }
 
@@ -899,7 +905,7 @@ const payStackHandleWebhook = async (req: any) => {
     });
 
     if (!booking) {
-      console.log("Booking not found:", bookingId);
+      // console.log("Booking not found:", bookingId);
       return { received: true };
     }
 
