@@ -48,6 +48,7 @@ const createUser = async (payload: any) => {
   const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
   // 5 minutes
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+  console.log("Generated OTP:", randomOtp, "for email:", payload.email);
 
   // prepare email html
   const html = createOtpEmailTemplate(randomOtp);
