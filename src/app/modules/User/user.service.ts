@@ -873,6 +873,35 @@ const deleteAdmin = async (userId: string) => {
   });
 };
 
+// update admin access only for super admin
+const updateAdminAccess = async (id: string, data: any) => {
+  // find admin
+  const admin = await prisma.user.findUnique({
+    where: { id },
+  });
+  if (!admin) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+  }
+
+  const result = await prisma.user.update({
+    where: { id: admin.id },
+    data: { ...data },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      role: true,
+      status: true,
+      address: true,
+      contactNumber: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+  return result;
+};
+
 export const UserService = {
   createUser,
   createRoleSupperAdmin,
@@ -893,4 +922,5 @@ export const UserService = {
   deleteUser,
   getPartnerById,
   deleteAdmin,
+  updateAdminAccess,
 };

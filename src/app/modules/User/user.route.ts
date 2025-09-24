@@ -150,6 +150,13 @@ router.patch(
   UserController.deleteMyAccount
 );
 
+// update admin access only for super admin
+router.patch(
+  "/update-super-admin-access/:id",
+  auth(UserRole.SUPER_ADMIN),
+  UserController.updateAdminAccess
+);
+
 // delete user
 router.delete(
   "/:id",

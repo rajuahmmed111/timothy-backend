@@ -293,6 +293,21 @@ const deleteAdmin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update admin access only for super admin
+const updateAdminAccess = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const data = req.body;
+    const result = await UserService.updateAdminAccess(id, data);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin status updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const UserController = {
   createUser,
   createRoleSupperAdmin,
@@ -313,4 +328,5 @@ export const UserController = {
   deleteUser,
   getPartnerById,
   deleteAdmin,
+  updateAdminAccess,
 };
