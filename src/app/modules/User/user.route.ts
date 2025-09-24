@@ -157,4 +157,11 @@ router.delete(
   UserController.deleteUser
 );
 
+// delete admin
+router.delete(
+  "/admin/:id",
+  auth(UserRole.SUPER_ADMIN),
+  UserController.deleteAdmin
+);
+
 export const userRoute = router;

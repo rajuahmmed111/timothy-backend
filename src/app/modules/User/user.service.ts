@@ -16,7 +16,7 @@ import { searchableFields } from "./user.constant";
 import { IGenericResponse } from "../../../interfaces/common";
 import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
-import { Request } from "express";
+import e, { Request } from "express";
 import { getDateRange } from "../../../helpars/filterByDate";
 import emailSender from "../../../helpars/emailSender";
 import { createOtpEmailTemplate } from "../../../utils/createOtpEmailTemplate";
@@ -647,7 +647,7 @@ const updatePartnerStatusRejected = async (id: string) => {
 // get user by id
 const getUserById = async (id: string): Promise<SafeUser> => {
   const user = await prisma.user.findUnique({
-    where: { id, status: UserStatus.ACTIVE },
+    where: { id },
     select: {
       id: true,
       fullName: true,
@@ -751,7 +751,6 @@ const updateUser = async (
   return updatedUser;
 };
 
-
 // get my profile
 const getMyProfile = async (id: string) => {
   const user = await prisma.user.findFirst({
@@ -851,12 +850,27 @@ const deleteUser = async (
   }
 
   // Delete the user
-  await prisma.user.update({
-    where: { id: userId, status: UserStatus.ACTIVE },
-    data: { status: UserStatus.INACTIVE },
+  await prisma.user.delete({
+    where: { id: userId },
   });
 
   return;
+};
+
+// delete admin
+const deleteAdmin = async (userId: string) => {
+  console.log(userId);
+  // Check if user exists
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!existingUser) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  await prisma.user.delete({
+    where: { id: existingUser.id },
+  });
 };
 
 export const UserService = {
@@ -878,4 +892,5 @@ export const UserService = {
   deleteMyAccount,
   deleteUser,
   getPartnerById,
+  deleteAdmin,
 };

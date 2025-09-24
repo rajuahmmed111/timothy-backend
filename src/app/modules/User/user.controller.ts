@@ -215,7 +215,6 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 // get my profile
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -280,6 +279,20 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete admin
+const deleteAdmin = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.id;
+
+  await UserService.deleteAdmin(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Admin deleted successfully",
+    data: undefined,
+  });
+});
+
 export const UserController = {
   createUser,
   createRoleSupperAdmin,
@@ -299,4 +312,5 @@ export const UserController = {
   deleteMyAccount,
   deleteUser,
   getPartnerById,
+  deleteAdmin,
 };
