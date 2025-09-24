@@ -530,19 +530,25 @@ const cancelStripeBooking = async (
 
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
-  const user = booking.user;
-  if (!user.stripeAccountId)
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "User has no connected Stripe account"
-    );
-
   const payment = booking.payment?.[0];
-  if (!payment || !payment.payment_intent)
+  if (!payment || !payment.payment_intent) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       "No payment found for this booking"
     );
+  }
+
+  // Find the partner (service provider)
+  const partner = await prisma.user.findUnique({
+    where: { id: payment.partnerId },
+  });
+
+  if (!partner || !partner.stripeAccountId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Partner has no connected Stripe account"
+    );
+  }
 
   // Full refund for main payment_intent
   await stripe.refunds.create({
@@ -553,7 +559,7 @@ const cancelStripeBooking = async (
   // Reverse transfer to connected account (provider)
   if (payment.transfer_id && payment.service_fee > 0) {
     await stripe.transfers.createReversal(payment.transfer_id, {
-      amount: payment.service_fee, // provider portion
+      amount: payment.service_fee,
     });
   }
 
