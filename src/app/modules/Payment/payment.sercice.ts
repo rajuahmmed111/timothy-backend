@@ -775,10 +775,8 @@ const createCheckoutSessionPayStack = async (
     }
   );
 
-  // console.log(response, "response");
-  // console.log(response.data, "response.data");
-
   const data = response.data.data;
+  console.log(data);
 
   // --- Save payment record in DB ---
   await prisma.payment.create({
@@ -970,25 +968,57 @@ const payStackHandleWebhook = async (req: any) => {
   }
 };
 
-// pay-stack cancel booking
+// cancel booking service pay-stack
 const cancelPayStackBooking = async (
   serviceType: string,
   bookingId: string,
   userId: string
 ) => {
-  const normalizedType = serviceType.toUpperCase() as ServiceType;
+  const bookingModelMap: Record<string, any> = {
+    car: prisma.car_Booking,
+    hotel: prisma.hotel_Booking,
+    security: prisma.security_Booking,
+    attraction: prisma.attraction_Booking,
+  };
 
-  const serviceT = serviceConfig[normalizedType];
-  if (!serviceT)
+  const serviceModelMap: Record<string, any> = {
+    car: prisma.car_Rental,
+    hotel: prisma.hotel,
+    security: prisma.security_Protocol,
+    attraction: prisma.attraction,
+  };
+
+  const bookingModel = bookingModelMap[serviceType.toLowerCase()];
+  const serviceModel = serviceModelMap[serviceType.toLowerCase()];
+
+  if (!bookingModel || !serviceModel) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
+  }
 
-  const booking = await serviceT.bookingModel.findUnique({
-    where: { id: bookingId, userId },
-    include: { payment: true },
+  // Booking with payment + user
+  const booking = await bookingModel.findFirst({
+    where: {
+      id: bookingId,
+      userId,
+      bookingStatus: BookingStatus.CONFIRMED, // or any other status
+    },
+    include: { payment: true, user: true },
   });
+  console.log("booking:", booking);
+
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
-  const payment = booking.payment?.[0];
+  // const payment = booking.payment
+  //   ?.filter((p:any) => p.provider === "PAYSTACK" && p.status === "PAID" && p.transactionId)
+  //   .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+  const payment = booking.payment
+    ?.filter(
+      (p: any) =>
+        p.provider === "PAYSTACK" && p.status === "PAID" && p.transactionId
+    )
+    .pop();
+
   if (!payment || !payment.transactionId) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -996,41 +1026,53 @@ const cancelPayStackBooking = async (
     );
   }
 
-  // Pay-stack refund API
+  // Find the partner (service provider)
+  const partner = await prisma.user.findUnique({
+    where: { id: payment.partnerId },
+  });
+
+  if (!partner || !partner.payStackSubAccountId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Partner has no connected Paystack account"
+    );
+  }
+
+  // -------- Refund API call (Paystack) --------
   await axios.post(
     `${payStackBaseUrl}/refund`,
     { transaction: payment.transactionId },
     { headers: { Authorization: `Bearer ${config.payStack.secretKey}` } }
   );
 
-  // update DB
+  // -------- Update DB --------
   await prisma.payment.update({
     where: { id: payment.id },
     data: { status: PaymentStatus.REFUNDED },
   });
 
-  await serviceT.bookingModel.update({
+  await bookingModel.update({
     where: { id: bookingId },
     data: { bookingStatus: BookingStatus.CANCELLED },
   });
 
-  await serviceT.serviceModel.update({
-    where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
-    data: { isBooked: "AVAILABLE" },
+  const serviceIdField = `${serviceType.toLowerCase()}Id`;
+  await serviceModel.update({
+    where: { id: booking[serviceIdField] },
+    data: { isBooked: EveryServiceStatus.AVAILABLE },
   });
 
-  // -------- send cancel notification --------
-  const serviceId = (booking as any)[`${serviceType.toLowerCase()}Id`];
-  const service = await serviceT.serviceModel.findUnique({
-    where: { id: serviceId },
+  // -------- Send Cancel Notification --------
+  const service = await serviceModel.findUnique({
+    where: { id: booking[serviceIdField] },
   });
 
   const notificationData: IBookingNotificationData = {
     bookingId: booking.id,
     userId: booking.userId,
     partnerId: booking.partnerId,
-    serviceTypes: normalizedType as ServiceTypes,
-    serviceName: service?.[serviceT.nameField] || "",
+    serviceTypes: serviceType.toUpperCase() as ServiceTypes,
+    serviceName: service?.name || "",
     totalPrice: booking.totalPrice,
   };
 
