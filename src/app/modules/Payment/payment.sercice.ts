@@ -473,9 +473,9 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         serviceTypes: payment.serviceType as ServiceTypes,
         serviceName: service[config.nameField],
         totalPrice: booking.totalPrice,
-        bookedFromDate:
-          (booking as any).bookedFromDate || (booking as any).date,
-        bookedToDate: (booking as any).bookedToDate,
+        // bookedFromDate:
+        //   (booking as any).bookedFromDate || (booking as any).date,
+        // bookedToDate: (booking as any).bookedToDate,
         // quantity:
         //   (booking as any).rooms ||
         //   (booking as any).adults ||
