@@ -23,7 +23,7 @@ export const changeExpiryBookingStatus = () => {
       if (isPastDate(booking.bookedToDate)) {
         await prisma.hotel_Booking.update({
           where: { id: booking.id },
-          data: { bookingStatus: BookingStatus.COMPLETED },
+          data: { bookingStatus: BookingStatus.COMPLETED  },
         });
       }
     }
