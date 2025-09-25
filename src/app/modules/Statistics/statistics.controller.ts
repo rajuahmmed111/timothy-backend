@@ -110,11 +110,64 @@ const sendReportToServiceProviderThroughEmail = catchAsync(
   }
 );
 
-// partner total earings
-const getPartnerTotalEarnings = catchAsync(
+// partner total earings hotel
+const getPartnerTotalEarningsHotel = catchAsync(
   async (req: Request, res: Response) => {
     const partnerId = req.user?.id;
-    const result = await StatisticsService.getPartnerTotalEarnings(partnerId);
+    const result = await StatisticsService.getPartnerTotalEarningsHotel(
+      partnerId
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Statistics fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// partner total earings security
+const getPartnerTotalEarningsSecurity = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const result = await StatisticsService.getPartnerTotalEarningsSecurity(
+      partnerId
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Statistics fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// partner total earings car
+const getPartnerTotalEarningsCar = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const result = await StatisticsService.getPartnerTotalEarningsCar(
+      partnerId
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Statistics fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// partner total earings attraction
+const getPartnerTotalEarningsAttraction = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const result = await StatisticsService.getPartnerTotalEarningsAttraction(
+      partnerId
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -133,5 +186,8 @@ export const StatisticsController = {
   getAllServiceProviders,
   getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
-  getPartnerTotalEarnings,
+  getPartnerTotalEarningsHotel,
+  getPartnerTotalEarningsSecurity,
+  getPartnerTotalEarningsCar,
+  getPartnerTotalEarningsAttraction,
 };

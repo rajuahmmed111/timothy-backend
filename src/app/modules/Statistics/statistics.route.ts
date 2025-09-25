@@ -54,11 +54,29 @@ router.post(
   StatisticsController.sendReportToServiceProviderThroughEmail
 );
 
+  // partner total earings hotel
+router.get(
+  "/partner-total-earnings-hotel",
+  auth(UserRole.BUSINESS_PARTNER),
+  StatisticsController.getPartnerTotalEarningsHotel
+);
   // partner total earings
 router.get(
-  "/partner-total-earnings",
+  "/partner-total-earnings-security",
   auth(UserRole.BUSINESS_PARTNER),
-  StatisticsController.getPartnerTotalEarnings
+  StatisticsController.getPartnerTotalEarningsSecurity
+);
+  // partner total earings car
+router.get(
+  "/partner-total-earnings-car",
+  auth(UserRole.BUSINESS_PARTNER),
+  StatisticsController.getPartnerTotalEarningsCar
+);
+  // partner total earings attraction
+router.get(
+  "/partner-total-earnings-attraction",
+  auth(UserRole.BUSINESS_PARTNER),
+  StatisticsController.getPartnerTotalEarningsAttraction
 );
 
 export const statisticsRoutes = router;

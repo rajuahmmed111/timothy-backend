@@ -889,8 +889,8 @@ const sendReportToServiceProviderThroughEmail = async (id: string) => {
   // return partner
 };
 
-// partner total earings
-const getPartnerTotalEarnings = async (partnerId: string) => {
+// partner total earings hotel
+const getPartnerTotalEarningsHotel = async (partnerId: string) => {
   // find partner
   const partner = await prisma.user.findUnique({
     where: {
@@ -906,6 +906,229 @@ const getPartnerTotalEarnings = async (partnerId: string) => {
     where: {
       partnerId: partnerId,
       status: PaymentStatus.PAID,
+      serviceType: "HOTEL",
+    },
+    _sum: {
+      service_fee: true,
+    },
+  });
+
+  // monthly earnings (group by month)
+  const monthlyPayments = await prisma.payment.findMany({
+    where: {
+      partnerId,
+      status: PaymentStatus.PAID,
+    },
+    select: {
+      createdAt: true,
+      service_fee: true,
+    },
+  });
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const paymentMonthsData = months.map((name, index) => {
+    // sum earnings for this month (regardless of year)
+    const monthlyData = monthlyPayments.filter(
+      (p) => p.createdAt.getUTCMonth() === index
+    );
+
+    const serviceEarnings = monthlyData.reduce(
+      (sum, p) => sum + (p.service_fee ?? 0),
+      0
+    );
+
+    return {
+      month: name,
+      serviceEarnings,
+    };
+  });
+
+  return {
+    serviceEarnings: earnings._sum.service_fee ?? 0,
+    paymentMonthsData,
+  };
+};
+
+// partner total earings security
+const getPartnerTotalEarningsSecurity = async (partnerId: string) => {
+  // find partner
+  const partner = await prisma.user.findUnique({
+    where: {
+      id: partnerId,
+    },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // total earnings
+  const earnings = await prisma.payment.aggregate({
+    where: {
+      partnerId: partnerId,
+      status: PaymentStatus.PAID,
+      serviceType: "SECURITY",
+    },
+    _sum: {
+      service_fee: true,
+    },
+  });
+
+  // monthly earnings (group by month)
+  const monthlyPayments = await prisma.payment.findMany({
+    where: {
+      partnerId,
+      status: PaymentStatus.PAID,
+    },
+    select: {
+      createdAt: true,
+      service_fee: true,
+    },
+  });
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const paymentMonthsData = months.map((name, index) => {
+    // sum earnings for this month (regardless of year)
+    const monthlyData = monthlyPayments.filter(
+      (p) => p.createdAt.getUTCMonth() === index
+    );
+
+    const serviceEarnings = monthlyData.reduce(
+      (sum, p) => sum + (p.service_fee ?? 0),
+      0
+    );
+
+    return {
+      month: name,
+      serviceEarnings,
+    };
+  });
+
+  return {
+    serviceEarnings: earnings._sum.service_fee ?? 0,
+    paymentMonthsData,
+  };
+};
+
+// partner total earings car
+const getPartnerTotalEarningsCar = async (partnerId: string) => {
+  // find partner
+  const partner = await prisma.user.findUnique({
+    where: {
+      id: partnerId,
+    },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // total earnings
+  const earnings = await prisma.payment.aggregate({
+    where: {
+      partnerId: partnerId,
+      status: PaymentStatus.PAID,
+      serviceType: "CAR",
+    },
+    _sum: {
+      service_fee: true,
+    },
+  });
+
+  // monthly earnings (group by month)
+  const monthlyPayments = await prisma.payment.findMany({
+    where: {
+      partnerId,
+      status: PaymentStatus.PAID,
+    },
+    select: {
+      createdAt: true,
+      service_fee: true,
+    },
+  });
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const paymentMonthsData = months.map((name, index) => {
+    // sum earnings for this month (regardless of year)
+    const monthlyData = monthlyPayments.filter(
+      (p) => p.createdAt.getUTCMonth() === index
+    );
+
+    const serviceEarnings = monthlyData.reduce(
+      (sum, p) => sum + (p.service_fee ?? 0),
+      0
+    );
+
+    return {
+      month: name,
+      serviceEarnings,
+    };
+  });
+
+  return {
+    serviceEarnings: earnings._sum.service_fee ?? 0,
+    paymentMonthsData,
+  };
+};
+
+// partner total earings attraction
+const getPartnerTotalEarningsAttraction = async (partnerId: string) => {
+  // find partner
+  const partner = await prisma.user.findUnique({
+    where: {
+      id: partnerId,
+    },
+  });
+  if (!partner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // total earnings
+  const earnings = await prisma.payment.aggregate({
+    where: {
+      partnerId: partnerId,
+      status: PaymentStatus.PAID,
+      serviceType: "ATTRACTION",
     },
     _sum: {
       service_fee: true,
@@ -970,5 +1193,8 @@ export const StatisticsService = {
   getAllServiceProviders,
   getSingleServiceProvider,
   sendReportToServiceProviderThroughEmail,
-  getPartnerTotalEarnings,
+  getPartnerTotalEarningsHotel,
+  getPartnerTotalEarningsSecurity,
+  getPartnerTotalEarningsCar,
+  getPartnerTotalEarningsAttraction,
 };
