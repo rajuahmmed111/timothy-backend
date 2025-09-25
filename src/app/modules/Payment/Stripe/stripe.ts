@@ -60,3 +60,51 @@ export const serviceConfig: Record<
     partnerIdField: "partnerId",
   },
 };
+
+
+export const countryCurrencyMap: Record<string, string> = {
+  // -------- USD --------
+  United_States: "usd",       // United States
+  Puerto_Rico: "usd",         // Puerto Rico
+  Guam: "usd",                // Guam
+  Northern_Mariana_Islands: "usd", // Northern Mariana Islands
+  American_Samoa: "usd",      // American Samoa
+  US_Virgin_Islands: "usd", // U.S. Virgin Islands
+  Ecuador: "usd",             // Ecuador
+  El_Salvador: "usd",         // El Salvador
+  Panama: "usd",              // Panama
+  East_Timor: "usd",          // Timor-Leste
+  Zimbabwe: "usd",            // Zimbabwe
+  Cambodia: "usd",            // Cambodia
+  Liberia: "usd",             // Liberia
+  Micronesia: "usd",          // Micronesia
+  Marshall_Islands: "usd",    // Marshall Islands
+  Palau: "usd",               // Palau
+
+  // -------- EUR --------
+  Austria: "eur",        // Austria
+  Belgium: "eur",        // Belgium
+  Cyprus: "eur",         // Cyprus
+  Estonia: "eur",        // Estonia
+  Finland: "eur",        // Finland
+  France: "eur",         // France
+  Germany: "eur",        // Germany
+  Greece: "eur",         // Greece
+  Ireland: "eur",        // Ireland
+  Italy: "eur",          // Italy
+  Latvia: "eur",         // Latvia
+  Lithuania: "eur",      // Lithuania
+  Luxembourg: "eur",     // Luxembourg
+  Malta: "eur",          // Malta
+  Netherlands: "eur",    // Netherlands
+  Portugal: "eur",       // Portugal
+  Slovakia: "eur",       // Slovakia
+  Slovenia: "eur",       // Slovenia
+  Spain: "eur",          // Spain
+
+  // -------- GBP --------
+  United_Kingdom: "gbp",       // United Kingdom
+  Isle_of_Man: "gbp",          // Isle of Man
+  Jersey: "gbp",               // Jersey
+  Guernsey: "gbp",             // Guernsey
+};
