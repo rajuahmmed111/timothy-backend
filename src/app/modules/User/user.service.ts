@@ -717,19 +717,12 @@ const updateUser = async (
     profileImageUrl = cloudinaryResponse?.secure_url!;
   }
 
-  // allowed fields
-  const allowedFields: Partial<IUpdateUser> = {
-    fullName: updates.fullName,
-    // email: updates.email,
-    contactNumber: updates.contactNumber,
-    address: updates.address,
-    country: updates.country,
-    profileImage: profileImageUrl,
-  };
-
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
-    data: allowedFields,
+    data: {
+      ...updates,
+      profileImage: profileImageUrl,
+    },
     select: {
       id: true,
       fullName: true,

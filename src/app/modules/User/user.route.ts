@@ -5,6 +5,7 @@ import auth from "../../middlewares/auth";
 import { uploadFile } from "../../../helpars/fileUploader";
 import { UserController } from "./user.controller";
 import { UserRole } from "@prisma/client";
+import { parseBodyData } from "../../middlewares/parseNestedJson";
 
 const router = express.Router();
 
@@ -126,6 +127,7 @@ router.patch(
     UserRole.USER
   ),
   uploadFile.profileImage,
+  parseBodyData,
   validateRequest(userValidation.updateUserZodSchema),
   UserController.updateUser
 );
