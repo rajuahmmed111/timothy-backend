@@ -41,27 +41,19 @@ const getUserConfirmationMessage = (
   const templates = {
     [ServiceTypes.HOTEL]: {
       title: "Hotel Booking Confirmed! 🏨",
-      body: `Your hotel booking at ${data.serviceName} has been confirmed. Check-in: ${data.bookedFromDate}. Booking ID: ${data.bookingId}`,
+      body: `Hotel booking has been confirmed.`,
     },
     [ServiceTypes.SECURITY]: {
       title: "Security Service Booked! 🛡️",
-      body: `Your security service from ${
-        data.serviceName
-      } has been confirmed. Service date: ${data.bookedFromDate}. Guards: ${
-        data.quantity || 1
-      }`,
+      body: "Security service has been confirmed.",
     },
     [ServiceTypes.CAR]: {
       title: "Car Rental Confirmed! 🚗",
-      body: `Your car rental from ${data.serviceName} has been confirmed. Pickup: ${data.bookedFromDate}. Total: ৳${data.totalPrice}`,
+      body: `Car Rental has been confirmed.`,
     },
     [ServiceTypes.ATTRACTION]: {
       title: "Attraction Booking Confirmed! 🎢",
-      body: `Your booking for ${
-        data.serviceName
-      } has been confirmed. Visit date: ${data.bookedFromDate}. Tickets: ${
-        data.quantity || 1
-      }`,
+      body: `Attraction booking has been confirmed.`,
     },
   };
 
@@ -76,19 +68,19 @@ const getUserCancelMessage = (
   const templates = {
     [ServiceTypes.HOTEL]: {
       title: "Hotel Booking Cancelled ❌",
-      body: `Your hotel booking at ${data.serviceName} (ID: ${data.bookingId}) has been cancelled.`,
+      body: `Hotel booking has been cancelled.`,
     },
     [ServiceTypes.SECURITY]: {
       title: "Security Service Cancelled ❌",
-      body: `Your security service from ${data.serviceName} has been cancelled.`,
+      body: `Security service has been cancelled.`,
     },
     [ServiceTypes.CAR]: {
       title: "Car Rental Cancelled ❌",
-      body: `Your car rental from ${data.serviceName} has been cancelled.`,
+      body: `Car Rental has been cancelled.`,
     },
     [ServiceTypes.ATTRACTION]: {
       title: "Attraction Booking Cancelled ❌",
-      body: `Your attraction booking for ${data.serviceName} has been cancelled.`,
+      body: `Attraction booking has been cancelled.`,
     },
   };
 
@@ -104,19 +96,19 @@ const getPartnerNotificationMessage = (
   const templates = {
     [ServiceTypes.HOTEL]: {
       title: "New Hotel Booking! 🏨",
-      body: `New booking from ${userName}. Rooms: ${data.quantity}, Amount: ৳${data.totalPrice}. Check-in: ${data.bookedFromDate}`,
+      body: `Your Hotel booking has been confirmed.`,
     },
     [ServiceTypes.SECURITY]: {
       title: "New Security Booking! 🛡️",
-      body: `New security service booking from ${userName}. Guards: ${data.quantity}, Amount: ৳${data.totalPrice}. Date: ${data.bookedFromDate}`,
+      body: "Your Security service has been confirmed.",
     },
     [ServiceTypes.CAR]: {
       title: "New Car Rental! 🚗",
-      body: `New car rental from ${userName}. Vehicle: ${data.serviceName}, Amount: ৳${data.totalPrice}. Pickup: ${data.bookedFromDate}`,
+      body: `Your Car Rental has been confirmed`,
     },
     [ServiceTypes.ATTRACTION]: {
       title: "New Attraction Booking! 🎢",
-      body: `New booking from ${userName} for ${data.serviceName}. Tickets: ${data.quantity}, Amount: ৳${data.totalPrice}`,
+      body: `Your Attraction booking has been confirmed.`,
     },
   };
 
@@ -132,19 +124,19 @@ const getPartnerCancelMessage = (
   const templates = {
     [ServiceTypes.HOTEL]: {
       title: "Hotel Booking Cancelled ❌",
-      body: `${userName} has cancelled their hotel booking. Booking ID: ${data.bookingId}`,
+      body: `Your Hotel booking has been cancelled.`,
     },
     [ServiceTypes.SECURITY]: {
       title: "Security Service Cancelled ❌",
-      body: `${userName} has cancelled their security booking.`,
+      body: `Your Security service has been cancelled.`,
     },
     [ServiceTypes.CAR]: {
       title: "Car Rental Cancelled ❌",
-      body: `${userName} has cancelled their car rental booking.`,
+      body: `Car Rental has been cancelled.`,
     },
     [ServiceTypes.ATTRACTION]: {
       title: "Attraction Booking Cancelled ❌",
-      body: `${userName} has cancelled their attraction booking.`,
+      body: `Attraction booking has been cancelled.`,
     },
   };
 
