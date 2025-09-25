@@ -1004,7 +1004,6 @@ const cancelPayStackBooking = async (
     },
     include: { payment: true, user: true },
   });
-  console.log("booking:", booking);
 
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
