@@ -61,7 +61,6 @@ export const serviceConfig: Record<
   },
 };
 
-
 export const countryCurrencyMap: Record<string, string> = {
   // -------- USD --------
   United_States: "usd",       // United States
