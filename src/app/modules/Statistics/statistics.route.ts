@@ -56,7 +56,7 @@ router.post(
 
   // partner total earings hotel
 router.get(
-  "/partner-total-earnings-hotel",
+  "/partner-total-earnings",
   auth(UserRole.BUSINESS_PARTNER),
   StatisticsController.getPartnerTotalEarningsHotel
 );

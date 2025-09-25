@@ -906,7 +906,7 @@ const getPartnerTotalEarningsHotel = async (partnerId: string) => {
     where: {
       partnerId: partnerId,
       status: PaymentStatus.PAID,
-      serviceType: "HOTEL",
+      // serviceType: "HOTEL",
     },
     _sum: {
       service_fee: true,
