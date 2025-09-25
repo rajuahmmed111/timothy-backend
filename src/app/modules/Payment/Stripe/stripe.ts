@@ -107,3 +107,22 @@ export const countryCurrencyMap: Record<string, string> = {
   Jersey: "gbp",               // Jersey
   Guernsey: "gbp",             // Guernsey
 };
+
+export const zeroDecimalCurrencies: Record<string, string> = {
+  "bif": "Burundi Franc (BIF)",
+  "clp": "Chilean Peso (CLP)",
+  "djf": "Djiboutian Franc (DJF)",
+  "gnf": "Guinean Franc (GNF)",
+  "jpy": "Japanese Yen (JPY)",
+  "kmf": "Comorian Franc (KMF)",
+  "krw": "South Korean Won (KRW)",
+  "mga": "Malagasy Ariary (MGA)",
+  "pyg": "Paraguayan Guaraní (PYG)",
+  "rwf": "Rwandan Franc (RWF)",
+  "ugx": "Ugandan Shilling (UGX)",
+  "vnd": "Vietnamese Dong (VND)",
+  "vuv": "Vanuatu Vatu (VUV)",
+  "xaf": "Central African CFA Franc (XAF)",
+  "xof": "West African CFA Franc (XOF)",
+  "xpf": "CFP Franc (XPF)"
+};
