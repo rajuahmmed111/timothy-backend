@@ -116,6 +116,11 @@ model User {
   paymentNotification Boolean @default(true)
   emailNotification   Boolean @default(true)
 
+  isHotel Boolean @default(false)
+  isSecurity Boolean @default(false)
+  isCar Boolean @default(false)
+  isAttraction Boolean @default(false)
+
   otp        String?
   otpExpiry  DateTime?
   identifier String?
