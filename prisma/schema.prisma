@@ -116,10 +116,10 @@ model User {
   paymentNotification Boolean @default(true)
   emailNotification   Boolean @default(true)
 
-  isHotel Boolean @default(false)
-  isSecurity Boolean @default(false)
-  isCar Boolean @default(false)
-  isAttraction Boolean @default(false)
+  isHotel Boolean?
+  isSecurity Boolean?
+  isCar Boolean?
+  isAttraction Boolean?
 
   otp        String?
   otpExpiry  DateTime?
