@@ -115,6 +115,12 @@ const createSecurityProtocol = async (req: Request) => {
     },
   });
 
+  // update partner security count
+  await prisma.user.update({
+    where: { id: findPartner.id },
+    data: { isSecurity: true },
+  });
+
   return securityProtocol;
 };
 
