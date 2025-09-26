@@ -12,7 +12,13 @@ import { paginationHelpers } from "../../../helpars/paginationHelper";
 // create attraction
 const createAttraction = async (req: Request) => {
   const partnerId = req.user?.id;
-  if (!partnerId) throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+
+  // partner check
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
 
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
@@ -218,6 +224,12 @@ const createAttraction = async (req: Request) => {
       timeout: 40000, // 40 seconds
     }
   );
+
+  // update partner attraction count
+  await prisma.user.update({
+    where: { id: partnerExists.id },
+    data: { isAttraction: true },
+  });
 
   return await prisma.attraction.findUnique({
     where: { id: attractionId },
