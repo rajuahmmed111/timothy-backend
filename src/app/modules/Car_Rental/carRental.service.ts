@@ -128,6 +128,12 @@ const createCarRental = async (req: Request) => {
     },
   });
 
+  // update partner car count
+  await prisma.user.update({
+    where: { id: partnerExists.id },
+    data: { isCar: true },
+  });
+
   return result;
 };
 
