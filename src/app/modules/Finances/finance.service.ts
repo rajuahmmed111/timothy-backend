@@ -74,13 +74,32 @@ const getAllFinances = async (
     where,
   });
 
+  // fetch all related users in one query
+  const userIds = Array.from(new Set(result.map((p) => p.userId)));
+  const partnerIds = Array.from(new Set(result.map((p) => p.partnerId)));
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: [...userIds, ...partnerIds] } },
+    select: { id: true, fullName: true, role: true },
+  });
+
+  // users by id for easy lookup
+  const userMap = new Map(users.map((u) => [u.id, u.fullName]));
+
+  // attach userName & partnerName
+  const dataWithNames = result.map((p) => ({
+    ...p,
+    userName: userMap.get(p.userId) || null,
+    partnerName: userMap.get(p.partnerId) || null,
+  }));
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: dataWithNames,
   };
 };
 
