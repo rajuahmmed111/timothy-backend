@@ -19,6 +19,13 @@ router.get(
   StatisticsController.paymentWithUserAnalysis
 );
 
+//  user demographics
+router.get(
+  "/user-demographics",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.userDemographics
+);
+
 // financial metrics
 router.get(
   "/financial-metrics",

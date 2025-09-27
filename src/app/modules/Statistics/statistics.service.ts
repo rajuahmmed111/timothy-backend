@@ -347,6 +347,94 @@ const paymentWithUserAnalysis = async (params: IFilterRequest) => {
   };
 };
 
+// user demographics
+const userDemographics = async (params: IFilterRequest) => {
+  const { searchTerm, timeRange, country, age, gender, profession } = params;
+
+  // date range filter
+  const dateRange = getDateRange(timeRange);
+
+  const userWhere: any = {
+    role: "USER",
+    ...(country && { country: { equals: country, mode: "insensitive" } }),
+    ...(age && { age }), // if age is numeric or string, adjust accordingly
+    ...(gender && { gender: { equals: gender, mode: "insensitive" } }),
+    ...(profession && {
+      profession: { equals: profession, mode: "insensitive" },
+    }),
+    ...(searchTerm && {
+      OR: [
+        { fullName: { contains: searchTerm, mode: "insensitive" } },
+        { email: { contains: searchTerm, mode: "insensitive" } },
+      ],
+    }),
+    ...(dateRange && {
+      createdAt: {
+        gte: dateRange.gte,
+        lte: dateRange.lte,
+      },
+    }),
+  };
+
+  // build Prisma where condition for partners
+  const partnerWhere: any = { ...userWhere, role: "BUSINESS_PARTNER" };
+
+  // fetch users and partners
+  const [users, partners] = await Promise.all([
+    prisma.user.findMany({
+      where: userWhere,
+      select: {
+        createdAt: true,
+      },
+    }),
+    prisma.user.findMany({
+      where: partnerWhere,
+      select: {
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  // month names
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  // prepare month-wise data
+  const userMonthsData = monthNames.map((month, index) => {
+    const userCount = users.filter(
+      (u) => new Date(u.createdAt).getMonth() === index
+    ).length;
+
+    const partnerCount = partners.filter(
+      (p) => new Date(p.createdAt).getMonth() === index
+    ).length;
+
+    return {
+      month,
+      userCount,
+      partnerCount,
+    };
+  });
+
+  return {
+    totalUsers: users.length,
+    totalPartners: partners.length,
+    userMonthsData,
+  };
+};
+
 // financial metrics
 const financialMetrics = async () => {
   // total admin and service earnings (only PAID payments)
@@ -1317,6 +1405,7 @@ const getPartnerTotalEarningsAttraction = async (partnerId: string) => {
 export const StatisticsService = {
   getOverview,
   paymentWithUserAnalysis,
+  userDemographics,
   financialMetrics,
   cancelRefundAndContracts,
   getAllServiceProviders,

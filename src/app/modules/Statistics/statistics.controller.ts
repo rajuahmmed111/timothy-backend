@@ -35,6 +35,19 @@ const paymentWithUserAnalysis = catchAsync(
   }
 );
 
+//  user demographics
+const userDemographics = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const result = await StatisticsService.userDemographics(filter);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Statistics fetched successfully",
+    data: result,
+  });
+});
+
 // financial metrics
 const financialMetrics = catchAsync(async (req: Request, res: Response) => {
   const result = await StatisticsService.financialMetrics();
@@ -182,6 +195,7 @@ const getPartnerTotalEarningsAttraction = catchAsync(
 export const StatisticsController = {
   getOverview,
   paymentWithUserAnalysis,
+  userDemographics,
   financialMetrics,
   cancelRefundAndContracts,
   getAllServiceProviders,
