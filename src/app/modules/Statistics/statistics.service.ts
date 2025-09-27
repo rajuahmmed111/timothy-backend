@@ -233,17 +233,24 @@ const getOverview = async (params: IFilterRequest) => {
 };
 
 // get payment with user analysis
-const paymentWithUserAnalysis = async () => {
-  // Total users (all-time)
+const paymentWithUserAnalysis = async (params: IFilterRequest) => {
+  const { timeRange } = params;
+  const dateRange = getDateRange(timeRange);
+
+  // Total users
   const totalUsers = await prisma.user.count({
-    where: { role: UserRole.USER },
+    where: {
+      role: UserRole.USER,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
-
-  // Total partners (all-time)
+  // Total partners
   const totalPartners = await prisma.user.count({
-    where: { role: UserRole.BUSINESS_PARTNER },
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
-
   // monthly payment aggregation
   const paymentPipeline = [
     {
