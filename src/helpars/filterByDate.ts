@@ -2,6 +2,12 @@ export const getDateRange = (timeRange?: string) => {
   const now = new Date();
 
   switch (timeRange) {
+    case "TODAY": {
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      return { gte: startOfDay, lte: now };
+    }
     case "THIS_WEEK": {
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday

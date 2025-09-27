@@ -9,7 +9,8 @@ import { paginationFields } from "../../../constants/pagination";
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = catchAsync(async (req: Request, res: Response) => {
-  const result = await StatisticsService.getOverview();
+  const filter = pick(req.query, filterField);
+  const result = await StatisticsService.getOverview(filter);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

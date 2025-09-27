@@ -18,29 +18,127 @@ import { IPaginationOptions } from "../../../interfaces/paginations";
 import { searchableFields } from "./statistics.constant";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 
+const calculateGrowth = (current: number, previous: number) => {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Number((((current - previous) / previous) * 100).toFixed(2));
+};
+
+// get previous dateRange based on current timeRange
+const getPreviousDateRange = (timeRange?: string) => {
+  const now = new Date();
+
+  switch (timeRange) {
+    case "TODAY": {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      const start = new Date(yesterday);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(yesterday);
+      end.setHours(23, 59, 59, 999);
+      return { gte: start, lte: end };
+    }
+    case "THIS_WEEK": {
+      const startOfThisWeek = new Date(now);
+      startOfThisWeek.setDate(now.getDate() - now.getDay());
+      const startOfLastWeek = new Date(startOfThisWeek);
+      startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+      const endOfLastWeek = new Date(startOfThisWeek);
+      endOfLastWeek.setMilliseconds(-1);
+      return { gte: startOfLastWeek, lte: endOfLastWeek };
+    }
+    case "THIS_MONTH": {
+      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        1
+      );
+      const endOfLastMonth = new Date(startOfThisMonth);
+      endOfLastMonth.setMilliseconds(-1);
+      return { gte: startOfLastMonth, lte: endOfLastMonth };
+    }
+    case "THIS_YEAR": {
+      const startOfThisYear = new Date(now.getFullYear(), 0, 1);
+      const startOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
+      const endOfLastYear = new Date(startOfThisYear);
+      endOfLastYear.setMilliseconds(-1);
+      return { gte: startOfLastYear, lte: endOfLastYear };
+    }
+    default:
+      return undefined;
+  }
+};
+
 // get overview total user, total partner,total contracts , admin earnings
-const getOverview = async () => {
+const getOverview = async (params: IFilterRequest) => {
+  const { timeRange } = params;
+  const dateRange = getDateRange(timeRange);
+  const prevRange = getPreviousDateRange(timeRange);
+
   // total users
   const totalUsers = await prisma.user.count({
-    where: { role: UserRole.USER },
+    where: {
+      role: UserRole.USER,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
+
+  // previous users
+  const prevTotalUsers = await prisma.user.count({
+    where: {
+      role: UserRole.USER,
+      ...(prevRange ? { createdAt: prevRange } : {}),
+    },
+  });
+  const userGrowth = calculateGrowth(totalUsers, prevTotalUsers);
 
   // total partners
   const totalPartners = await prisma.user.count({
-    where: { role: UserRole.BUSINESS_PARTNER },
+    where: {
+      role: UserRole.BUSINESS_PARTNER,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
 
-  // total contracts (all bookings)
+  // current contracts
   const [hotelCount, securityCount, carCount, attractionCount] =
     await Promise.all([
-      prisma.hotel_Booking.count(),
-      prisma.security_Booking.count(),
-      prisma.car_Booking.count(),
-      prisma.attraction_Booking.count(),
+      prisma.hotel_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+      prisma.security_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+      prisma.car_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+      prisma.attraction_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
     ]);
-
   const totalContracts =
     hotelCount + securityCount + carCount + attractionCount;
+
+  // previous contracts
+  const [prevHotelCount, prevSecurityCount, prevCarCount, prevAttractionCount] =
+    await Promise.all([
+      prisma.hotel_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+      prisma.security_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+      prisma.car_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+      prisma.attraction_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+    ]);
+  const prevTotalContracts =
+    prevHotelCount + prevSecurityCount + prevCarCount + prevAttractionCount;
+
+  const contractGrowth = calculateGrowth(totalContracts, prevTotalContracts);
 
   // admin earnings (only PAID payments)
   const adminEarnings = await prisma.payment.aggregate({
@@ -65,37 +163,61 @@ const getOverview = async () => {
   });
 
   // total supports
-  const totalSupports = await prisma.support.count();
+  const totalSupports = await prisma.support.count({
+    where: {
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
+  });
 
   // total pending support
   const totalPendingSupport = await prisma.support.count({
-    where: { status: SupportStatus.Pending },
+    where: {
+      status: SupportStatus.Pending,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
 
   // total Critical support
   const totalCriticalSupport = await prisma.support.count({
-    where: { supportType: SupportType.Critical },
+    where: {
+      supportType: SupportType.Critical,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
 
   // total High support
   const totalHighSupport = await prisma.support.count({
-    where: { supportType: SupportType.High },
+    where: {
+      supportType: SupportType.High,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
 
   // total Medium support
   const totalMediumSupport = await prisma.support.count({
-    where: { supportType: SupportType.High },
+    where: {
+      supportType: SupportType.Medium,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
 
   // total Low support
   const totalLowSupport = await prisma.support.count({
-    where: { supportType: SupportType.Low },
+    where: {
+      supportType: SupportType.Low,
+      ...(dateRange ? { createdAt: dateRange } : {}),
+    },
   });
-
   return {
-    totalUsers,
+    totalUsers: {
+      count: totalUsers,
+      growth: userGrowth,
+    },
     totalPartners,
-    totalContracts,
+    totalContracts: {
+      count: totalContracts,
+      growth: contractGrowth,
+    },
     adminEarnings: adminEarnings._sum.admin_commission,
     totalPendingPartners,
     totalCompletedPartners,
