@@ -510,44 +510,100 @@ const financialMetrics = async () => {
 };
 
 // booking and cancel/refund metrics
-const cancelRefundAndContracts = async () => {
-  // total canceled/refunded count
-  const canceledCount = await prisma.payment.count({
-    where: {
-      status: PaymentStatus.REFUNDED,
-    },
-  });
+const cancelRefundAndContracts = async (timeRange?: string) => {
+  const dateRange = getDateRange(timeRange);
+  const prevRange = getPreviousDateRange(timeRange);
 
-  // total refund amount
-  const refundAmount = await prisma.payment.aggregate({
-    where: {
-      status: PaymentStatus.REFUNDED,
-    },
-    _sum: {
-      amount: true,
-    },
-  });
+  // Canceled/refunded count
+  const [canceledCount, prevCanceledCount] = await Promise.all([
+    prisma.payment.count({
+      where: {
+        status: PaymentStatus.REFUNDED,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
+    }),
+    prisma.payment.count({
+      where: {
+        status: PaymentStatus.REFUNDED,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+  ]);
 
-  // total payments
-  const totalPayments = await prisma.payment.count();
+  // Refund amount
+  const [refundAmountObj, prevRefundAmountObj] = await Promise.all([
+    prisma.payment.aggregate({
+      where: {
+        status: PaymentStatus.REFUNDED,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
+      _sum: { amount: true },
+    }),
+    prisma.payment.aggregate({
+      where: {
+        status: PaymentStatus.REFUNDED,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+      _sum: { amount: true },
+    }),
+  ]);
+  const refundAmount = refundAmountObj._sum.amount ?? 0;
+  const prevRefundAmount = prevRefundAmountObj._sum.amount ?? 0;
 
-  // cancel rate as percentage
+  // Total payments
+  const [totalPayments, prevTotalPayments] = await Promise.all([
+    prisma.payment.count({
+      ...(dateRange ? { where: { createdAt: dateRange } } : {}),
+    }),
+    prisma.payment.count({
+      ...(prevRange ? { where: { createdAt: prevRange } } : {}),
+    }),
+  ]);
+
   const cancelRate =
     totalPayments > 0 ? (canceledCount / totalPayments) * 100 : 0;
+  const prevCancelRate =
+    prevTotalPayments > 0 ? (prevCanceledCount / prevTotalPayments) * 100 : 0;
 
-  // total booking counts by type
+  // Booking counts by type
   const [hotelCount, securityCount, carCount, attractionCount] =
     await Promise.all([
-      prisma.hotel_Booking.count(),
-      prisma.security_Booking.count(),
-      prisma.car_Booking.count(),
-      prisma.attraction_Booking.count(),
+      prisma.hotel_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+      prisma.security_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+      prisma.car_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+      prisma.attraction_Booking.count({
+        where: dateRange ? { createdAt: dateRange } : {},
+      }),
+    ]);
+
+  const [prevHotelCount, prevSecurityCount, prevCarCount, prevAttractionCount] =
+    await Promise.all([
+      prisma.hotel_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+      prisma.security_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+      prisma.car_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
+      prisma.attraction_Booking.count({
+        where: prevRange ? { createdAt: prevRange } : {},
+      }),
     ]);
 
   const totalContracts =
     hotelCount + securityCount + carCount + attractionCount;
+  const prevTotalContracts =
+    prevHotelCount + prevSecurityCount + prevCarCount + prevAttractionCount;
 
-  // total bookings by status
+  // Total confirmed/pending counts
   const [
     pendingHotel,
     confirmedHotel,
@@ -559,55 +615,162 @@ const cancelRefundAndContracts = async () => {
     confirmedAttraction,
   ] = await Promise.all([
     prisma.hotel_Booking.count({
-      where: { bookingStatus: BookingStatus.CONFIRMED },
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.hotel_Booking.count({
-      where: { bookingStatus: BookingStatus.PENDING },
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.security_Booking.count({
-      where: { bookingStatus: BookingStatus.CONFIRMED },
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.security_Booking.count({
-      where: { bookingStatus: BookingStatus.PENDING },
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.car_Booking.count({
-      where: { bookingStatus: BookingStatus.CONFIRMED },
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.car_Booking.count({
-      where: { bookingStatus: BookingStatus.PENDING },
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.attraction_Booking.count({
-      where: { bookingStatus: BookingStatus.CONFIRMED },
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
     }),
     prisma.attraction_Booking.count({
-      where: { bookingStatus: BookingStatus.PENDING },
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(dateRange ? { createdAt: dateRange } : {}),
+      },
+    }),
+  ]);
+
+  const [
+    prevPendingHotel,
+    prevConfirmedHotel,
+    prevPendingSecurity,
+    prevConfirmedSecurity,
+    prevPendingCar,
+    prevConfirmedCar,
+    prevPendingAttraction,
+    prevConfirmedAttraction,
+  ] = await Promise.all([
+    prisma.hotel_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.hotel_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.security_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.security_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.car_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.car_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.attraction_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
+    }),
+    prisma.attraction_Booking.count({
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        ...(prevRange ? { createdAt: prevRange } : {}),
+      },
     }),
   ]);
 
   const totalPending =
     pendingHotel + pendingSecurity + pendingCar + pendingAttraction;
-
   const totalConfirmed =
     confirmedHotel + confirmedSecurity + confirmedCar + confirmedAttraction;
 
+  const prevTotalPending =
+    prevPendingHotel +
+    prevPendingSecurity +
+    prevPendingCar +
+    prevPendingAttraction;
+  const prevTotalConfirmed =
+    prevConfirmedHotel +
+    prevConfirmedSecurity +
+    prevConfirmedCar +
+    prevConfirmedAttraction;
+
   const pendingRate =
     totalContracts > 0 ? (totalPending / totalContracts) * 100 : 0;
-
   const confirmedRate =
     totalContracts > 0 ? (totalConfirmed / totalContracts) * 100 : 0;
 
+  const prevPendingRate =
+    prevTotalContracts > 0 ? (prevTotalPending / prevTotalContracts) * 100 : 0;
+  const prevConfirmedRate =
+    prevTotalContracts > 0
+      ? (prevTotalConfirmed / prevTotalContracts) * 100
+      : 0;
+
   return {
     canceledCount,
-    refundAmount: refundAmount._sum.amount ?? 0,
-    cancelRate,
+    canceledCountGrowth: calculateGrowth(canceledCount, prevCanceledCount),
+    refundAmount,
+    refundAmountGrowth: calculateGrowth(refundAmount, prevRefundAmount),
+    cancelRate: Number(cancelRate.toFixed(2)),
+    cancelRateGrowth: calculateGrowth(cancelRate, prevCancelRate),
     totalContracts,
+    totalContractsGrowth: calculateGrowth(totalContracts, prevTotalContracts),
     totalPending,
+    totalPendingGrowth: calculateGrowth(totalPending, prevTotalPending),
     totalConfirmed,
-    pendingRate,
-    confirmedRate,
+    totalConfirmedGrowth: calculateGrowth(totalConfirmed, prevTotalConfirmed),
+    pendingRate: Number(pendingRate.toFixed(2)),
+    pendingRateGrowth: calculateGrowth(pendingRate, prevPendingRate),
+    confirmedRate: Number(confirmedRate.toFixed(2)),
+    confirmedRateGrowth: calculateGrowth(confirmedRate, prevConfirmedRate),
   };
 };
-
 // get all service provider for send report
 const getAllServiceProviders = async (
   params: IFilterRequest,
