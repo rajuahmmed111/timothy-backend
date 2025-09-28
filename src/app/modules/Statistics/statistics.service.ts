@@ -9,7 +9,10 @@ import {
 } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./statistics.interface";
-import { getDateRange, getYearRange } from "../../../helpars/filterByDate";
+import {
+  calculatePercentageChange,
+  getDateRange,
+} from "../../../helpars/filterByDate";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import emailSender from "../../../helpars/emailSender";
@@ -1565,6 +1568,64 @@ const getPartnerTotalEarningsAttraction = async (partnerId: string) => {
   };
 };
 
+// user support tickets
+const getUserSupportTickets = async (params: IFilterRequest) => {
+  const { timeRange } = params;
+
+  const currentDateRange = getDateRange(timeRange);
+  const previousDateRange = getPreviousDateRange(timeRange);
+
+  const currentWhere: any = {};
+  const previousWhere: any = {};
+
+  if (currentDateRange) {
+    currentWhere.createdAt = currentDateRange;
+  }
+
+  if (previousDateRange) {
+    previousWhere.createdAt = previousDateRange;
+  }
+
+  // Current period data
+  const [totalSupport, pendingSupport] = await Promise.all([
+    prisma.support.count({ where: currentWhere }),
+    prisma.support.count({
+      where: {
+        ...currentWhere,
+        status: SupportStatus.Pending,
+      },
+    }),
+  ]);
+
+  // Previous period data
+  const [previousTotalSupport, previousPendingSupport] = await Promise.all([
+    prisma.support.count({ where: previousWhere }),
+    prisma.support.count({
+      where: {
+        ...previousWhere,
+        status: SupportStatus.Pending,
+      },
+    }),
+  ]);
+
+  // Calculate percentage changes
+  const totalSupportChange = calculatePercentageChange(
+    previousTotalSupport,
+    totalSupport
+  );
+  const pendingSupportChange = calculatePercentageChange(
+    previousPendingSupport,
+    pendingSupport
+  );
+
+  return {
+    totalSupport,
+    totalSupportChange,
+    pendingSupport,
+    pendingSupportChange,
+  };
+};
+
 export const StatisticsService = {
   getOverview,
   paymentWithUserAnalysis,
@@ -1578,4 +1639,5 @@ export const StatisticsService = {
   getPartnerTotalEarningsSecurity,
   getPartnerTotalEarningsCar,
   getPartnerTotalEarningsAttraction,
+  getUserSupportTickets,
 };

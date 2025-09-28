@@ -28,10 +28,20 @@ export const getDateRange = (timeRange?: string) => {
   }
 };
 
-export const getYearRange = (yearRange?: number) => {
-  if (!yearRange) return undefined;
+export const calculatePercentageChange = (previousValue: number, currentValue: number): {
+  percentage: number;
+  isIncrease: boolean;
+} => {
+  if (previousValue === 0) {
+    return {
+      percentage: currentValue > 0 ? 100 : 0,
+      isIncrease: currentValue > 0
+    };
+  }
+  
+  const change = ((currentValue - previousValue) / previousValue) * 100;
   return {
-    gte: new Date(Date.UTC(yearRange, 0, 1, 0, 0, 0)),
-    lte: new Date(Date.UTC(yearRange, 11, 31, 23, 59, 59, 999)),
+    percentage: Math.abs(Math.round(change)),
+    isIncrease: change >= 0
   };
-};
+}

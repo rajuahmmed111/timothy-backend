@@ -86,4 +86,11 @@ router.get(
   StatisticsController.getPartnerTotalEarningsAttraction
 );
 
+// user support tickets
+router.get(
+  "/user-support-tickets",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  StatisticsController.getUserSupportTickets
+);
+
 export const statisticsRoutes = router;
