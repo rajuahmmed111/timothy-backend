@@ -10,8 +10,10 @@ import {
 import prisma from "../../../shared/prisma";
 import { IFilterRequest } from "./statistics.interface";
 import {
+  calculateGrowth,
   calculatePercentageChange,
   getDateRange,
+  getPreviousDateRange,
 } from "../../../helpars/filterByDate";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
@@ -20,57 +22,6 @@ import { format } from "date-fns";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { searchableFields } from "./statistics.constant";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
-
-const calculateGrowth = (current: number, previous: number) => {
-  if (previous === 0) return current > 0 ? 100 : 0;
-  return Number((((current - previous) / previous) * 100).toFixed(2));
-};
-
-// get previous dateRange based on current timeRange
-const getPreviousDateRange = (timeRange?: string) => {
-  const now = new Date();
-
-  switch (timeRange) {
-    case "TODAY": {
-      const yesterday = new Date(now);
-      yesterday.setDate(now.getDate() - 1);
-      const start = new Date(yesterday);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(yesterday);
-      end.setHours(23, 59, 59, 999);
-      return { gte: start, lte: end };
-    }
-    case "THIS_WEEK": {
-      const startOfThisWeek = new Date(now);
-      startOfThisWeek.setDate(now.getDate() - now.getDay());
-      const startOfLastWeek = new Date(startOfThisWeek);
-      startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
-      const endOfLastWeek = new Date(startOfThisWeek);
-      endOfLastWeek.setMilliseconds(-1);
-      return { gte: startOfLastWeek, lte: endOfLastWeek };
-    }
-    case "THIS_MONTH": {
-      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfLastMonth = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        1
-      );
-      const endOfLastMonth = new Date(startOfThisMonth);
-      endOfLastMonth.setMilliseconds(-1);
-      return { gte: startOfLastMonth, lte: endOfLastMonth };
-    }
-    case "THIS_YEAR": {
-      const startOfThisYear = new Date(now.getFullYear(), 0, 1);
-      const startOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
-      const endOfLastYear = new Date(startOfThisYear);
-      endOfLastYear.setMilliseconds(-1);
-      return { gte: startOfLastYear, lte: endOfLastYear };
-    }
-    default:
-      return undefined;
-  }
-};
 
 // get overview total user, total partner,total contracts , admin earnings
 const getOverview = async (params: IFilterRequest) => {
