@@ -9,10 +9,6 @@ import {
 // import { IUploadedFile } from "../interfaces/file";
 import config from "../config";
 
-interface IUploadedFile extends Express.Multer.File {
-  path: string;
-}
-
 // ---------------- Create uploads folder if not exists ----------------
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -84,18 +80,13 @@ const s3 = new S3Client({
 });
 
 // ---------------- S3 Uploader function ----------------
-const uploadToS3 = async (file: IUploadedFile, folder: string) => {
+const uploadToS3 = async (file: any, folder: string) => {
   if (!process.env.DO_SPACE_BUCKET) {
-    throw new Error(
-      "DO_SPACE_BUCKET is not defined in the environment variables."
-    );
+    throw new Error("DO_SPACE_BUCKET is not defined in the environment variables.");
   }
 
   const fileStream = fs.createReadStream(file.path);
-  const Key = `${folder}/${Date.now()}_${path
-    .basename(file.originalname)
-    .replace(/\s+/g, "_") // space → underscore
-    .replace(/[^a-zA-Z0-9_-]/g, "")}${path.extname(file.originalname)}`;
+  const Key = `${folder}/${Date.now()}_${file.originalname}`;
 
   const params = {
     Bucket: process.env.DO_SPACE_BUCKET,

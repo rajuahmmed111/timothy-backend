@@ -182,6 +182,8 @@ model Hotel {
   hotelBookingCondition  String
   hotelCancelationPolicy String
   hotelDocs              String[]
+  hotelLate              Float?
+  hotelLong              Float?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
@@ -198,7 +200,6 @@ model Hotel {
 model Room {
   id                            String             @id @default(auto()) @map("_id") @db.ObjectId
   hotelRoomType                 String
-  hotelRoomPriceNight           Int // price  float korte hobe
   hotelAC                       Boolean
   hotelParking                  Boolean
   hoitelWifi                    Boolean
@@ -220,25 +221,24 @@ model Room {
   hotelNumberOfRooms            Int
   hotelNumAdults                Int
   hotelNumChildren              Int
-  hotelAccommodationType        String?
-  hotelKitchen                  Boolean?
-  HotelRestaurant               Boolean?
-  hotelGym                      Boolean?
-  hotelSpa                      Boolean?
-  hotel24HourFrontDesk          Boolean?
-  hotelAirportShuttle           Boolean?
-  hotelNoSmokingPreference      Boolean?
-  hotelNoNSmoking               Boolean?
-  hotelPetsAllowed              Boolean?
-  hotelNoPetsPreferences        Boolean?
-  hotelPetsNotAllowed           Boolean?
-  hotelLocationFeatureWaterView Boolean?
-  hotelLocationFeatureIsland    Boolean?
-  hotelCoffeeBar                Boolean?
-  hotelLate                     Int?
-  hotelLong                     Int?
-  category                      String?
-  discount                      Float?             @default(0)
+  hotelAccommodationType        String
+  hotelKitchen                  Boolean
+  HotelRestaurant               Boolean
+  hotelGym                      Boolean
+  hotelSpa                      Boolean
+  hotel24HourFrontDesk          Boolean
+  hotelAirportShuttle           Boolean
+  hotelNoSmokingPreference      Boolean
+  hotelNoNSmoking               Boolean
+  hotelPetsAllowed              Boolean
+  hotelNoPetsPreferences        Boolean
+  hotelPetsNotAllowed           Boolean
+  hotelLocationFeatureWaterView Boolean
+  hotelLocationFeatureIsland    Boolean
+  hotelCoffeeBar                Boolean
+  category                      String
+  hotelRoomPriceNight           Float
+  discount                      Float              @default(0)
   isBooked                      EveryServiceStatus @default(AVAILABLE)
   hotelReviewCount              Int                @default(0)
   createdAt                     DateTime           @default(now())
@@ -247,8 +247,8 @@ model Room {
   // relationships
   hotelId        String?         @db.ObjectId
   hotel          Hotel?          @relation(fields: [hotelId], references: [id])
-  user           User            @relation(fields: [partnerId], references: [id])
-  partnerId      String          @db.ObjectId
+  user           User?           @relation(fields: [partnerId], references: [id])
+  partnerId      String?         @db.ObjectId
   hotel_bookings Hotel_Booking[]
   review         Review[]
   favorite       Favorite[]

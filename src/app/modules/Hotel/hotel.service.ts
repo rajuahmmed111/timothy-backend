@@ -13,7 +13,7 @@ import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
 import { numericFields, searchableFields } from "./hotel.constant";
-import { uploadFile } from "../../../utils/uploadToS3";
+import { uploadFile } from "../../../helpars/fileUploader";
 
 // create hotel
 const createHotel = async (req: Request) => {
@@ -33,23 +33,20 @@ const createHotel = async (req: Request) => {
   const hotelLogoFile = files?.businessLogo?.[0];
   const docsFiles = files?.hotelDocs || [];
 
-  // -------- Upload logo --------
-  let businessLogo = "https://i.ibb.co/zWxSgQL8/download.png"; // default image
+  // Upload logo
+  let businessLogo = "https://i.ibb.co/zWxSgQL8/download.png";
   if (hotelLogoFile) {
-    const logoResult = await uploadFile.uploadToS3(
-      hotelLogoFile,
-      "hotel/logos"
-    );
-    businessLogo = logoResult || businessLogo;
+    const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
+    businessLogo = logoResult?.secure_url || businessLogo;
   }
 
-  // -------- Upload multiple docs --------
+  // Upload multiple docs
   let hotelDocUrls: string[] = [];
   if (docsFiles.length > 0) {
     const docUploads = await Promise.all(
-      docsFiles.map((file) => uploadFile.uploadToS3(file, "hotel/docs"))
+      docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
     );
-    hotelDocUrls = docUploads.filter(Boolean) as string[];
+    hotelDocUrls = docUploads.map((img) => img?.secure_url || "");
   }
 
   const {
@@ -64,6 +61,8 @@ const createHotel = async (req: Request) => {
     businessDescription,
     hotelBookingCondition,
     hotelCancelationPolicy,
+    hotelLate,
+    hotelLong,
   } = req.body;
 
   const result = await prisma.hotel.create({
@@ -81,11 +80,13 @@ const createHotel = async (req: Request) => {
       hotelBookingCondition,
       hotelCancelationPolicy,
       hotelDocs: hotelDocUrls,
+      hotelLate,
+      hotelLong,
       partnerId: partnerId,
     },
   });
 
-  // -------- Update partner info --------
+  // update partner hotel count
   await prisma.user.update({
     where: { id: partnerExists.id },
     data: { isHotel: true },
@@ -94,140 +95,143 @@ const createHotel = async (req: Request) => {
   return result;
 };
 
-// // create hotel
-// const createHotel = async (req: Request) => {
-//   const partnerId = req.user?.id;
+// create hotel room
+const createHotelRoom = async (req: Request) => {
+  const partnerId = req.user?.id;
+  const hotelId = req.params.hotelId;
 
-//   const partnerExists = await prisma.user.findUnique({
-//     where: { id: partnerId },
-//   });
-//   if (!partnerExists) {
-//     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
-//   }
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
 
-//   const files = req.files as {
-//     [fieldname: string]: Express.Multer.File[];
-//   };
+  const hotelExists = await prisma.hotel.findUnique({
+    where: { id: hotelId },
+  });
+  if (!hotelExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+  }
 
-//   const hotelLogoFile = files?.businessLogo?.[0];
-//   const roomImageFiles = files?.hotelRoomImages || [];
-//   const docsFiles = files?.hotelDocs || [];
+  const files = req.files as {
+    [fieldname: string]: Express.Multer.File[];
+  };
 
-//   // Upload logo
-//   let businessLogo = "https://i.ibb.co/zWxSgQL8/download.png";
-//   if (hotelLogoFile) {
-//     const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
-//     businessLogo = logoResult?.secure_url || businessLogo;
-//   }
+  const roomImageFiles = files?.hotelRoomImages || [];
+  const hotelImagesFile = files?.hotelImages || [];
 
-//   // Upload multiple room images
-//   let roomImageUrls: string[] = [];
-//   if (roomImageFiles.length > 0) {
-//     const uploads = await Promise.all(
-//       roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
-//     );
-//     roomImageUrls = uploads.map((img) => img?.secure_url || "");
-//   }
+  // Upload multiple room images
+  let roomImageUrls: string[] = [];
+  if (roomImageFiles.length > 0) {
+    const uploads = await Promise.all(
+      roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    roomImageUrls = uploads.map((img) => img?.secure_url || "");
+  }
 
-//   // Upload multiple docs
-//   let hotelDocUrls: string[] = [];
-//   if (docsFiles.length > 0) {
-//     const docUploads = await Promise.all(
-//       docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
-//     );
-//     hotelDocUrls = docUploads.map((img) => img?.secure_url || "");
-//   }
+  // Upload multiple hotel images
+  let hotelRoomUrls: string[] = [];
+  if (hotelImagesFile.length > 0) {
+    const docUploads = await Promise.all(
+      hotelImagesFile.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    hotelRoomUrls = docUploads.map((img) => img?.secure_url || "");
+  }
 
-//   const {
-//     hotelBusinessName,
-//     hotelName,
-//     hotelBusinessType,
-//     hotelRegNum,
-//     hotelRegDate,
-//     hotelPhone,
-//     hotelEmail,
-//     businessTagline,
-//     businessDescription,
-//     hotelRoomType,
-//     hotelRoomPriceNight,
-//     hotelAC,
-//     hotelParking,
-//     hoitelWifi,
-//     hotelBreakfast,
-//     hotelPool,
-//     hotelRating,
-//     hotelSmoking,
-//     hotelTv,
-//     hotelWashing,
-//     hotelBookingCondition,
-//     hotelCancelationPolicy,
-//     hotelRoomDescription,
-//     hotelAddress,
-//     hotelCity,
-//     hotelPostalCode,
-//     hotelDistrict,
-//     hotelCountry,
-//     hotelRoomCapacity,
-//     category,
-//     discount,
-//     hotelReviewCount,
-//     hotelNumberOfRooms,
-//     hotelNumAdults,
-//     hotelNumChildren,
-//   } = req.body;
+  const {
+    hotelRoomType,
+    hotelAC,
+    hotelParking,
+    hoitelWifi,
+    hotelBreakfast,
+    hotelPool,
+    hotelRating,
+    hotelSmoking,
+    hotelTv,
+    hotelWashing,
+    hotelRoomDescription,
+    hotelAddress,
+    hotelCity,
+    hotelPostalCode,
+    hotelDistrict,
+    hotelCountry,
+    hotelRoomCapacity,
+    hotelNumberOfRooms,
+    hotelNumAdults,
+    hotelNumChildren,
+    hotelAccommodationType,
+    hotelKitchen,
+    HotelRestaurant,
+    hotelGym,
+    hotelSpa,
+    hotel24HourFrontDesk,
+    hotelAirportShuttle,
+    hotelNoSmokingPreference,
+    hotelNoNSmoking,
+    hotelPetsAllowed,
+    hotelNoPetsPreferences,
+    hotelPetsNotAllowed,
+    hotelLocationFeatureWaterView,
+    hotelLocationFeatureIsland,
+    hotelCoffeeBar,
+    hotelRoomPriceNight,
+    category,
+    discount,
+    hotelReviewCount,
+  } = req.body;
 
-//   const result = await prisma.hotel.create({
-//     data: {
-//       hotelBusinessName,
-//       hotelName,
-//       hotelBusinessType,
-//       hotelRegNum,
-//       hotelRegDate,
-//       hotelPhone,
-//       hotelEmail,
-//       businessTagline,
-//       businessDescription,
-//       businessLogo,
-//       hotelRoomType,
-//       hotelRoomPriceNight: parseInt(hotelRoomPriceNight),
-//       hotelAC: hotelAC === "true",
-//       hotelParking: hotelParking === "true",
-//       hoitelWifi: hoitelWifi === "true",
-//       hotelBreakfast: hotelBreakfast === "true",
-//       hotelPool: hotelPool === "true",
-//       hotelRating,
-//       hotelSmoking: hotelSmoking === "true",
-//       hotelTv: hotelTv === "true",
-//       hotelWashing: hotelWashing === "true",
-//       hotelBookingCondition,
-//       hotelCancelationPolicy,
-//       hotelDocs: hotelDocUrls,
-//       hotelRoomDescription,
-//       hotelAddress,
-//       hotelCity,
-//       hotelPostalCode,
-//       hotelDistrict,
-//       hotelCountry,
-//       hotelRoomCapacity,
-//       hotelRoomImages: roomImageUrls,
-//       category: category || undefined,
-//       discount: discount ? parseFloat(discount) : 0,
-//       hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
-//       hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
-//       hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
-//       hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
-//       partnerId: partnerId,
-//     },
-//   });
+  const result = await prisma.room.create({
+    data: {
+      hotelRoomType,
+      hotelAC,
+      hotelParking,
+      hoitelWifi,
+      hotelBreakfast,
+      hotelPool,
+      hotelRating,
+      hotelSmoking,
+      hotelTv,
+      hotelWashing,
+      hotelRoomDescription,
+      hotelAddress,
+      hotelCity,
+      hotelPostalCode,
+      hotelDistrict,
+      hotelCountry,
+      hotelRoomCapacity,
+      hotelNumberOfRooms,
+      hotelNumAdults,
+      hotelNumChildren,
+      hotelAccommodationType,
+      hotelKitchen,
+      HotelRestaurant,
+      hotelGym,
+      hotelSpa,
+      hotel24HourFrontDesk,
+      hotelAirportShuttle,
+      hotelNoSmokingPreference,
+      hotelNoNSmoking,
+      hotelPetsAllowed,
+      hotelNoPetsPreferences,
+      hotelPetsNotAllowed,
+      hotelLocationFeatureWaterView,
+      hotelLocationFeatureIsland,
+      hotelCoffeeBar,
+      hotelRoomPriceNight,
+      category,
+      discount,
+      hotelReviewCount,
+      isBooked: EveryServiceStatus.AVAILABLE,
+      hotelRoomImages: roomImageUrls,
+      hotelImages: hotelRoomUrls,
+      hotelId: hotelId,
+      partnerId: partnerExists.id,
+    },
+  });
 
-//   // update partner hotel count
-//   await prisma.user.update({
-//     where: { id: partnerExists.id },
-//     data: { isHotel: true },
-//   });
-
-//   return result;
-// };
+  return result;
+};
 
 // get all hotels with search filtering and pagination
 const getAllHotels = async (
@@ -725,6 +729,7 @@ const updateHotel = async (req: Request) => {
 
 export const HotelService = {
   createHotel,
+  createHotelRoom,
   getAllHotels,
   getAllHotelsForPartner,
   getSingleHotel,

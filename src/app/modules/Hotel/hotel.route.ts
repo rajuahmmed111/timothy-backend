@@ -78,6 +78,19 @@ router.post(
   HotelController.createHotel
 );
 
+// create hotel room
+router.post(
+  "/room/:hotelId",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "hotelImages", maxCount: 5 },
+    { name: "hotelRoomImages", maxCount: 5 },
+  ]),
+  parseBodyData,
+  //   validateRequest(HotelController.createHotelSchema),
+  HotelController.createHotelRoom
+);
+
 // // create hotel
 // router.post(
 //   "/",

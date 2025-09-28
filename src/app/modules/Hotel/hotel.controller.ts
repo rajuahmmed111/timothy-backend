@@ -18,6 +18,17 @@ const createHotel = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create hotel room
+const createHotelRoom = catchAsync(async (req: Request, res: Response) => {
+  const result = await HotelService.createHotelRoom(req);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Hotel room created successfully",
+    data: result,
+  });
+});
+
 // get all hotels
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -120,6 +131,7 @@ const updateHotel = catchAsync(async (req: Request, res: Response) => {
 
 export const HotelController = {
   createHotel,
+  createHotelRoom,
   getAllHotels,
   getAllHotelsForPartner,
   getSingleHotel,
