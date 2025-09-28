@@ -98,7 +98,7 @@ model User {
   role          UserRole   @default(USER)
   status        UserStatus @default(ACTIVE)
   fcmToken      String?    @default("")
-  age           String?
+  age           Int?
   profession    String?
   gender        String?
   companyName   String?
