@@ -71,13 +71,26 @@ router.post(
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
     { name: "businessLogo", maxCount: 1 },
-    { name: "hotelRoomImages", maxCount: 5 },
     { name: "hotelDocs", maxCount: 5 },
   ]),
   parseBodyData,
   //   validateRequest(HotelController.createHotelSchema),
   HotelController.createHotel
 );
+
+// // create hotel
+// router.post(
+//   "/",
+//   auth(UserRole.BUSINESS_PARTNER),
+//   uploadFile.upload.fields([
+//     { name: "businessLogo", maxCount: 1 },
+//     { name: "hotelRoomImages", maxCount: 5 },
+//     { name: "hotelDocs", maxCount: 5 },
+//   ]),
+//   parseBodyData,
+//   //   validateRequest(HotelController.createHotelSchema),
+//   HotelController.createHotel
+// );
 
 // update hotel
 router.patch(

@@ -311,7 +311,7 @@ const userDemographics = async (params: IFilterRequest) => {
   const userWhere: any = {
     role: "USER",
     ...(country && { country: { equals: country, mode: "insensitive" } }),
-    ...(age && { age }), // if age is numeric or string, adjust accordingly
+     ...(age && !isNaN(Number(age)) && { age: Number(age) }),
     ...(gender && { gender: { equals: gender, mode: "insensitive" } }),
     ...(profession && {
       profession: { equals: profession, mode: "insensitive" },
