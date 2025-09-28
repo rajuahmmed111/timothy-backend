@@ -210,23 +210,23 @@ model Hotel {
   hotelNumAdults         Int
   hotelNumChildren       Int
 
-  hotelAccommodationType   String?
-  hotelKitchen             Boolean?
-  HotelRestaurant          Boolean?
-  hotelGym                 Boolean?
-  hotelSpa                 Boolean?
-  hotel24HourFrontDesk     Boolean?
-  hotelAirportShuttle      Boolean?
-  hotelNoSmokingPreference Boolean?
-  hotelNoNSmoking          Boolean?
-  hotelPetsAllowed         Boolean?
-  hotelNoPetsPreferences   Boolean?
-  hotelPetsNotAllowed      Boolean?
+  hotelAccommodationType        String?
+  hotelKitchen                  Boolean?
+  HotelRestaurant               Boolean?
+  hotelGym                      Boolean?
+  hotelSpa                      Boolean?
+  hotel24HourFrontDesk          Boolean?
+  hotelAirportShuttle           Boolean?
+  hotelNoSmokingPreference      Boolean?
+  hotelNoNSmoking               Boolean?
+  hotelPetsAllowed              Boolean?
+  hotelNoPetsPreferences        Boolean?
+  hotelPetsNotAllowed           Boolean?
   hotelLocationFeatureWaterView Boolean?
   hotelLocationFeatureIsland    Boolean?
-  hotelCoffeeBar           Boolean?
-  hotelLate                Int?
-  hotelLong                Int?
+  hotelCoffeeBar                Boolean?
+  hotelLate                     Int?
+  hotelLong                     Int?
 
   category         String?
   discount         Float?             @default(0)
