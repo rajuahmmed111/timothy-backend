@@ -289,9 +289,9 @@ const getAllHotels = async (
     if (minPrice !== undefined) priceFilter.gte = parseFloat(minPrice as any);
     if (maxPrice !== undefined) priceFilter.lte = parseFloat(maxPrice as any);
 
-    filters.push({
-      hotelRoomPriceNight: priceFilter,
-    });
+    // filters.push({
+    //   hotelRoomPriceNight: priceFilter,
+    // });
   }
 
   // Availability filter
