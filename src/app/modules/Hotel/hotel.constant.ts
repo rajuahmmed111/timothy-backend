@@ -1,5 +1,5 @@
 export const filterField: string[] = [
-"searchTerm",
+  "searchTerm",
   "hotelName",
   "hotelRoomType",
   "hotelRating",
@@ -14,7 +14,6 @@ export const filterField: string[] = [
   "fromDate",
   "toDate",
 ];
-
 
 export const searchableFields: string[] = [
   "hotelName",
@@ -31,4 +30,3 @@ export const numericFields = [
   "hotelNumChildren",
   "hotelRoomPriceNight",
 ];
-

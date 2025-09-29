@@ -243,7 +243,7 @@ const getAllHotels = async (
   const { searchTerm, minPrice, maxPrice, fromDate, toDate, ...filterData } =
     params;
 
-  const filters: Prisma.HotelWhereInput[] = [];
+  const filters: Prisma.RoomWhereInput[] = [];
 
   // text search
   if (params?.searchTerm) {
@@ -289,9 +289,9 @@ const getAllHotels = async (
     if (minPrice !== undefined) priceFilter.gte = parseFloat(minPrice as any);
     if (maxPrice !== undefined) priceFilter.lte = parseFloat(maxPrice as any);
 
-    // filters.push({
-    //   hotelRoomPriceNight: priceFilter,
-    // });
+    filters.push({
+      hotelRoomPriceNight: priceFilter,
+    });
   }
 
   // Availability filter
@@ -316,9 +316,9 @@ const getAllHotels = async (
   //   isBooked: EveryServiceStatus.AVAILABLE,
   // });
 
-  const where: Prisma.HotelWhereInput = { AND: filters };
+  const where: Prisma.RoomWhereInput = { AND: filters };
 
-  const result = await prisma.hotel.findMany({
+  const result = await prisma.room.findMany({
     where,
     skip,
     take: limit,
@@ -343,10 +343,11 @@ const getAllHotels = async (
           bookingStatus: true,
         },
       },
+      hotel: true,
     },
   });
 
-  const total = await prisma.hotel.count({ where });
+  const total = await prisma.room.count({ where });
 
   return {
     meta: {
