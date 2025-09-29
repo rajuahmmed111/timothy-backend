@@ -246,16 +246,27 @@ const getAllHotelRooms = async (
   const filters: Prisma.RoomWhereInput[] = [];
 
   // text search
-  if (params?.searchTerm) {
-    filters.push({
-      OR: searchableFields.map((field) => ({
+  filters.push({
+    OR: searchableFields.map((field) => {
+      if (field === "hotelName") {
+        // search inside related Hotel
+        return {
+          hotel: {
+            hotelName: {
+              contains: params.searchTerm,
+              mode: "insensitive",
+            },
+          },
+        };
+      }
+      return {
         [field]: {
           contains: params.searchTerm,
           mode: "insensitive",
         },
-      })),
-    });
-  }
+      };
+    }),
+  });
 
   // numeric match
   const exactNumericFields = numericFields.filter(
@@ -275,7 +286,7 @@ const getAllHotelRooms = async (
           let value: any = (filterData as any)[key];
 
           if (exactNumericFields.includes(key)) value = Number(value);
-           if (["true", "false"].includes(value)) value = value === "true";
+          if (["true", "false"].includes(value)) value = value === "true";
 
           return {
             [key]: { equals: value },
