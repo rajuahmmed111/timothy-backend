@@ -8,6 +8,18 @@ import { parseBodyData } from "../../middlewares/parseNestedJson";
 
 const router = express.Router();
 
+// get all hotels
+router.get(
+  "/",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  HotelController.getAllHotels
+);
+
 // get all hotel rooms
 router.get(
   "/",

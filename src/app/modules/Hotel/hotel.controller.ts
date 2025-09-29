@@ -29,6 +29,20 @@ const createHotelRoom = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all hotels
+const getAllHotels = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const result = await HotelService.getAllHotels(filter, options);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotels fetched successfully",
+    data: result,
+  });
+});
+
 // get all hotel rooms
 const getAllHotelRooms = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -163,6 +177,7 @@ const updateHotelRoom = catchAsync(async (req: Request, res: Response) => {
 export const HotelController = {
   createHotel,
   createHotelRoom,
+  getAllHotels,
   getAllHotelRooms,
   getAllHotelsForPartner,
   getSingleHotel,

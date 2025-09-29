@@ -234,6 +234,92 @@ const createHotelRoom = async (req: Request) => {
   return result;
 };
 
+// get all hotels with search filtering and pagination
+const getAllHotels = async (
+  params: IHotelFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, minPrice, maxPrice, fromDate, toDate, ...filterData } =
+    params;
+
+  const filters: Prisma.HotelWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // numeric match
+  const exactNumericFields = numericFields.filter(
+    (f) => f !== "hotelRoomPriceNight"
+  );
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // numeric match
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: exactNumericFields.map((field) => ({
+        [field]: {
+          equals: (filterData as any)[field],
+        },
+      })),
+    });
+  }
+
+  const whereConditions: Prisma.HotelWhereInput = {
+    AND: filters,
+  };
+
+  const result = await prisma.hotel.findMany({
+    where: whereConditions,
+    include: {
+      user: true,
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.hotel.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get all hotel rooms with search filtering and pagination
 const getAllHotelRooms = async (
   params: IHotelFilterRequest,
@@ -866,6 +952,7 @@ const updateHotelRoom = async (req: Request) => {
 export const HotelService = {
   createHotel,
   createHotelRoom,
+  getAllHotels,
   getAllHotelRooms,
   getAllHotelsForPartner,
   getSingleHotel,
