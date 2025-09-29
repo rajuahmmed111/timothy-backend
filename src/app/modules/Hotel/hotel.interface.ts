@@ -21,7 +21,7 @@ export type IHotelFilterRequest = {
   hotel24HourFrontDesk?: boolean | undefined;
   hotelAirportShuttle?: boolean | undefined;
   hotelNoSmokingPreference?: boolean | undefined;
-  hotelNonSmokingRooms?: boolean | undefined;
+  hotelNoNSmoking?: boolean | undefined;
   hotelSmoking?: boolean | undefined;
   hotelNoPetsPreferences?: boolean | undefined;
   hotelPetsAllowed?: boolean | undefined;

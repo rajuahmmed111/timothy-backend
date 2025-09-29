@@ -275,6 +275,7 @@ const getAllHotelRooms = async (
           let value: any = (filterData as any)[key];
 
           if (exactNumericFields.includes(key)) value = Number(value);
+           if (["true", "false"].includes(value)) value = value === "true";
 
           return {
             [key]: { equals: value },

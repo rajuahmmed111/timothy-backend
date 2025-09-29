@@ -24,7 +24,7 @@ export const filterField: string[] = [
   "hotel24HourFrontDesk",
   "hotelAirportShuttle",
   "hotelNoSmokingPreference",
-  "hotelNonSmokingRooms",
+  "hotelNoNSmoking",
   "hotelSmoking",
   "hotelNoPetsPreferences",
   "hotelPetsAllowed",
