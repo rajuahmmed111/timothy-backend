@@ -223,7 +223,7 @@ model Room {
   hotelNumChildren              Int
   hotelAccommodationType        String
   hotelKitchen                  Boolean
-  HotelRestaurant               Boolean
+  hotelRestaurant               Boolean
   hotelGym                      Boolean
   hotelSpa                      Boolean
   hotel24HourFrontDesk          Boolean
