@@ -26,18 +26,11 @@ router.get(
   HotelBookingController.getHotelBookingById
 );
 
-// create hotel booking
+// create hotel room booking
 router.post(
-  "/:hotelId",
+  "/:roomId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-  HotelBookingController.createHotelBooking
-);
-
-// cancel my (hotel, security, car, attraction) booking only user
-router.patch(
-  "/cancel-my-booking/:id",
-  auth(UserRole.USER),
-  HotelBookingController.cancelMyHotelBooking
+  HotelBookingController.createHotelRoomBooking
 );
 
 // update hotel booking status

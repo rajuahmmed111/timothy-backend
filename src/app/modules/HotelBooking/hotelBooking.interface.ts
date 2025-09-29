@@ -4,6 +4,7 @@ export interface IHotelBookingData {
   children: number; // number of children
   bookedFromDate: string; // date format: "dd-MM-yyyy"
   bookedToDate: string; // date format: "dd-MM-yyyy"
+  specialRequests?: string;
 }
 
 export type BookingCategory = "hotel" | "security" | "car" | "attraction";

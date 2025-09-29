@@ -4,13 +4,13 @@ import { HotelBookingService } from "./hotelBooking.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
-// create hotel booking
-const createHotelBooking = catchAsync(async (req: Request, res: Response) => {
+// create hotel room booking
+const createHotelRoomBooking = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const hotelId = req.params.hotelId;
-  const result = await HotelBookingService.createHotelBooking(
+  const roomId = req.params.roomId;
+  const result = await HotelBookingService.createHotelRoomBooking(
     userId,
-    hotelId,
+    roomId,
     req.body
   );
   sendResponse(res, {
@@ -63,23 +63,6 @@ const getHotelBookingById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// cancel my (hotel, security, car, attraction) booking only user
-const cancelMyHotelBooking = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  const bookingId = req.params.id;
-  const { bookingStatus } = req.body;
-  const result = await HotelBookingService.cancelMyHotelBooking(
-    userId,
-    bookingId,
-    bookingStatus
-  );
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Hotel booking cancelled successfully",
-    data: result,
-  });
-});
 
 // update hotel booking status
 const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
@@ -102,11 +85,9 @@ const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const HotelBookingController = {
-  createHotelBooking,
+  createHotelRoomBooking,
   getAllHotelBookings,
   getAllMyHotelBookings,
-  // getAllMyBookings,
   getHotelBookingById,
-  cancelMyHotelBooking,
   updateBookingStatus,
 };
