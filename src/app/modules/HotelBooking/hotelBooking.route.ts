@@ -21,8 +21,8 @@ router.get(
 
 // get hotel booking by id
 router.get(
-  "/:id",
-  auth(UserRole.BUSINESS_PARTNER),
+  "/:bookingId",
+  auth(UserRole.BUSINESS_PARTNER, UserRole.USER),
   HotelBookingController.getHotelBookingById
 );
 
@@ -35,7 +35,7 @@ router.post(
 
 // update hotel booking status
 router.patch(
-  "/status/:id",
+  "/status/:bookingId",
   auth(UserRole.BUSINESS_PARTNER),
   HotelBookingController.updateBookingStatus
 );
