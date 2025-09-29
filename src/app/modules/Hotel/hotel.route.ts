@@ -91,31 +91,29 @@ router.post(
   HotelController.createHotelRoom
 );
 
-// // create hotel
-// router.post(
-//   "/",
-//   auth(UserRole.BUSINESS_PARTNER),
-//   uploadFile.upload.fields([
-//     { name: "businessLogo", maxCount: 1 },
-//     { name: "hotelRoomImages", maxCount: 5 },
-//     { name: "hotelDocs", maxCount: 5 },
-//   ]),
-//   parseBodyData,
-//   //   validateRequest(HotelController.createHotelSchema),
-//   HotelController.createHotel
-// );
-
 // update hotel
 router.patch(
-  "/:id",
+  "/:hotelId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
     { name: "businessLogo", maxCount: 1 },
-    { name: "hotelRoomImages", maxCount: 5 },
     { name: "hotelDocs", maxCount: 5 },
   ]),
   parseBodyData,
   HotelController.updateHotel
 );
+
+// update hotel room
+router.patch(
+  "/room/:roomId",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "hotelImages", maxCount: 5 },
+    { name: "hotelRoomImages", maxCount: 5 },
+  ]),
+  parseBodyData,
+  HotelController.updateHotelRoom
+);
+
 
 export const hotelRoute = router;

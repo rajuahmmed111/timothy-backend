@@ -120,14 +120,33 @@ const getAllFavoriteHotels = catchAsync(async (req: Request, res: Response) => {
 // update hotel
 const updateHotel = catchAsync(async (req: Request, res: Response) => {
   // const hotelId = req.params.id;
-  const updatedHotel = await HotelService.updateHotel(req);
+  // const partnerId = req.user?.id;
+
+  const result = await HotelService.updateHotel(req);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Hotel updated successfully",
-    data: updatedHotel,
+    data: result,
   });
 });
+
+// update hotel room
+const updateHotelRoom = catchAsync(async (req: Request, res: Response) => {
+  // const roomId = req.params.roomId;
+  // const partnerId = req.user?.id;
+
+  const result = await HotelService.updateHotelRoom(req);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel room updated successfully",
+    data: result,
+  });
+});
+
 
 export const HotelController = {
   createHotel,
@@ -139,4 +158,5 @@ export const HotelController = {
   toggleFavorite,
   getAllFavoriteHotels,
   updateHotel,
+  updateHotelRoom
 };
