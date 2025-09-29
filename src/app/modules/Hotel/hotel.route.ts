@@ -58,6 +58,18 @@ router.get(
   HotelController.getSingleHotel
 );
 
+// get single hotel room
+router.get(
+  "/room/:roomId",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  HotelController.getSingleHotelRoom
+);
+
 // add favorite hotel room
 router.post(
   "/favorite/:roomId",

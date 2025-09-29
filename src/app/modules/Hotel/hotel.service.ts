@@ -361,13 +361,17 @@ const getAllHotelRooms = async (
 
   const total = await prisma.room.count({ where });
 
+  const sortedResult = result.sort(
+    (a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating)
+  );
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: sortedResult,
   };
 };
 
@@ -469,6 +473,18 @@ const getSingleHotel = async (hotelId: string) => {
   return result;
 };
 
+// get single hotel room
+const getSingleHotelRoom = async (roomId: string) => {
+  const result = await prisma.room.findUnique({
+    where: { id: roomId },
+  });
+
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
+  }
+
+  return result;
+};
 // get popular hotels
 const getPopularHotels = async (
   params: IHotelFilterRequest,
@@ -853,6 +869,7 @@ export const HotelService = {
   getAllHotelRooms,
   getAllHotelsForPartner,
   getSingleHotel,
+  getSingleHotelRoom,
   getPopularHotels,
   toggleFavorite,
   getAllFavoriteHotels,
