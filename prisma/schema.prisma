@@ -102,6 +102,8 @@ model User {
   profession    String?
   gender        String?
   companyName   String?
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
 
   // Stripe
   stripeAccountId   String?
