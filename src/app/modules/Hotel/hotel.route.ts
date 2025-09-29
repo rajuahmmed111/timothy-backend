@@ -8,7 +8,7 @@ import { parseBodyData } from "../../middlewares/parseNestedJson";
 
 const router = express.Router();
 
-// get all hotels
+// get all hotel rooms
 router.get(
   "/",
   auth(
@@ -17,7 +17,7 @@ router.get(
     UserRole.BUSINESS_PARTNER,
     UserRole.USER
   ),
-  HotelController.getAllHotels
+  HotelController.getAllHotelRooms
 );
 
 // get all my created hotels for partner

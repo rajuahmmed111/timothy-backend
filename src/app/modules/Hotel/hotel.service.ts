@@ -233,8 +233,8 @@ const createHotelRoom = async (req: Request) => {
   return result;
 };
 
-// get all hotels with search filtering and pagination
-const getAllHotels = async (
+// get all hotel rooms with search filtering and pagination
+const getAllHotelRooms = async (
   params: IHotelFilterRequest,
   options: IPaginationOptions
 ) => {
@@ -779,7 +779,7 @@ const updateHotelRoom = async (req: Request) => {
 export const HotelService = {
   createHotel,
   createHotelRoom,
-  getAllHotels,
+  getAllHotelRooms,
   getAllHotelsForPartner,
   getSingleHotel,
   getPopularHotels,
