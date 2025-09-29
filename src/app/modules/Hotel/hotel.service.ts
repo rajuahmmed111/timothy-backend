@@ -471,9 +471,12 @@ const getSingleHotel = async (hotelId: string) => {
 
 // get popular hotels
 const getPopularHotels = async (
-  params: IHotelFilterRequest
+  params: IHotelFilterRequest,
+  options: IPaginationOptions
 ): Promise<Room[]> => {
   const { searchTerm, ...filterData } = params;
+
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
   const filters: Prisma.RoomWhereInput[] = [];
 
@@ -507,15 +510,18 @@ const getPopularHotels = async (
     // },
   };
 
-  const result = await prisma.room.findMany({
+  const rooms = await prisma.room.findMany({
     where,
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 10,
+    skip,
+    take: limit,
   });
 
-  return result;
+  const sortedRooms = rooms.sort(
+    (a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating)
+  );
+  // .slice(0, 10);
+
+  return sortedRooms;
 };
 
 // add favorite hotel
@@ -608,7 +614,7 @@ const getAllFavoriteHotels = async (userId: string) => {
       userId: user.id,
     },
     include: {
-      hotel: true,
+      room: true,
     },
   });
 

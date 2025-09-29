@@ -79,7 +79,8 @@ const getSingleHotel = catchAsync(async (req: Request, res: Response) => {
 // get popular hotels
 const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
-  const result = await HotelService.getPopularHotels(filter);
+  const options = pick(req.query, paginationFields);
+  const result = await HotelService.getPopularHotels(filter, options);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
