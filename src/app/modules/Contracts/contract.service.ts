@@ -1,4 +1,3 @@
-import e from "express";
 import prisma from "../../../shared/prisma";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IContractFilterRequest } from "./contract.interface";
