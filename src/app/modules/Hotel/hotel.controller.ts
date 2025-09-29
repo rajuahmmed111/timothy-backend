@@ -92,9 +92,9 @@ const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
 // add favorite hotel
 const toggleFavorite = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const hotelId = req.params.hotelId;
+  const roomId = req.params.roomId;
 
-  const result = await HotelService.toggleFavorite(userId, hotelId);
+  const result = await HotelService.toggleFavorite(userId, roomId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -147,7 +147,6 @@ const updateHotelRoom = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 export const HotelController = {
   createHotel,
   createHotelRoom,
@@ -158,5 +157,5 @@ export const HotelController = {
   toggleFavorite,
   getAllFavoriteHotels,
   updateHotel,
-  updateHotelRoom
+  updateHotelRoom,
 };

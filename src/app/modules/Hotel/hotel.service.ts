@@ -8,6 +8,7 @@ import {
   EveryServiceStatus,
   Prisma,
   BookingStatus,
+  Room,
 } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
@@ -274,7 +275,6 @@ const getAllHotelRooms = async (
   );
 
   // Exact search filter
-
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData)
@@ -381,23 +381,34 @@ const getAllHotelsForPartner = async (
 
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.HotelWhereInput[] = [];
+  const filters: Prisma.RoomWhereInput[] = [];
 
   filters.push({
     partnerId,
   });
 
   // text search
-  if (params?.searchTerm) {
-    filters.push({
-      OR: searchableFields.map((field) => ({
+  filters.push({
+    OR: searchableFields.map((field) => {
+      if (field === "hotelName") {
+        // search inside related Hotel
+        return {
+          hotel: {
+            hotelName: {
+              contains: params.searchTerm,
+              mode: "insensitive",
+            },
+          },
+        };
+      }
+      return {
         [field]: {
           contains: params.searchTerm,
           mode: "insensitive",
         },
-      })),
-    });
-  }
+      };
+    }),
+  });
 
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
@@ -410,9 +421,9 @@ const getAllHotelsForPartner = async (
     });
   }
 
-  const where: Prisma.HotelWhereInput = { AND: filters };
+  const where: Prisma.RoomWhereInput = { AND: filters };
 
-  const result = await prisma.hotel.findMany({
+  const result = await prisma.room.findMany({
     where,
     skip,
     take: limit,
@@ -433,7 +444,7 @@ const getAllHotelsForPartner = async (
     },
   });
 
-  const total = await prisma.hotel.count({ where });
+  const total = await prisma.room.count({ where });
 
   return {
     meta: {
@@ -461,10 +472,10 @@ const getSingleHotel = async (hotelId: string) => {
 // get popular hotels
 const getPopularHotels = async (
   params: IHotelFilterRequest
-): Promise<Hotel[]> => {
+): Promise<Room[]> => {
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.HotelWhereInput[] = [];
+  const filters: Prisma.RoomWhereInput[] = [];
 
   // text search
   if (searchTerm) {
@@ -489,14 +500,14 @@ const getPopularHotels = async (
     });
   }
 
-  const where: Prisma.HotelWhereInput = {
+  const where: Prisma.RoomWhereInput = {
     AND: filters,
     // hotelRating: {
     //   not: null,
     // },
   };
 
-  const result = await prisma.hotel.findMany({
+  const result = await prisma.room.findMany({
     where,
     orderBy: {
       createdAt: "desc",
@@ -508,12 +519,32 @@ const getPopularHotels = async (
 };
 
 // add favorite hotel
-const toggleFavorite = async (userId: string, hotelId: string) => {
+const toggleFavorite = async (userId: string, roomId: string) => {
+  // check if user exists
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // check if room exists
+  const room = await prisma.room.findUnique({
+    where: {
+      id: roomId,
+    },
+  });
+  if (!room?.hotelId) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
+  }
+
   const existing = await prisma.favorite.findUnique({
     where: {
-      userId_hotelId: {
-        userId,
-        hotelId,
+      userId_roomId: {
+        userId: user.id,
+        roomId: room.id,
       },
     },
   });
@@ -521,18 +552,40 @@ const toggleFavorite = async (userId: string, hotelId: string) => {
   if (existing) {
     await prisma.favorite.delete({
       where: {
-        userId_hotelId: {
+        userId_roomId: {
           userId,
-          hotelId,
+          roomId,
         },
       },
     });
+
+    // update unfavorite
+    await prisma.room.update({
+      where: {
+        id: room.id,
+      },
+      data: {
+        isFavorite: false,
+      },
+    });
+
     return { isFavorite: false };
   } else {
     await prisma.favorite.create({
       data: {
         userId,
-        hotelId,
+        roomId,
+        hotelId: room.hotelId,
+      },
+    });
+
+    // update isFavorite
+    await prisma.room.update({
+      where: {
+        id: room.id,
+      },
+      data: {
+        isFavorite: true,
       },
     });
     return { isFavorite: true };
