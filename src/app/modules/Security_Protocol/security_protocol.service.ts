@@ -443,16 +443,16 @@ const getAllSecurityProtocolsGuards = async (
     }),
   });
 
-  // Exact search filter
-  if (Object.keys(filterData).length > 0) {
-    filters.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
-    });
-  }
+  // // Exact search filter
+  // if (Object.keys(filterData).length > 0) {
+  //   filters.push({
+  //     AND: Object.keys(filterData).map((key) => ({
+  //       [key]: {
+  //         equals: (filterData as any)[key],
+  //       },
+  //     })),
+  //   });
+  // }
 
   // Exact filter for securityProtocolType (relation)
   if (params.securityProtocolType) {
@@ -516,6 +516,7 @@ const getAllSecurityProtocolsGuards = async (
         select: {
           id: true,
           securityName: true,
+          securityProtocolType: true,
         },
       },
     },
