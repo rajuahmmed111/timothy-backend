@@ -70,17 +70,17 @@ router.post(
   Security_ProtocolController.createSecurityProtocol
 );
 
-// // create security protocol
-// router.post(
-//   "/",
-//   auth(UserRole.BUSINESS_PARTNER),
-//   uploadFile.upload.fields([
-//     { name: "securityImages", maxCount: 5 },
-//     { name: "securityDocs", maxCount: 5 },
-//   ]),
-//   parseBodyData,
-//   Security_ProtocolController.createSecurityProtocol
-// );
+// create security protocol guard type
+router.post(
+  "/",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "securityImages", maxCount: 5 },
+    { name: "securityDocs", maxCount: 5 },
+  ]),
+  parseBodyData,
+  Security_ProtocolController.createSecurityProtocolGuardType
+);
 
 // update security protocol
 router.patch(

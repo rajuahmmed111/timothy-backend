@@ -21,19 +21,19 @@ const createSecurityProtocol = catchAsync(
   }
 );
 
-// // create security protocol
-// const createSecurityProtocol = catchAsync(
-//   async (req: Request, res: Response) => {
-//     const result = await Security_ProtocolService.createSecurityProtocol(req);
+// create security protocol guard type
+const createSecurityProtocolGuardType = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await Security_ProtocolService.createSecurityProtocolGuardType(req);
 
-//     sendResponse(res, {
-//       statusCode: httpStatus.CREATED,
-//       success: true,
-//       message: "Security Protocol created successfully",
-//       data: result,
-//     });
-//   }
-// );
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Security Protocol created successfully",
+      data: result,
+    });
+  }
+);
 
 // get all security protocols
 const getAllSecurityProtocols = catchAsync(
@@ -131,6 +131,7 @@ const updateSecurityProtocol = catchAsync(
 
 export const Security_ProtocolController = {
   createSecurityProtocol,
+  createSecurityProtocolGuardType,
   getAllSecurityProtocols,
   getAllSecurityProtocolsForPartner,
   getPopularSecurityProtocols,
