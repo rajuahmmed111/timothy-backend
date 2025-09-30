@@ -27,7 +27,7 @@ const createSecurityProtocol = catchAsync(
 //     const result = await Security_ProtocolService.createSecurityProtocol(req);
 
 //     sendResponse(res, {
-//       statusCode: httpStatus.OK,
+//       statusCode: httpStatus.CREATED,
 //       success: true,
 //       message: "Security Protocol created successfully",
 //       data: result,
