@@ -24,19 +24,27 @@ const createSecurityProtocol = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
+  // service check
+  if (findPartner.isHotel || findPartner.isCar || findPartner.isAttraction) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You can only provide one type of service. You already provide another service."
+    );
+  }
+
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
   };
 
-  const securityFiles = files?.securityImages || [];
+  const hotelLogoFile = files?.businessLogo?.[0];
   const docsFiles = files?.securityDocs || [];
 
-  // upload securityImages
-  const securityImageUrls = await Promise.all(
-    securityFiles.map((file) =>
-      uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
-    )
-  );
+  // Upload logo
+  let businessLogo = "https://i.ibb.co/zWxSgQL8/download.png";
+  if (hotelLogoFile) {
+    const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
+    businessLogo = logoResult?.secure_url || businessLogo;
+  }
 
   // upload securityDocs
   const securityDocUrls = await Promise.all(
@@ -53,31 +61,12 @@ const createSecurityProtocol = async (req: Request) => {
     securityRegDate,
     securityPhone,
     securityEmail,
-    securityAddress,
-    securityCity,
-    securityPostalCode,
-    securityDistrict,
-    securityCountry,
-    securityDescription,
-    securityServicesOffered,
+    securityTagline,
+    securityProtocolDescription,
+    securityProtocolType,
     securityBookingCondition,
     securityCancelationPolicy,
-    securityRating,
-    securityPriceDay,
-    category,
-    discount,
-    securityReviewCount,
-    hiredCount,
-    vat, //percentage
-    securityBookingAbleDays,
-    // schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
   } = req.body;
-
-  const parsedServices = Array.isArray(securityServicesOffered)
-    ? securityServicesOffered
-    : securityServicesOffered?.split(",").map((s: string) => s.trim());
-
-  // const parsedSchedules = schedules; // assuming schedules sent as JSON string
 
   const securityProtocol = await prisma.security_Protocol.create({
     data: {
@@ -88,29 +77,13 @@ const createSecurityProtocol = async (req: Request) => {
       securityRegDate,
       securityPhone,
       securityEmail,
-      securityAddress,
-      securityCity,
-      securityPostalCode,
-      securityDistrict,
-      securityCountry,
-      securityDescription,
-      securityServicesOffered: parsedServices,
+      businessLogo,
+      securityTagline,
+      securityProtocolDescription,
+      securityProtocolType,
       securityBookingCondition,
       securityCancelationPolicy,
-      securityRating,
-      securityPriceDay: parseInt(securityPriceDay),
-      securityImages: securityImageUrls,
       securityDocs: securityDocUrls,
-      category: category || undefined,
-      discount: discount ? parseFloat(discount) : undefined,
-      securityReviewCount: securityReviewCount
-        ? parseInt(securityReviewCount)
-        : undefined,
-      hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
-      vat: vat ? parseFloat(vat) : undefined,
-      securityBookingAbleDays: Array.isArray(securityBookingAbleDays)
-        ? securityBookingAbleDays
-        : securityBookingAbleDays?.split(",") || [],
       partnerId,
     },
   });
