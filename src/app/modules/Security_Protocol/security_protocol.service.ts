@@ -124,6 +124,117 @@ const createSecurityProtocol = async (req: Request) => {
   return securityProtocol;
 };
 
+// // create security protocol
+// const createSecurityProtocol = async (req: Request) => {
+//   const partnerId = req.user?.id;
+
+//   const findPartner = await prisma.user.findUnique({
+//     where: { id: partnerId },
+//   });
+//   if (!findPartner) {
+//     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+//   }
+
+//   const files = req.files as {
+//     [fieldname: string]: Express.Multer.File[];
+//   };
+
+//   const securityFiles = files?.securityImages || [];
+//   const docsFiles = files?.securityDocs || [];
+
+//   // upload securityImages
+//   const securityImageUrls = await Promise.all(
+//     securityFiles.map((file) =>
+//       uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
+//     )
+//   );
+
+//   // upload securityDocs
+//   const securityDocUrls = await Promise.all(
+//     docsFiles.map((file) =>
+//       uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
+//     )
+//   );
+
+//   const {
+//     securityBusinessName,
+//     securityName,
+//     securityBusinessType,
+//     securityRegNum,
+//     securityRegDate,
+//     securityPhone,
+//     securityEmail,
+//     securityAddress,
+//     securityCity,
+//     securityPostalCode,
+//     securityDistrict,
+//     securityCountry,
+//     securityDescription,
+//     securityServicesOffered,
+//     securityBookingCondition,
+//     securityCancelationPolicy,
+//     securityRating,
+//     securityPriceDay,
+//     category,
+//     discount,
+//     securityReviewCount,
+//     hiredCount,
+//     vat, //percentage
+//     securityBookingAbleDays,
+//     // schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
+//   } = req.body;
+
+//   const parsedServices = Array.isArray(securityServicesOffered)
+//     ? securityServicesOffered
+//     : securityServicesOffered?.split(",").map((s: string) => s.trim());
+
+//   // const parsedSchedules = schedules; // assuming schedules sent as JSON string
+
+//   const securityProtocol = await prisma.security_Protocol.create({
+//     data: {
+//       securityBusinessName,
+//       securityName,
+//       securityBusinessType,
+//       securityRegNum,
+//       securityRegDate,
+//       securityPhone,
+//       securityEmail,
+//       securityAddress,
+//       securityCity,
+//       securityPostalCode,
+//       securityDistrict,
+//       securityCountry,
+//       securityDescription,
+//       securityServicesOffered: parsedServices,
+//       securityBookingCondition,
+//       securityCancelationPolicy,
+//       securityRating,
+//       securityPriceDay: parseInt(securityPriceDay),
+//       securityImages: securityImageUrls,
+//       securityDocs: securityDocUrls,
+//       category: category || undefined,
+//       discount: discount ? parseFloat(discount) : undefined,
+//       securityReviewCount: securityReviewCount
+//         ? parseInt(securityReviewCount)
+//         : undefined,
+//       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
+//       vat: vat ? parseFloat(vat) : undefined,
+//       securityBookingAbleDays: Array.isArray(securityBookingAbleDays)
+//         ? securityBookingAbleDays
+//         : securityBookingAbleDays?.split(",") || [],
+//       partnerId,
+//     },
+//   });
+
+//   // update partner security count
+//   await prisma.user.update({
+//     where: { id: findPartner.id },
+//     data: { isSecurity: true },
+//   });
+
+//   return securityProtocol;
+// };
+
 // get all security protocols for partner
 const getAllSecurityProtocolsForPartner = async (
   partnerId: string,
