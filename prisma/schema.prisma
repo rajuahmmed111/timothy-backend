@@ -88,22 +88,22 @@ enum SupportStatus {
 model User {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  fullName      String?
-  email         String     @unique
-  password      String
-  profileImage  String     @default("https://i.ibb.co/Ps9gZ8DD/Profile-image.png")
-  contactNumber String?
-  address       String?
-  country       String?
-  role          UserRole   @default(USER)
-  status        UserStatus @default(ACTIVE)
-  fcmToken      String?    @default("")
-  age           Int?
-  profession    String?
-  gender        String?
-  companyName   String?
-  isEmailVerified Boolean @default(false)
-  isPhoneVerified Boolean @default(false)
+  fullName        String?
+  email           String     @unique
+  password        String
+  profileImage    String     @default("https://i.ibb.co/Ps9gZ8DD/Profile-image.png")
+  contactNumber   String?
+  address         String?
+  country         String?
+  role            UserRole   @default(USER)
+  status          UserStatus @default(ACTIVE)
+  fcmToken        String?    @default("")
+  age             Int?
+  profession      String?
+  gender          String?
+  companyName     String?
+  isEmailVerified Boolean    @default(false)
+  isPhoneVerified Boolean    @default(false)
 
   // Stripe
   stripeAccountId   String?
@@ -138,10 +138,12 @@ model User {
   payment            Payment[]
   notifications      Notifications[]
   hotel              Hotel[]
+  room               Room[]
   review             Review[]
   hotel_bookings     Hotel_Booking[]
   favorite           Favorite[]
   security_Protocol  Security_Protocol[]
+  security_Guard     Security_Guard[]
   security_Booking   Security_Booking[]
   car_Rental         Car_Rental[]
   car_Booking        Car_Booking[]
@@ -151,7 +153,6 @@ model User {
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
   support            Support[]
-  room               Room[]
 
   @@map("users")
 }
@@ -288,49 +289,72 @@ model Hotel_Booking {
 }
 
 model Security_Protocol {
-  id                   String @id @default(auto()) @map("_id") @db.ObjectId
-  securityBusinessName String @unique
-  securityName         String
-  securityBusinessType String
-  securityRegNum       String
-  securityRegDate      String
-  securityPhone        String
-  securityEmail        String
-
-  securityAddress           String
-  securityCity              String
-  securityPostalCode        String
-  securityDistrict          String
-  securityCountry           String
-  securityDescription       String
-  securityImages            String[] // 5 image
-  securityServicesOffered   String[]
-  securityBookingCondition  String
-  securityCancelationPolicy String
-  securityDocs              String[] // 5 image
-
-  securityRating   String
-  securityPriceDay Int
-
-  category                String?
-  discount                Float?
-  isBooked                EveryServiceStatus @default(AVAILABLE)
-  hiredCount              Int                @default(0)
-  vat                     Float              @default(0)
-  securityReviewCount     Int                @default(0)
-  securityBookingAbleDays String[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                          String   @id @default(auto()) @map("_id") @db.ObjectId
+  securityBusinessName        String   @unique
+  securityName                String
+  securityBusinessType        String
+  securityRegNum              String
+  securityRegDate             String
+  securityPhone               String
+  securityEmail               String
+  businessLogo                String   @default("https://i.ibb.co/zWxSgQL8/download.png")
+  securityTagline             String?
+  securityProtocolDescription String?
+  securityProtocolType        String
+  securityBookingCondition    String
+  securityCancelationPolicy   String
+  securityDocs                String[] // 5 image
+  hotelLate                   Float?
+  hotelLong                   Float?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
 
   // relationships
   user             User               @relation(fields: [partnerId], references: [id])
   partnerId        String             @db.ObjectId
-  // securitySchedule SecuritySchedule[]
+  security_Booking Security_Booking[]
+  review           Review[]
+  security_Guard   Security_Guard[]
+
+  @@map("security_protocols")
+}
+
+model Security_Guard {
+  id                       String             @id @default(auto()) @map("_id") @db.ObjectId
+  securityGuardName        String
+  securityAddress          String
+  securityPostalCode       String
+  securityDistrict         String
+  securityCity             String
+  securityCountry          String
+  securityGuardDescription String
+  securityImages           String[] // 5 image
+  securityServicesOffered  String[]
+  experience               Int
+  availability             Int
+  languages                String[]
+  certification            String
+  securityRating           String
+  securityPriceDay         Float
+  category                 String?
+  discount                 Float?
+  isBooked                 EveryServiceStatus @default(AVAILABLE)
+  hiredCount               Int                @default(0)
+  vat                      Float              @default(0)
+  securityReviewCount      Int                @default(0)
+  securityBookingAbleDays  String[]
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  // relationships
+  userId           String?            @db.ObjectId
+  user             User?              @relation(fields: [userId], references: [id])
+  securityId       String?            @db.ObjectId
+  security         Security_Protocol? @relation(fields: [securityId], references: [id])
   security_Booking Security_Booking[]
   review           Review[]
 
-  @@map("security_protocols")
+  @@map("security_guards")
 }
 
 model Security_Booking {
@@ -346,12 +370,14 @@ model Security_Booking {
   updatedAt              DateTime      @updatedAt
 
   // relationships
-  partnerId  String             @db.ObjectId
-  security   Security_Protocol? @relation(fields: [securityId], references: [id])
-  securityId String?            @db.ObjectId
-  user       User?              @relation(fields: [userId], references: [id])
-  userId     String?            @db.ObjectId
-  payment    Payment[]
+  partnerId        String             @db.ObjectId
+  security         Security_Protocol? @relation(fields: [securityId], references: [id])
+  securityId       String?            @db.ObjectId
+  user             User?              @relation(fields: [userId], references: [id])
+  userId           String?            @db.ObjectId
+  payment          Payment[]
+  security_Guard   Security_Guard?    @relation(fields: [security_GuardId], references: [id])
+  security_GuardId String?            @db.ObjectId
 
   @@map("security_bookings")
 }
@@ -576,16 +602,18 @@ model Review {
   updatedAt  DateTime @updatedAt
 
   // relationships
-  user         User               @relation(fields: [userId], references: [id])
-  userId       String             @db.ObjectId
-  security     Security_Protocol? @relation(fields: [securityId], references: [id])
-  securityId   String?            @db.ObjectId
-  car_Rental   Car_Rental?        @relation(fields: [carId], references: [id])
-  carId        String?            @db.ObjectId
-  attraction   Attraction?        @relation(fields: [attractionId], references: [id])
-  attractionId String?            @db.ObjectId
-  room         Room?              @relation(fields: [roomId], references: [id])
-  roomId       String?            @db.ObjectId
+  user             User               @relation(fields: [userId], references: [id])
+  userId           String             @db.ObjectId
+  security         Security_Protocol? @relation(fields: [securityId], references: [id])
+  securityId       String?            @db.ObjectId
+  car_Rental       Car_Rental?        @relation(fields: [carId], references: [id])
+  carId            String?            @db.ObjectId
+  attraction       Attraction?        @relation(fields: [attractionId], references: [id])
+  attractionId     String?            @db.ObjectId
+  room             Room?              @relation(fields: [roomId], references: [id])
+  roomId           String?            @db.ObjectId
+  security_Guard   Security_Guard?    @relation(fields: [security_GuardId], references: [id])
+  security_GuardId String?            @db.ObjectId
 
   @@map("reviews")
 }
