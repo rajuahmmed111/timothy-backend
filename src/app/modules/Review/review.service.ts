@@ -7,7 +7,7 @@ import { startOfDay, endOfDay } from "date-fns";
 // create hotel review
 const createHotelReview = async (
   userId: string,
-  roomId: string,
+  hotelId: string,
   rating: number,
   comment?: string
 ): Promise<Review> => {
@@ -25,7 +25,7 @@ const createHotelReview = async (
   // const existingDailyRating = await prisma.review.findFirst({
   //   where: {
   //     userId: user.id,
-  //     roomId,
+  //     hotelId,
   //     createdAt: {
   //       gte: todayStart,
   //       lte: todayEnd,
@@ -42,7 +42,7 @@ const createHotelReview = async (
   const review = await prisma.review.create({
     data: {
       userId: user.id,
-      roomId,
+      hotelId,
       rating,
       comment,
     },
@@ -50,7 +50,7 @@ const createHotelReview = async (
 
   const ratings = await prisma.review.findMany({
     where: {
-      roomId,
+      hotelId,
     },
     select: {
       rating: true,
@@ -61,8 +61,8 @@ const createHotelReview = async (
   const averageRating =
     ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
 
-  await prisma.room.update({
-    where: { id: roomId },
+  await prisma.hotel.update({
+    where: { id: hotelId },
     data: {
       hotelRating: averageRating.toFixed(1),
       hotelReviewCount: ratings.length,

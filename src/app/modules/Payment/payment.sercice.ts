@@ -234,8 +234,8 @@ const createStripePaymentIntent = async (
       if (!booking)
         throw new ApiError(httpStatus.NOT_FOUND, "Hotel booking not found");
 
-      service = await prisma.room.findUnique({
-        where: { id: booking.roomId },
+      service = await prisma.hotel.findUnique({
+        where: { id: booking.hotelId },
       });
       if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
 
@@ -510,7 +510,7 @@ const cancelStripeBooking = async (
 
   const serviceModelMap: Record<string, any> = {
     car: prisma.car_Rental,
-    hotel: prisma.room,
+    hotel: prisma.hotel,
     security: prisma.security_Protocol,
     attraction: prisma.attraction,
   };

@@ -1,6 +1,7 @@
 import { Request } from "express";
 import prisma from "../../../shared/prisma";
 import { IUploadedFile } from "../../../interfaces/file";
+import { uploadFile } from "../../../helpars/fileUploader";
 import ApiError from "../../../errors/ApiErrors";
 import httpStatus from "http-status";
 import {
@@ -8,13 +9,11 @@ import {
   EveryServiceStatus,
   Prisma,
   BookingStatus,
-  Room,
 } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
 import { numericFields, searchableFields } from "./hotel.constant";
-import { uploadFile } from "../../../helpars/fileUploader";
 
 // create hotel
 const createHotel = async (req: Request) => {
@@ -27,23 +26,12 @@ const createHotel = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  // service check
-  if (
-    partnerExists.isSecurity ||
-    partnerExists.isCar ||
-    partnerExists.isAttraction
-  ) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "You can only provide one type of service. You already provide another service."
-    );
-  }
-
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
   };
 
   const hotelLogoFile = files?.businessLogo?.[0];
+  const roomImageFiles = files?.hotelRoomImages || [];
   const docsFiles = files?.hotelDocs || [];
 
   // Upload logo
@@ -51,6 +39,15 @@ const createHotel = async (req: Request) => {
   if (hotelLogoFile) {
     const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
     businessLogo = logoResult?.secure_url || businessLogo;
+  }
+
+  // Upload multiple room images
+  let roomImageUrls: string[] = [];
+  if (roomImageFiles.length > 0) {
+    const uploads = await Promise.all(
+      roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    roomImageUrls = uploads.map((img) => img?.secure_url || "");
   }
 
   // Upload multiple docs
@@ -72,10 +69,32 @@ const createHotel = async (req: Request) => {
     hotelEmail,
     businessTagline,
     businessDescription,
+    hotelRoomType,
+    hotelRoomPriceNight,
+    hotelAC,
+    hotelParking,
+    hoitelWifi,
+    hotelBreakfast,
+    hotelPool,
+    hotelRating,
+    hotelSmoking,
+    hotelTv,
+    hotelWashing,
     hotelBookingCondition,
     hotelCancelationPolicy,
-    hotelLate,
-    hotelLong,
+    hotelRoomDescription,
+    hotelAddress,
+    hotelCity,
+    hotelPostalCode,
+    hotelDistrict,
+    hotelCountry,
+    hotelRoomCapacity,
+    category,
+    discount,
+    hotelReviewCount,
+    hotelNumberOfRooms,
+    hotelNumAdults,
+    hotelNumChildren,
   } = req.body;
 
   const result = await prisma.hotel.create({
@@ -90,11 +109,34 @@ const createHotel = async (req: Request) => {
       businessTagline,
       businessDescription,
       businessLogo,
+      hotelRoomType,
+      hotelRoomPriceNight: parseInt(hotelRoomPriceNight),
+      hotelAC: hotelAC === "true",
+      hotelParking: hotelParking === "true",
+      hoitelWifi: hoitelWifi === "true",
+      hotelBreakfast: hotelBreakfast === "true",
+      hotelPool: hotelPool === "true",
+      hotelRating,
+      hotelSmoking: hotelSmoking === "true",
+      hotelTv: hotelTv === "true",
+      hotelWashing: hotelWashing === "true",
       hotelBookingCondition,
       hotelCancelationPolicy,
       hotelDocs: hotelDocUrls,
-      hotelLate,
-      hotelLong,
+      hotelRoomDescription,
+      hotelAddress,
+      hotelCity,
+      hotelPostalCode,
+      hotelDistrict,
+      hotelCountry,
+      hotelRoomCapacity,
+      hotelRoomImages: roomImageUrls,
+      category: category || undefined,
+      discount: discount ? parseFloat(discount) : 0,
+      hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
+      hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
+      hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
+      hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
       partnerId: partnerId,
     },
   });
@@ -108,143 +150,98 @@ const createHotel = async (req: Request) => {
   return result;
 };
 
-// create hotel room
-const createHotelRoom = async (req: Request) => {
-  const partnerId = req.user?.id;
-  const hotelId = req.params.hotelId;
+// create hotel active list
+// const createHotelActiveList = async (req: Request) => {
+//   const partnerId = req.user?.id;
 
-  const partnerExists = await prisma.user.findUnique({
-    where: { id: partnerId },
-  });
-  if (!partnerExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
-  }
+//   const partnerExists = await prisma.user.findUnique({
+//     where: { id: partnerId },
+//   });
+//   if (!partnerExists) {
+//     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+//   }
 
-  const hotelExists = await prisma.hotel.findUnique({
-    where: { id: hotelId },
-  });
-  if (!hotelExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
-  }
+//   const files = req.files as {
+//     [fieldname: string]: Express.Multer.File[];
+//   };
 
-  const files = req.files as {
-    [fieldname: string]: Express.Multer.File[];
-  };
+//   const roomImageFiles = files?.hotelRoomImages || [];
 
-  const roomImageFiles = files?.hotelRoomImages || [];
-  const hotelImagesFile = files?.hotelImages || [];
+//   // Upload multiple room images
+//   let roomImageUrls: string[] = [];
+//   if (roomImageFiles.length > 0) {
+//     const uploads = await Promise.all(
+//       roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+//     );
+//     roomImageUrls = uploads.map((img) => img?.secure_url || "");
+//   }
 
-  // Upload multiple room images
-  let roomImageUrls: string[] = [];
-  if (roomImageFiles.length > 0) {
-    const uploads = await Promise.all(
-      roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    roomImageUrls = uploads.map((img) => img?.secure_url || "");
-  }
+//   const {
+//     hotelName,
+//     hotelRoomType,
+//     hotelRoomPriceNight,
+//     hotelAC,
+//     hotelParking,
+//     hoitelWifi,
+//     hotelBreakfast,
+//     hotelPool,
+//     hotelRating,
+//     hotelSmoking,
+//     hotelTv,
+//     hotelWashing,
+//     hotelBookingCondition,
+//     hotelCancelationPolicy,
+//     hotelRoomDescription,
+//     hotelAddress,
+//     hotelCity,
+//     hotelPostalCode,
+//     hotelDistrict,
+//     hotelCountry,
+//     hotelRoomCapacity,
+//     category,
+//     discount,
+//     hotelReviewCount,
+//     hotelNumberOfRooms,
+//     hotelNumAdults,
+//     hotelNumChildren,
+//   } = req.body;
 
-  // Upload multiple hotel images
-  let hotelRoomUrls: string[] = [];
-  if (hotelImagesFile.length > 0) {
-    const docUploads = await Promise.all(
-      hotelImagesFile.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    hotelRoomUrls = docUploads.map((img) => img?.secure_url || "");
-  }
+//   const result = await prisma.hotel.create({
+//     data: {
+//       hotelName,
+//       hotelRoomType,
+//       hotelRoomPriceNight: parseInt(hotelRoomPriceNight),
+//       hotelAC: hotelAC === "true",
+//       hotelParking: hotelParking === "true",
+//       hoitelWifi: hoitelWifi === "true",
+//       hotelBreakfast: hotelBreakfast === "true",
+//       hotelPool: hotelPool === "true",
+//       hotelRating,
+//       hotelSmoking: hotelSmoking === "true",
+//       hotelTv: hotelTv === "true",
+//       hotelWashing: hotelWashing === "true",
+//       hotelBookingCondition,
+//       hotelCancelationPolicy,
+//       hotelRoomDescription,
+//       hotelAddress,
+//       hotelCity,
+//       hotelPostalCode,
+//       hotelDistrict,
+//       hotelCountry,
+//       hotelRoomCapacity,
+//       hotelRoomImages: roomImageUrls,
+//       category: category || undefined,
+//       discount: discount ? parseFloat(discount) : 0,
+//       hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
+//       hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
+//       hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
+//       hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
+//       partnerId: partnerId,
+//     },
+//   });
 
-  const {
-    hotelRoomType,
-    hotelAC,
-    hotelParking,
-    hoitelWifi,
-    hotelBreakfast,
-    hotelPool,
-    hotelRating,
-    hotelSmoking,
-    hotelTv,
-    hotelWashing,
-    hotelRoomDescription,
-    hotelAddress,
-    hotelCity,
-    hotelPostalCode,
-    hotelDistrict,
-    hotelCountry,
-    hotelRoomCapacity,
-    hotelNumberOfRooms,
-    hotelNumAdults,
-    hotelNumChildren,
-    hotelAccommodationType,
-    hotelKitchen,
-    hotelRestaurant,
-    hotelGym,
-    hotelSpa,
-    hotel24HourFrontDesk,
-    hotelAirportShuttle,
-    hotelNoSmokingPreference,
-    hotelNoNSmoking,
-    hotelPetsAllowed,
-    hotelNoPetsPreferences,
-    hotelPetsNotAllowed,
-    hotelLocationFeatureWaterView,
-    hotelLocationFeatureIsland,
-    hotelCoffeeBar,
-    hotelRoomPriceNight,
-    category,
-    discount,
-    hotelReviewCount,
-  } = req.body;
-
-  const result = await prisma.room.create({
-    data: {
-      hotelRoomType,
-      hotelAC,
-      hotelParking,
-      hoitelWifi,
-      hotelBreakfast,
-      hotelPool,
-      hotelRating,
-      hotelSmoking,
-      hotelTv,
-      hotelWashing,
-      hotelRoomDescription,
-      hotelAddress,
-      hotelCity,
-      hotelPostalCode,
-      hotelDistrict,
-      hotelCountry,
-      hotelRoomCapacity,
-      hotelNumberOfRooms,
-      hotelNumAdults,
-      hotelNumChildren,
-      hotelAccommodationType,
-      hotelKitchen,
-      hotelRestaurant,
-      hotelGym,
-      hotelSpa,
-      hotel24HourFrontDesk,
-      hotelAirportShuttle,
-      hotelNoSmokingPreference,
-      hotelNoNSmoking,
-      hotelPetsAllowed,
-      hotelNoPetsPreferences,
-      hotelPetsNotAllowed,
-      hotelLocationFeatureWaterView,
-      hotelLocationFeatureIsland,
-      hotelCoffeeBar,
-      hotelRoomPriceNight,
-      category,
-      discount,
-      hotelReviewCount,
-      isBooked: EveryServiceStatus.AVAILABLE,
-      hotelRoomImages: roomImageUrls,
-      hotelImages: hotelRoomUrls,
-      hotelId: hotelId,
-      partnerId: partnerExists.id,
-    },
-  });
-
-  return result;
-};
+//   return result;
+// };
 
 // get all hotels with search filtering and pagination
 const getAllHotels = async (
@@ -276,103 +273,7 @@ const getAllHotels = async (
   );
 
   // Exact search filter
-  if (Object.keys(filterData).length > 0) {
-    filters.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
-    });
-  }
 
-  // numeric match
-  if (Object.keys(filterData).length > 0) {
-    filters.push({
-      AND: exactNumericFields.map((field) => ({
-        [field]: {
-          equals: (filterData as any)[field],
-        },
-      })),
-    });
-  }
-
-  const whereConditions: Prisma.HotelWhereInput = {
-    AND: filters,
-  };
-
-  const result = await prisma.hotel.findMany({
-    where: whereConditions,
-    // include: {
-    //   user: true,
-    // },
-    skip,
-    take: limit,
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? {
-            [options.sortBy]: options.sortOrder,
-          }
-        : {
-            createdAt: "desc",
-          },
-  });
-
-  const total = await prisma.hotel.count({
-    where: whereConditions,
-  });
-
-  return {
-    meta: {
-      total,
-      page,
-      limit,
-    },
-    data: result,
-  };
-};
-
-// get all hotel rooms with search filtering and pagination
-const getAllHotelRooms = async (
-  params: IHotelFilterRequest,
-  options: IPaginationOptions
-) => {
-  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-
-  const { searchTerm, minPrice, maxPrice, fromDate, toDate, ...filterData } =
-    params;
-
-  const filters: Prisma.RoomWhereInput[] = [];
-
-  // text search
-  filters.push({
-    OR: searchableFields.map((field) => {
-      if (field === "hotelName") {
-        // search inside related Hotel
-        return {
-          hotel: {
-            hotelName: {
-              contains: params.searchTerm,
-              mode: "insensitive",
-            },
-          },
-        };
-      }
-      return {
-        [field]: {
-          contains: params.searchTerm,
-          mode: "insensitive",
-        },
-      };
-    }),
-  });
-
-  // numeric match
-  const exactNumericFields = numericFields.filter(
-    (f) => f !== "hotelRoomPriceNight"
-  );
-
-  // Exact search filter
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData)
@@ -384,7 +285,6 @@ const getAllHotelRooms = async (
           let value: any = (filterData as any)[key];
 
           if (exactNumericFields.includes(key)) value = Number(value);
-          if (["true", "false"].includes(value)) value = value === "true";
 
           return {
             [key]: { equals: value },
@@ -426,9 +326,9 @@ const getAllHotelRooms = async (
   //   isBooked: EveryServiceStatus.AVAILABLE,
   // });
 
-  const where: Prisma.RoomWhereInput = { AND: filters };
+  const where: Prisma.HotelWhereInput = { AND: filters };
 
-  const result = await prisma.room.findMany({
+  const result = await prisma.hotel.findMany({
     where,
     skip,
     take: limit,
@@ -453,15 +353,10 @@ const getAllHotelRooms = async (
           bookingStatus: true,
         },
       },
-      hotel: true,
     },
   });
 
-  const total = await prisma.room.count({ where });
-
-  const sortedResult = result.sort(
-    (a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating)
-  );
+  const total = await prisma.hotel.count({ where });
 
   return {
     meta: {
@@ -469,7 +364,7 @@ const getAllHotelRooms = async (
       page,
       limit,
     },
-    data: sortedResult,
+    data: result,
   };
 };
 
@@ -483,34 +378,23 @@ const getAllHotelsForPartner = async (
 
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.RoomWhereInput[] = [];
+  const filters: Prisma.HotelWhereInput[] = [];
 
   filters.push({
     partnerId,
   });
 
   // text search
-  filters.push({
-    OR: searchableFields.map((field) => {
-      if (field === "hotelName") {
-        // search inside related Hotel
-        return {
-          hotel: {
-            hotelName: {
-              contains: params.searchTerm,
-              mode: "insensitive",
-            },
-          },
-        };
-      }
-      return {
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
         [field]: {
           contains: params.searchTerm,
           mode: "insensitive",
         },
-      };
-    }),
-  });
+      })),
+    });
+  }
 
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
@@ -523,9 +407,9 @@ const getAllHotelsForPartner = async (
     });
   }
 
-  const where: Prisma.RoomWhereInput = { AND: filters };
+  const where: Prisma.HotelWhereInput = { AND: filters };
 
-  const result = await prisma.room.findMany({
+  const result = await prisma.hotel.findMany({
     where,
     skip,
     take: limit,
@@ -546,7 +430,7 @@ const getAllHotelsForPartner = async (
     },
   });
 
-  const total = await prisma.room.count({ where });
+  const total = await prisma.hotel.count({ where });
 
   return {
     meta: {
@@ -558,10 +442,16 @@ const getAllHotelsForPartner = async (
   };
 };
 
+// get all hotels for admin
+const getAllHotelsForAdmin = async () =>
+  prisma.hotel.findMany({
+    where: { isBooked: EveryServiceStatus.AVAILABLE },
+  });
+
 // get single hotel
 const getSingleHotel = async (hotelId: string) => {
   const result = await prisma.hotel.findUnique({
-    where: { id: hotelId },
+    where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
   });
 
   if (!result) {
@@ -571,28 +461,13 @@ const getSingleHotel = async (hotelId: string) => {
   return result;
 };
 
-// get single hotel room
-const getSingleHotelRoom = async (roomId: string) => {
-  const result = await prisma.room.findUnique({
-    where: { id: roomId },
-  });
-
-  if (!result) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
-  }
-
-  return result;
-};
 // get popular hotels
 const getPopularHotels = async (
-  params: IHotelFilterRequest,
-  options: IPaginationOptions
-): Promise<Room[]> => {
+  params: IHotelFilterRequest
+): Promise<Hotel[]> => {
   const { searchTerm, ...filterData } = params;
 
-  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-
-  const filters: Prisma.RoomWhereInput[] = [];
+  const filters: Prisma.HotelWhereInput[] = [];
 
   // text search
   if (searchTerm) {
@@ -617,54 +492,36 @@ const getPopularHotels = async (
     });
   }
 
-  const where: Prisma.RoomWhereInput = {
+  const where: Prisma.HotelWhereInput = {
     AND: filters,
     // hotelRating: {
     //   not: null,
     // },
   };
 
-  const rooms = await prisma.room.findMany({
-    where,
-    skip,
-    take: limit,
+  // get only isBooked  AVAILABLE hotels
+  filters.push({
+    isBooked: EveryServiceStatus.AVAILABLE,
   });
 
-  const sortedRooms = rooms.sort(
-    (a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating)
-  );
-  // .slice(0, 10);
+  const result = await prisma.hotel.findMany({
+    where,
+    orderBy: {
+      hotelRating: "desc",
+    },
+    take: 10,
+  });
 
-  return sortedRooms;
+  return result;
 };
 
 // add favorite hotel
-const toggleFavorite = async (userId: string, roomId: string) => {
-  // check if user exists
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-  }
-
-  // check if room exists
-  const room = await prisma.room.findUnique({
-    where: {
-      id: roomId,
-    },
-  });
-  if (!room?.hotelId) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
-  }
-
+const toggleFavorite = async (userId: string, hotelId: string) => {
   const existing = await prisma.favorite.findUnique({
     where: {
-      userId_roomId: {
-        userId: user.id,
-        roomId: room.id,
+      userId_hotelId: {
+        userId,
+        hotelId,
       },
     },
   });
@@ -672,40 +529,18 @@ const toggleFavorite = async (userId: string, roomId: string) => {
   if (existing) {
     await prisma.favorite.delete({
       where: {
-        userId_roomId: {
+        userId_hotelId: {
           userId,
-          roomId,
+          hotelId,
         },
       },
     });
-
-    // update unfavorite
-    await prisma.room.update({
-      where: {
-        id: room.id,
-      },
-      data: {
-        isFavorite: false,
-      },
-    });
-
     return { isFavorite: false };
   } else {
     await prisma.favorite.create({
       data: {
         userId,
-        roomId,
-        hotelId: room.hotelId,
-      },
-    });
-
-    // update isFavorite
-    await prisma.room.update({
-      where: {
-        id: room.id,
-      },
-      data: {
-        isFavorite: true,
+        hotelId,
       },
     });
     return { isFavorite: true };
@@ -728,7 +563,7 @@ const getAllFavoriteHotels = async (userId: string) => {
       userId: user.id,
     },
     include: {
-      room: true,
+      hotel: true,
     },
   });
 
@@ -737,48 +572,62 @@ const getAllFavoriteHotels = async (userId: string) => {
 
 // update hotel
 const updateHotel = async (req: Request) => {
-  const hotelId = req.params.hotelId;
+  const hotelId = req.params.id;
   const partnerId = req.user?.id;
-
-  // check if partner exists
-  const partnerExists = await prisma.user.findUnique({
-    where: { id: partnerId },
-  });
-  if (!partnerExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  if (!partnerId) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
   }
 
-  // check if hotel exists and belongs to this partner
-  const hotelExists = await prisma.hotel.findFirst({
-    where: { id: hotelId, partnerId },
+  // Find hotel to update
+  const existingHotel = await prisma.hotel.findUnique({
+    where: { id: hotelId, isBooked: EveryServiceStatus.AVAILABLE },
   });
-  if (!hotelExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found or unauthorized");
+
+  if (!existingHotel) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+  }
+
+  // Check ownership
+  if (existingHotel.partnerId !== partnerId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You do not have permission to update this hotel"
+    );
   }
 
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
   };
 
+  // Handle file uploads
+  let businessLogo = existingHotel.businessLogo;
   const hotelLogoFile = files?.businessLogo?.[0];
-  const docsFiles = files?.hotelDocs || [];
-
-  // Upload new logo if exists
-  let businessLogo = hotelExists.businessLogo;
   if (hotelLogoFile) {
     const logoResult = await uploadFile.uploadToCloudinary(hotelLogoFile);
     businessLogo = logoResult?.secure_url || businessLogo;
   }
 
-  // Upload multiple docs if exists
-  let hotelDocUrls = hotelExists.hotelDocs || [];
+  let roomImageUrls = existingHotel.hotelRoomImages || [];
+  const roomImageFiles = files?.hotelRoomImages || [];
+  if (roomImageFiles.length > 0) {
+    const uploads = await Promise.all(
+      roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    roomImageUrls = uploads.map((img) => img?.secure_url || "").filter(Boolean);
+  }
+
+  let hotelDocUrls = existingHotel.hotelDocs || [];
+  const docsFiles = files?.hotelDocs || [];
   if (docsFiles.length > 0) {
     const docUploads = await Promise.all(
       docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
     );
-    hotelDocUrls = docUploads.map((img) => img?.secure_url || "");
+    hotelDocUrls = docUploads
+      .map((img) => img?.secure_url || "")
+      .filter(Boolean);
   }
 
+  // partial update allowed
   const {
     hotelBusinessName,
     hotelName,
@@ -789,85 +638,8 @@ const updateHotel = async (req: Request) => {
     hotelEmail,
     businessTagline,
     businessDescription,
-    hotelBookingCondition,
-    hotelCancelationPolicy,
-    hotelLate,
-    hotelLong,
-  } = req.body;
-
-  // Update hotel
-  const updatedHotel = await prisma.hotel.update({
-    where: { id: hotelId },
-    data: {
-      hotelBusinessName,
-      hotelName,
-      hotelBusinessType,
-      hotelRegNum,
-      hotelRegDate,
-      hotelPhone,
-      hotelEmail,
-      businessTagline,
-      businessDescription,
-      businessLogo,
-      hotelBookingCondition,
-      hotelCancelationPolicy,
-      hotelDocs: hotelDocUrls,
-      hotelLate: hotelLate ? Number(hotelLate) : undefined,
-      hotelLong: hotelLong ? Number(hotelLong) : undefined,
-    },
-  });
-
-  return updatedHotel;
-};
-
-// update hotel room
-const updateHotelRoom = async (req: Request) => {
-  const roomId = req.params.roomId;
-  const partnerId = req.user?.id;
-
-  // check partner exists
-  const partnerExists = await prisma.user.findUnique({
-    where: { id: partnerId },
-  });
-  if (!partnerExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
-  }
-
-  // check room exists and belongs to this partner
-  const roomExists = await prisma.room.findFirst({
-    where: { id: roomId, partnerId },
-  });
-  if (!roomExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Room not found or unauthorized");
-  }
-
-  const files = req.files as {
-    [fieldname: string]: Express.Multer.File[];
-  };
-
-  const roomImageFiles = files?.hotelRoomImages || [];
-  const hotelImagesFile = files?.hotelImages || [];
-
-  // Upload new room images if exists
-  let roomImageUrls = roomExists.hotelRoomImages || [];
-  if (roomImageFiles.length > 0) {
-    const uploads = await Promise.all(
-      roomImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    roomImageUrls = uploads.map((img) => img?.secure_url || "");
-  }
-
-  // Upload new hotel images if exists
-  let hotelRoomUrls = roomExists.hotelImages || [];
-  if (hotelImagesFile.length > 0) {
-    const docUploads = await Promise.all(
-      hotelImagesFile.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    hotelRoomUrls = docUploads.map((img) => img?.secure_url || "");
-  }
-
-  const {
     hotelRoomType,
+    hotelRoomPriceNight,
     hotelAC,
     hotelParking,
     hoitelWifi,
@@ -877,6 +649,8 @@ const updateHotelRoom = async (req: Request) => {
     hotelSmoking,
     hotelTv,
     hotelWashing,
+    hotelBookingCondition,
+    hotelCancelationPolicy,
     hotelRoomDescription,
     hotelAddress,
     hotelCity,
@@ -884,94 +658,92 @@ const updateHotelRoom = async (req: Request) => {
     hotelDistrict,
     hotelCountry,
     hotelRoomCapacity,
+    category,
+    discount,
     hotelNumberOfRooms,
     hotelNumAdults,
     hotelNumChildren,
-    hotelAccommodationType,
-    hotelKitchen,
-    hotelRestaurant,
-    hotelGym,
-    hotelSpa,
-    hotel24HourFrontDesk,
-    hotelAirportShuttle,
-    hotelNoSmokingPreference,
-    hotelNoNSmoking,
-    hotelPetsAllowed,
-    hotelNoPetsPreferences,
-    hotelPetsNotAllowed,
-    hotelLocationFeatureWaterView,
-    hotelLocationFeatureIsland,
-    hotelCoffeeBar,
-    hotelRoomPriceNight,
-    category,
-    discount,
-    hotelReviewCount,
   } = req.body;
 
-  // Update room
-  const updatedRoom = await prisma.room.update({
-    where: { id: roomId },
+  const updatedHotel = await prisma.hotel.update({
+    where: { id: hotelId },
     data: {
-      hotelRoomType,
-      hotelAC,
-      hotelParking,
-      hoitelWifi,
-      hotelBreakfast,
-      hotelPool,
-      hotelRating,
-      hotelSmoking,
-      hotelTv,
-      hotelWashing,
-      hotelRoomDescription,
-      hotelAddress,
-      hotelCity,
-      hotelPostalCode,
-      hotelDistrict,
-      hotelCountry,
-      hotelRoomCapacity,
-      hotelNumberOfRooms,
-      hotelNumAdults,
-      hotelNumChildren,
-      hotelAccommodationType,
-      hotelKitchen,
-      hotelRestaurant,
-      hotelGym,
-      hotelSpa,
-      hotel24HourFrontDesk,
-      hotelAirportShuttle,
-      hotelNoSmokingPreference,
-      hotelNoNSmoking,
-      hotelPetsAllowed,
-      hotelNoPetsPreferences,
-      hotelPetsNotAllowed,
-      hotelLocationFeatureWaterView,
-      hotelLocationFeatureIsland,
-      hotelCoffeeBar,
+      hotelBusinessName: hotelBusinessName ?? existingHotel.hotelBusinessName,
+      hotelName: hotelName ?? existingHotel.hotelName,
+      hotelBusinessType: hotelBusinessType ?? existingHotel.hotelBusinessType,
+      hotelRegNum: hotelRegNum ?? existingHotel.hotelRegNum,
+      hotelRegDate: hotelRegDate ?? existingHotel.hotelRegDate,
+      hotelPhone: hotelPhone ?? existingHotel.hotelPhone,
+      hotelEmail: hotelEmail ?? existingHotel.hotelEmail,
+      businessTagline: businessTagline ?? existingHotel.businessTagline,
+      businessDescription:
+        businessDescription ?? existingHotel.businessDescription,
+      businessLogo,
+      hotelRoomType: hotelRoomType ?? existingHotel.hotelRoomType,
       hotelRoomPriceNight: hotelRoomPriceNight
-        ? Number(hotelRoomPriceNight)
-        : undefined,
-      category,
-      discount: discount ? Number(discount) : undefined,
-      hotelReviewCount: hotelReviewCount ? Number(hotelReviewCount) : undefined,
+        ? parseInt(hotelRoomPriceNight)
+        : existingHotel.hotelRoomPriceNight,
+      hotelAC:
+        hotelAC !== undefined ? hotelAC === "true" : existingHotel.hotelAC,
+      hotelParking:
+        hotelParking !== undefined
+          ? hotelParking === "true"
+          : existingHotel.hotelParking,
+      hoitelWifi:
+        hoitelWifi !== undefined
+          ? hoitelWifi === "true"
+          : existingHotel.hoitelWifi,
+      hotelBreakfast:
+        hotelBreakfast !== undefined
+          ? hotelBreakfast === "true"
+          : existingHotel.hotelBreakfast,
+      hotelPool:
+        hotelPool !== undefined
+          ? hotelPool === "true"
+          : existingHotel.hotelPool,
+      hotelRating: hotelRating ?? existingHotel.hotelRating,
+      hotelSmoking:
+        hotelSmoking !== undefined
+          ? hotelSmoking === "true"
+          : existingHotel.hotelSmoking,
+      hotelTv:
+        hotelTv !== undefined ? hotelTv === "true" : existingHotel.hotelTv,
+      hotelWashing:
+        hotelWashing !== undefined
+          ? hotelWashing === "true"
+          : existingHotel.hotelWashing,
+      hotelBookingCondition:
+        hotelBookingCondition ?? existingHotel.hotelBookingCondition,
+      hotelCancelationPolicy:
+        hotelCancelationPolicy ?? existingHotel.hotelCancelationPolicy,
+      hotelDocs: hotelDocUrls,
+      hotelRoomDescription:
+        hotelRoomDescription ?? existingHotel.hotelRoomDescription,
+      hotelAddress: hotelAddress ?? existingHotel.hotelAddress,
+      hotelCity: hotelCity ?? existingHotel.hotelCity,
+      hotelPostalCode: hotelPostalCode ?? existingHotel.hotelPostalCode,
+      hotelDistrict: hotelDistrict ?? existingHotel.hotelDistrict,
+      hotelCountry: hotelCountry ?? existingHotel.hotelCountry,
+      hotelRoomCapacity: hotelRoomCapacity ?? existingHotel.hotelRoomCapacity,
       hotelRoomImages: roomImageUrls,
-      hotelImages: hotelRoomUrls,
+      category: category ?? existingHotel.category,
+      hotelNumberOfRooms: hotelNumberOfRooms ? parseInt(hotelNumberOfRooms) : 0,
+      hotelNumAdults: hotelNumAdults ? parseInt(hotelNumAdults) : 0,
+      hotelNumChildren: hotelNumChildren ? parseInt(hotelNumChildren) : 0,
+      discount: discount ? parseFloat(discount) : existingHotel.discount,
     },
   });
 
-  return updatedRoom;
+  return updatedHotel;
 };
 
 export const HotelService = {
   createHotel,
-  createHotelRoom,
   getAllHotels,
-  getAllHotelRooms,
   getAllHotelsForPartner,
   getSingleHotel,
-  getSingleHotelRoom,
   getPopularHotels,
   toggleFavorite,
   getAllFavoriteHotels,
   updateHotel,
-  updateHotelRoom,
 };

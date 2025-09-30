@@ -40,7 +40,7 @@ export const serviceConfig: Record<
   },
   HOTEL: {
     bookingModel: prisma.hotel_Booking,
-    serviceModel: prisma.room,
+    serviceModel: prisma.hotel,
     serviceTypeField: "hotel_bookingId",
     nameField: "hotelName",
     partnerIdField: "partnerId",

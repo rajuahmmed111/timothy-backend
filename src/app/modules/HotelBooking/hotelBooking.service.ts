@@ -12,10 +12,10 @@ import {
   IHotelBookingData,
 } from "./hotelBooking.interface";
 
-// create Hotel room Booking service
-const createHotelRoomBooking = async (
+// createHotelBooking service
+const createHotelBooking = async (
   userId: string,
-  roomId: string,
+  hotelId: string,
   data: IHotelBookingData
 ) => {
   const { rooms, adults, children, bookedFromDate, bookedToDate } = data;
@@ -27,24 +27,14 @@ const createHotelRoomBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  const hotel = await prisma.room.findUnique({
-    where: { id: roomId },
+  const hotel = await prisma.hotel.findUnique({
+    where: { id: hotelId },
     select: {
-      id: true,
       hotelRoomPriceNight: true,
       partnerId: true,
-      hotelId: true,
       discount: true,
       category: true,
-      hotelNumAdults: true,
-      hotelNumChildren: true,
-      hotelNumberOfRooms: true,
-      hotel: {
-        select: {
-          id: true,
-          hotelName: true,
-        },
-      }, // Hotel name for notification
+      hotelName: true, // Hotel name for notification
     },
   });
 
@@ -52,27 +42,14 @@ const createHotelRoomBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }
 
-  // validate room availability
-  if (rooms > hotel.hotelNumberOfRooms) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Only ${hotel.hotelNumberOfRooms} rooms available`
-    );
-  }
-
-  if (adults > hotel.hotelNumAdults) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Maximum ${hotel.hotelNumAdults} adults allowed in this room`
-    );
-  }
-
-  if (children > hotel.hotelNumChildren) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Maximum ${hotel.hotelNumChildren} children allowed in this room`
-    );
-  }
+  // get partner/service provider info
+  const partner = await prisma.user.findUnique({
+    where: { id: hotel.partnerId },
+    select: {
+      fcmToken: true,
+      fullName: true,
+    },
+  });
 
   if (!rooms || !adults || !children || !bookedFromDate || !bookedToDate) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
@@ -105,7 +82,7 @@ const createHotelRoomBooking = async (
   // check for overlapping bookings
   const overlappingBooking = await prisma.hotel_Booking.findFirst({
     where: {
-      roomId,
+      hotelId,
       bookingStatus: { not: BookingStatus.CANCELLED }, // ignore cancelled bookings
       OR: [
         {
@@ -128,19 +105,31 @@ const createHotelRoomBooking = async (
     data: {
       ...data,
       totalPrice,
-      roomId,
+      hotelId,
       userId,
-      hotelId: hotel.hotelId!,
-      partnerId: hotel.partnerId!,
+      partnerId: hotel.partnerId,
       bookingStatus: BookingStatus.PENDING,
       category: hotel.category as string,
     },
   });
 
+  // Send notifications after successful booking creation
+  // const notificationData: IBookingNotificationData = {
+  //   bookingId: result.id,
+  //   userId: userId,
+  //   partnerId: hotel.partnerId,
+  //   serviceType: ServiceType.HOTEL,
+  //   serviceName: hotel.hotelName,
+  //   totalPrice: totalPrice,
+  //   bookedFromDate: bookedFromDate,
+  //   quantity: rooms,
+  // };
+  // BookingNotificationService.sendBookingNotifications(notificationData);
+
   return result;
 };
 
-// get all hotel room bookings
+// get all hotel bookings
 const getAllHotelBookings = async (partnerId: string) => {
   // find partner
   const partner = await prisma.user.findUnique({ where: { id: partnerId } });
@@ -151,17 +140,10 @@ const getAllHotelBookings = async (partnerId: string) => {
   const result = await prisma.hotel_Booking.findMany({
     where: { partnerId },
     include: {
-      room: {
-        select: {
-          id: true,
-          partnerId: true,
-        },
-      },
       hotel: {
         select: {
           id: true,
           hotelName: true,
-          partnerId: true,
         },
       },
     },
@@ -174,7 +156,7 @@ const getAllHotelBookings = async (partnerId: string) => {
   return result;
 };
 
-// get all my hotel room bookings
+// get all my hotel bookings
 const getAllMyHotelBookings = async (userId: string) => {
   // find user
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -185,21 +167,15 @@ const getAllMyHotelBookings = async (userId: string) => {
   const result = await prisma.hotel_Booking.findMany({
     where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
-      room: {
+      hotel: {
         select: {
           id: true,
+          hotelName: true,
           hotelRoomPriceNight: true,
           hotelRoomImages: true,
           hotelAddress: true,
           discount: true,
           category: true,
-          partnerId: true,
-        },
-      },
-      hotel: {
-        select: {
-          id: true,
-          hotelName: true,
           partnerId: true,
         },
       },
@@ -216,24 +192,18 @@ const getAllMyHotelBookings = async (userId: string) => {
   return result;
 };
 
-// get hotel room booking by id
+// get hotel booking by id
 const getHotelBookingById = async (partnerId: string, bookingId: string) => {
   const booking = await prisma.hotel_Booking.findUnique({
     where: { id: bookingId, partnerId },
     include: {
-      room: {
-        select: {
-          id: true,
-          hotelRoomPriceNight: true,
-          discount: true,
-          category: true,
-          partnerId: true,
-        },
-      },
       hotel: {
         select: {
           id: true,
           hotelName: true,
+          hotelRoomPriceNight: true,
+          discount: true,
+          category: true,
           partnerId: true,
         },
       },
@@ -250,6 +220,46 @@ const getHotelBookingById = async (partnerId: string, bookingId: string) => {
     );
   }
   return booking;
+};
+
+// cancel my hotel booking only user
+const cancelMyHotelBooking = async (
+  userId: string,
+  bookingId: string,
+  bookingStatus: "CANCELLED"
+) => {
+  const findUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!findUser) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const booking = await prisma.hotel_Booking.findUnique({
+    where: { id: bookingId, userId },
+    include: {
+      hotel: true,
+    },
+  });
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  if (booking.userId !== userId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to update this booking"
+    );
+  }
+
+  const updatedBooking = await prisma.hotel_Booking.update({
+    where: { id: bookingId },
+    data: {
+      bookingStatus,
+    },
+  });
+
+  return updatedBooking;
 };
 
 // update booking status
@@ -293,9 +303,10 @@ const updateBookingStatus = async (
 };
 
 export const HotelBookingService = {
-  createHotelRoomBooking,
+  createHotelBooking,
   getAllHotelBookings,
   getAllMyHotelBookings,
   getHotelBookingById,
+  cancelMyHotelBooking,
   updateBookingStatus,
 };

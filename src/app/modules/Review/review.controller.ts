@@ -7,11 +7,11 @@ import httpStatus from "http-status";
 // create hotel review
 const createHotelReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const {roomId, rating, comment } = req.body;
+  const { hotelId, rating, comment } = req.body;
 
   const result = await ReviewService.createHotelReview(
     userId,
-    roomId,
+    hotelId,
     rating,
     comment
   );

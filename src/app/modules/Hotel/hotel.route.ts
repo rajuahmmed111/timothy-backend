@@ -20,18 +20,6 @@ router.get(
   HotelController.getAllHotels
 );
 
-// get all hotel rooms
-router.get(
-  "/rooms",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
-  HotelController.getAllHotelRooms
-);
-
 // get all my created hotels for partner
 router.get(
   "/partner",
@@ -70,21 +58,9 @@ router.get(
   HotelController.getSingleHotel
 );
 
-// get single hotel room
-router.get(
-  "/room/:roomId",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
-  HotelController.getSingleHotelRoom
-);
-
-// add favorite hotel room
+// add favorite hotel
 router.post(
-  "/favorite/:roomId",
+  "/favorite/:hotelId",
   auth(UserRole.USER),
   HotelController.toggleFavorite
 );
@@ -95,6 +71,7 @@ router.post(
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
     { name: "businessLogo", maxCount: 1 },
+    { name: "hotelRoomImages", maxCount: 5 },
     { name: "hotelDocs", maxCount: 5 },
   ]),
   parseBodyData,
@@ -102,42 +79,17 @@ router.post(
   HotelController.createHotel
 );
 
-// create hotel room
-router.post(
-  "/room/:hotelId",
-  auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([
-    { name: "hotelImages", maxCount: 5 },
-    { name: "hotelRoomImages", maxCount: 5 },
-  ]),
-  parseBodyData,
-  //   validateRequest(HotelController.createHotelSchema),
-  HotelController.createHotelRoom
-);
-
 // update hotel
 router.patch(
-  "/:hotelId",
+  "/:id",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
     { name: "businessLogo", maxCount: 1 },
+    { name: "hotelRoomImages", maxCount: 5 },
     { name: "hotelDocs", maxCount: 5 },
   ]),
   parseBodyData,
   HotelController.updateHotel
 );
-
-// update hotel room
-router.patch(
-  "/room/:roomId",
-  auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([
-    { name: "hotelImages", maxCount: 5 },
-    { name: "hotelRoomImages", maxCount: 5 },
-  ]),
-  parseBodyData,
-  HotelController.updateHotelRoom
-);
-
 
 export const hotelRoute = router;

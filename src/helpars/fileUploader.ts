@@ -51,7 +51,7 @@ const upload = multer({ storage, fileFilter });
 const profileImage = upload.single("profileImage");
 
 const hotelLogo = upload.single("businessLogo");
-const hotelImages = upload.array("hotelImages", 5);
+// const hotelLogo = upload.single("hotelLogo");
 const hotelRoomImages = upload.array("hotelRoomImages", 5);
 const hotelDocs = upload.array("hotelDocs", 5);
 
@@ -119,7 +119,6 @@ export const uploadFile = {
   upload,
   profileImage,
   hotelLogo,
-  hotelImages,
   hotelRoomImages,
   hotelDocs,
 

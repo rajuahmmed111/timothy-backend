@@ -21,21 +21,28 @@ router.get(
 
 // get hotel booking by id
 router.get(
-  "/:bookingId",
-  auth(UserRole.BUSINESS_PARTNER, UserRole.USER),
+  "/:id",
+  auth(UserRole.BUSINESS_PARTNER),
   HotelBookingController.getHotelBookingById
 );
 
-// create hotel room booking
+// create hotel booking
 router.post(
-  "/:roomId",
+  "/:hotelId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-  HotelBookingController.createHotelRoomBooking
+  HotelBookingController.createHotelBooking
+);
+
+// cancel my (hotel, security, car, attraction) booking only user
+router.patch(
+  "/cancel-my-booking/:id",
+  auth(UserRole.USER),
+  HotelBookingController.cancelMyHotelBooking
 );
 
 // update hotel booking status
 router.patch(
-  "/status/:bookingId",
+  "/status/:id",
   auth(UserRole.BUSINESS_PARTNER),
   HotelBookingController.updateBookingStatus
 );
