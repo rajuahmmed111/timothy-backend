@@ -100,7 +100,9 @@ const createSecurityProtocol = async (req: Request) => {
 // create security protocol guard type
 const createSecurityProtocolGuardType = async (req: Request) => {
   const partnerId = req.user?.id;
+  const securityId = req.params.securityId;
 
+  // partner check
   const findPartner = await prisma.user.findUnique({
     where: { id: partnerId },
   });
@@ -108,12 +110,19 @@ const createSecurityProtocolGuardType = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
+  // check security protocol exists
+  const findSecurityProtocol = await prisma.security_Protocol.findUnique({
+    where: { id: securityId },
+  });
+  if (!findSecurityProtocol) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Security protocol not found");
+  }
+
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
   };
 
   const securityFiles = files?.securityImages || [];
-  const docsFiles = files?.securityDocs || [];
 
   // upload securityImages
   const securityImageUrls = await Promise.all(
@@ -122,30 +131,19 @@ const createSecurityProtocolGuardType = async (req: Request) => {
     )
   );
 
-  // upload securityDocs
-  const securityDocUrls = await Promise.all(
-    docsFiles.map((file) =>
-      uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
-    )
-  );
-
   const {
-    securityBusinessName,
-    securityName,
-    securityBusinessType,
-    securityRegNum,
-    securityRegDate,
-    securityPhone,
-    securityEmail,
+    securityGuardName,
     securityAddress,
     securityCity,
     securityPostalCode,
     securityDistrict,
     securityCountry,
-    securityDescription,
+    securityGuardDescription,
     securityServicesOffered,
-    securityBookingCondition,
-    securityCancelationPolicy,
+    experience,
+    availability,
+    languages,
+    certification,
     securityRating,
     securityPriceDay,
     category,
@@ -154,37 +152,37 @@ const createSecurityProtocolGuardType = async (req: Request) => {
     hiredCount,
     vat, //percentage
     securityBookingAbleDays,
-    // schedules, // frontend expects schedules: array of { day, slots: [{ from, to }] }
   } = req.body;
 
   const parsedServices = Array.isArray(securityServicesOffered)
     ? securityServicesOffered
     : securityServicesOffered?.split(",").map((s: string) => s.trim());
 
-  // const parsedSchedules = schedules; // assuming schedules sent as JSON string
+  const securityBookingAbleDay = Array.isArray(securityBookingAbleDays)
+    ? securityBookingAbleDays
+    : securityBookingAbleDays?.split(",").map((s: string) => s.trim());
 
-  const securityProtocol = await prisma.security_Protocol.create({
+  const language = Array.isArray(languages)
+    ? languages
+    : languages?.split(",").map((s: string) => s.trim());
+
+  const securityProtocol = await prisma.security_Guard.create({
     data: {
-      securityBusinessName,
-      securityName,
-      securityBusinessType,
-      securityRegNum,
-      securityRegDate,
-      securityPhone,
-      securityEmail,
+      securityGuardName,
       securityAddress,
-      securityCity,
       securityPostalCode,
       securityDistrict,
+      securityCity,
       securityCountry,
-      securityDescription,
+      securityGuardDescription,
       securityServicesOffered: parsedServices,
-      securityBookingCondition,
-      securityCancelationPolicy,
+      experience,
+      availability,
+      languages: language,
+      certification,
       securityRating,
-      securityPriceDay: parseInt(securityPriceDay),
+      securityPriceDay,
       securityImages: securityImageUrls,
-      securityDocs: securityDocUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
       securityReviewCount: securityReviewCount
@@ -192,17 +190,10 @@ const createSecurityProtocolGuardType = async (req: Request) => {
         : undefined,
       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
       vat: vat ? parseFloat(vat) : undefined,
-      securityBookingAbleDays: Array.isArray(securityBookingAbleDays)
-        ? securityBookingAbleDays
-        : securityBookingAbleDays?.split(",") || [],
-      partnerId,
+      securityBookingAbleDays: securityBookingAbleDay,
+      securityId: findSecurityProtocol.id,
+      partnerId: findSecurityProtocol.partnerId,
     },
-  });
-
-  // update partner security count
-  await prisma.user.update({
-    where: { id: findPartner.id },
-    data: { isSecurity: true },
   });
 
   return securityProtocol;
@@ -322,9 +313,9 @@ const getAllSecurityProtocols = async (
   }
 
   // get only isBooked  AVAILABLE hotels
-  filters.push({
-    isBooked: EveryServiceStatus.AVAILABLE,
-  });
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
 
   const where: Prisma.Security_ProtocolWhereInput = { AND: filters };
 
@@ -503,8 +494,9 @@ const getSingleSecurityProtocol = async (id: string) => {
 // update security protocol
 const updateSecurityProtocol = async (req: Request) => {
   const partnerId = req.user?.id;
-  const protocolId = req.params.id;
+  const securityId = req.params.securityId;
 
+  // check partner exists
   const findPartner = await prisma.user.findUnique({
     where: { id: partnerId },
   });
@@ -512,18 +504,19 @@ const updateSecurityProtocol = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
+  // check protocol exists
   const existingProtocol = await prisma.security_Protocol.findUnique({
-    where: { id: protocolId, isBooked: EveryServiceStatus.AVAILABLE },
+    where: { id: securityId },
   });
-
   if (!existingProtocol) {
     throw new ApiError(httpStatus.NOT_FOUND, "Security protocol not found");
   }
 
+  // check ownership
   if (existingProtocol.partnerId !== partnerId) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
-      "Unauthorized to update this protocol"
+      "You are not allowed to update this protocol"
     );
   }
 
@@ -531,25 +524,25 @@ const updateSecurityProtocol = async (req: Request) => {
     [fieldname: string]: Express.Multer.File[];
   };
 
-  const securityFiles = files?.securityImages || [];
+  const logoFile = files?.businessLogo?.[0];
   const docsFiles = files?.securityDocs || [];
 
-  // Upload securityImages to Cloudinary
-  let securityImageUrls: string[] = existingProtocol.securityImages || [];
-  if (securityFiles.length > 0) {
-    const uploads = await Promise.all(
-      securityFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    securityImageUrls = uploads.map((img) => img?.secure_url || "");
+  // upload logo
+  let businessLogo = existingProtocol.businessLogo;
+  if (logoFile) {
+    const logoResult = await uploadFile.uploadToCloudinary(logoFile);
+    businessLogo = logoResult?.secure_url || businessLogo;
   }
 
-  // Upload securityDocs to Cloudinary
-  let securityDocUrls: string[] = existingProtocol.securityDocs || [];
+  // upload docs
+  let securityDocUrls = existingProtocol.securityDocs || [];
   if (docsFiles.length > 0) {
     const docUploads = await Promise.all(
-      docsFiles.map((file) => uploadFile.uploadToCloudinary(file))
+      docsFiles.map((file) =>
+        uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
+      )
     );
-    securityDocUrls = docUploads.map((img) => img?.secure_url || "");
+    securityDocUrls = [...securityDocUrls, ...docUploads];
   }
 
   const {
@@ -560,65 +553,161 @@ const updateSecurityProtocol = async (req: Request) => {
     securityRegDate,
     securityPhone,
     securityEmail,
+    securityTagline,
+    securityProtocolDescription,
+    securityProtocolType,
+    securityBookingCondition,
+    securityCancelationPolicy,
+  } = req.body;
+
+  const updatedProtocol = await prisma.security_Protocol.update({
+    where: { id: securityId },
+    data: {
+      securityBusinessName:
+        securityBusinessName || existingProtocol.securityBusinessName,
+      securityName: securityName || existingProtocol.securityName,
+      securityBusinessType:
+        securityBusinessType || existingProtocol.securityBusinessType,
+      securityRegNum: securityRegNum || existingProtocol.securityRegNum,
+      securityRegDate: securityRegDate || existingProtocol.securityRegDate,
+      securityPhone: securityPhone || existingProtocol.securityPhone,
+      securityEmail: securityEmail || existingProtocol.securityEmail,
+      businessLogo,
+      securityTagline: securityTagline ?? existingProtocol.securityTagline,
+      securityProtocolDescription:
+        securityProtocolDescription ??
+        existingProtocol.securityProtocolDescription,
+      securityProtocolType:
+        securityProtocolType || existingProtocol.securityProtocolType,
+      securityBookingCondition:
+        securityBookingCondition || existingProtocol.securityBookingCondition,
+      securityCancelationPolicy:
+        securityCancelationPolicy || existingProtocol.securityCancelationPolicy,
+      securityDocs: securityDocUrls,
+    },
+  });
+
+  return updatedProtocol;
+};
+
+// update security protocol guard type
+const updateSecurityProtocolGuardType = async (req: Request) => {
+  const partnerId = req.user?.id;
+  const guardId = req.params.guardId;
+
+  // check partner
+  const findPartner = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!findPartner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // check guard exists
+  const existingGuard = await prisma.security_Guard.findUnique({
+    where: { id: guardId },
+  });
+  if (!existingGuard) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Security guard not found");
+  }
+
+  // check ownership
+  if (existingGuard.partnerId !== partnerId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You are not allowed to update this guard"
+    );
+  }
+
+  const files = req.files as {
+    [fieldname: string]: Express.Multer.File[];
+  };
+
+  const securityFiles = files?.securityImages || [];
+
+  // upload images
+  let securityImageUrls = existingGuard.securityImages || [];
+  if (securityFiles.length > 0) {
+    const uploaded = await Promise.all(
+      securityFiles.map((file) =>
+        uploadFile.uploadToCloudinary(file).then((res) => res?.secure_url || "")
+      )
+    );
+    securityImageUrls = [...securityImageUrls, ...uploaded];
+  }
+
+  const {
+    securityGuardName,
     securityAddress,
     securityCity,
     securityPostalCode,
     securityDistrict,
     securityCountry,
-    securityDescription,
+    securityGuardDescription,
     securityServicesOffered,
-    securityBookingCondition,
-    securityCancelationPolicy,
+    experience,
+    availability,
+    languages,
+    certification,
     securityRating,
     securityPriceDay,
     category,
     discount,
     securityReviewCount,
     hiredCount,
-    vat, //percentage
+    vat,
     securityBookingAbleDays,
   } = req.body;
 
-  const updatedProtocol = await prisma.security_Protocol.update({
-    where: { id: protocolId },
+  // normalize arrays
+  const parsedServices = Array.isArray(securityServicesOffered)
+    ? securityServicesOffered
+    : securityServicesOffered?.split(",").map((s: string) => s.trim());
+
+  const securityBookingAbleDay = Array.isArray(securityBookingAbleDays)
+    ? securityBookingAbleDays
+    : securityBookingAbleDays?.split(",").map((s: string) => s.trim());
+
+  const language = Array.isArray(languages)
+    ? languages
+    : languages?.split(",").map((s: string) => s.trim());
+
+  const updatedGuard = await prisma.security_Guard.update({
+    where: { id: guardId },
     data: {
-      securityBusinessName,
-      securityName,
-      securityBusinessType,
-      securityRegNum,
-      securityRegDate,
-      securityPhone,
-      securityEmail,
-      securityAddress,
-      securityCity,
-      securityPostalCode,
-      securityDistrict,
-      securityCountry,
-      securityDescription,
-      securityServicesOffered: Array.isArray(securityServicesOffered)
-        ? securityServicesOffered
-        : securityServicesOffered?.split(",").map((s: string) => s.trim()),
-      securityBookingCondition,
-      securityCancelationPolicy,
-      securityRating,
-      securityPriceDay: parseFloat(securityPriceDay),
-      securityImages: securityImageUrls,
-      securityDocs: securityDocUrls,
-      category: category || undefined,
-      discount: discount ? parseFloat(discount) : undefined,
+      securityGuardName: securityGuardName || existingGuard.securityGuardName,
+      securityAddress: securityAddress || existingGuard.securityAddress,
+      securityPostalCode:
+        securityPostalCode || existingGuard.securityPostalCode,
+      securityDistrict: securityDistrict || existingGuard.securityDistrict,
+      securityCity: securityCity || existingGuard.securityCity,
+      securityCountry: securityCountry || existingGuard.securityCountry,
+      securityGuardDescription:
+        securityGuardDescription || existingGuard.securityGuardDescription,
+      securityServicesOffered:
+        parsedServices || existingGuard.securityServicesOffered,
+      experience: experience ? parseInt(experience) : existingGuard.experience,
+      availability: availability || existingGuard.availability,
+      languages: language || existingGuard.languages,
+      certification: certification || existingGuard.certification,
+      securityRating: securityRating || existingGuard.securityRating,
+      securityPriceDay: securityPriceDay
+        ? parseFloat(securityPriceDay)
+        : existingGuard.securityPriceDay,
+      category: category || existingGuard.category,
+      discount: discount ? parseFloat(discount) : existingGuard.discount,
       securityReviewCount: securityReviewCount
         ? parseInt(securityReviewCount)
-        : undefined,
-      hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
-      vat: vat ? parseFloat(vat) : undefined,
-      securityBookingAbleDays: Array.isArray(securityBookingAbleDays)
-        ? securityBookingAbleDays
-        : securityBookingAbleDays?.split(",") || [],
-      partnerId,
+        : existingGuard.securityReviewCount,
+      hiredCount: hiredCount ? parseInt(hiredCount) : existingGuard.hiredCount,
+      vat: vat ? parseFloat(vat) : existingGuard.vat,
+      securityBookingAbleDays:
+        securityBookingAbleDay || existingGuard.securityBookingAbleDays,
+      securityImages: securityImageUrls,
     },
   });
 
-  return updatedProtocol;
+  return updatedGuard;
 };
 
 export const Security_ProtocolService = {
@@ -630,4 +719,5 @@ export const Security_ProtocolService = {
   getProtocolsGroupedByCategory,
   getSingleSecurityProtocol,
   updateSecurityProtocol,
+  updateSecurityProtocolGuardType,
 };

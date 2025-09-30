@@ -4,6 +4,8 @@ export const filterField: string[] = [
   "securityCountry",
   "securityRating",
   "category",
+  "securityProtocolType",
+  "securityGuardName",
   //   "securityPriceDay",
 ];
 
@@ -12,5 +14,7 @@ export const searchableFields: string[] = [
   "securityCountry",
   "securityRating",
   "category",
+  "securityProtocolType",
+  "securityGuardName",
   //   "securityPriceDay",
 ];

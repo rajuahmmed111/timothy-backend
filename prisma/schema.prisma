@@ -328,10 +328,10 @@ model Security_Guard {
   securityCity             String
   securityCountry          String
   securityGuardDescription String
-  securityImages           String[] // 5 image
+  securityImages           String[] // 10 image
   securityServicesOffered  String[]
   experience               Int
-  availability             Int
+  availability             String
   languages                String[]
   certification            String
   securityRating           String
@@ -347,8 +347,8 @@ model Security_Guard {
   updatedAt                DateTime           @updatedAt
 
   // relationships
-  userId           String?            @db.ObjectId
-  user             User?              @relation(fields: [userId], references: [id])
+  partnerId      String?         @db.ObjectId
+  user             User?              @relation(fields: [partnerId], references: [id])
   securityId       String?            @db.ObjectId
   security         Security_Protocol? @relation(fields: [securityId], references: [id])
   security_Booking Security_Booking[]

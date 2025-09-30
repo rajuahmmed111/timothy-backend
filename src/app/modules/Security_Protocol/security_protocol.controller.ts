@@ -24,7 +24,8 @@ const createSecurityProtocol = catchAsync(
 // create security protocol guard type
 const createSecurityProtocolGuardType = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await Security_ProtocolService.createSecurityProtocolGuardType(req);
+    const result =
+      await Security_ProtocolService.createSecurityProtocolGuardType(req);
 
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -77,21 +78,26 @@ const getAllSecurityProtocolsForPartner = catchAsync(
 );
 
 // get popular security protocols
-const getPopularSecurityProtocols = catchAsync(async (req: Request, res: Response) => {
-  const filter = pick(req.query, filterField);
-  const result = await Security_ProtocolService.getPopularSecurityProtocols(filter);
+const getPopularSecurityProtocols = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const result = await Security_ProtocolService.getPopularSecurityProtocols(
+      filter
+    );
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Popular security protocols fetched successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Popular security protocols fetched successfully",
+      data: result,
+    });
+  }
+);
 
 const getProtocolsGroupedByCategory = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await Security_ProtocolService.getProtocolsGroupedByCategory();
+    const result =
+      await Security_ProtocolService.getProtocolsGroupedByCategory();
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -129,6 +135,21 @@ const updateSecurityProtocol = catchAsync(
   }
 );
 
+// update security protocol guard type
+const updateSecurityProtocolGuardType = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await Security_ProtocolService.updateSecurityProtocolGuardType(req);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security Guard updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const Security_ProtocolController = {
   createSecurityProtocol,
   createSecurityProtocolGuardType,
@@ -138,4 +159,5 @@ export const Security_ProtocolController = {
   getProtocolsGroupedByCategory,
   getSingleSecurityProtocol,
   updateSecurityProtocol,
+  updateSecurityProtocolGuardType,
 };

@@ -45,7 +45,6 @@ router.get(
   Security_ProtocolController.getProtocolsGroupedByCategory
 );
 
-
 // get security protocol by id
 router.get(
   "/:id",
@@ -72,26 +71,32 @@ router.post(
 
 // create security protocol guard type
 router.post(
-  "/",
+  "/security-guard-type/:securityId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([
-    { name: "securityImages", maxCount: 5 },
-    { name: "securityDocs", maxCount: 5 },
-  ]),
+  uploadFile.upload.fields([{ name: "securityImages", maxCount: 10 }]),
   parseBodyData,
   Security_ProtocolController.createSecurityProtocolGuardType
 );
 
 // update security protocol
 router.patch(
-  "/:id",
+  "/:securityId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "securityImages", maxCount: 5 },
+    { name: "businessLogo", maxCount: 1 },
     { name: "securityDocs", maxCount: 5 },
   ]),
   parseBodyData,
   Security_ProtocolController.updateSecurityProtocol
+);
+
+// update security guard type
+router.patch(
+  "/security-guard-type/:guardId",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([{ name: "securityImages", maxCount: 10 }]),
+  parseBodyData,
+  Security_ProtocolController.updateSecurityProtocolGuardType
 );
 
 export const securityProtocolRoute = router;
