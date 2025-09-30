@@ -63,12 +63,24 @@ router.post(
   "/",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "securityImages", maxCount: 5 },
+    { name: "businessLogo", maxCount: 1 },
     { name: "securityDocs", maxCount: 5 },
   ]),
   parseBodyData,
   Security_ProtocolController.createSecurityProtocol
 );
+
+// // create security protocol
+// router.post(
+//   "/",
+//   auth(UserRole.BUSINESS_PARTNER),
+//   uploadFile.upload.fields([
+//     { name: "securityImages", maxCount: 5 },
+//     { name: "securityDocs", maxCount: 5 },
+//   ]),
+//   parseBodyData,
+//   Security_ProtocolController.createSecurityProtocol
+// );
 
 // update security protocol
 router.patch(

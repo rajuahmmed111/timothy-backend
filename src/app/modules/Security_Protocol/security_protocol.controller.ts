@@ -21,6 +21,20 @@ const createSecurityProtocol = catchAsync(
   }
 );
 
+// // create security protocol
+// const createSecurityProtocol = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const result = await Security_ProtocolService.createSecurityProtocol(req);
+
+//     sendResponse(res, {
+//       statusCode: httpStatus.OK,
+//       success: true,
+//       message: "Security Protocol created successfully",
+//       data: result,
+//     });
+//   }
+// );
+
 // get all security protocols
 const getAllSecurityProtocols = catchAsync(
   async (req: Request, res: Response) => {

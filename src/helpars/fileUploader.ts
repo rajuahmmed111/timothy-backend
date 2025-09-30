@@ -55,7 +55,7 @@ const hotelImages = upload.array("hotelImages", 5);
 const hotelRoomImages = upload.array("hotelRoomImages", 5);
 const hotelDocs = upload.array("hotelDocs", 5);
 
-// const securityLogo = upload.single("securityLogo");
+const securityLogo = upload.single("securityLogo");
 const securityImages = upload.array("securityImages", 5);
 const securityDocs = upload.array("securityDocs", 5);
 
@@ -123,6 +123,7 @@ export const uploadFile = {
   hotelRoomImages,
   hotelDocs,
 
+  securityLogo,
   securityImages,
   securityDocs,
 
