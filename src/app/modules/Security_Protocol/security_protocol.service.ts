@@ -9,7 +9,12 @@ import {
   ISecurityFilterRequest,
   PopularSecurityProtocol,
 } from "./security_protocol.interface";
-import { EveryServiceStatus, Prisma, Security_Protocol } from "@prisma/client";
+import {
+  BookingStatus,
+  EveryServiceStatus,
+  Prisma,
+  Security_Protocol,
+} from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./security_protocol.constant";
 
@@ -287,19 +292,30 @@ const getAllSecurityProtocols = async (
 
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.Security_ProtocolWhereInput[] = [];
+  const filters: Prisma.Security_GuardWhereInput[] = [];
 
   // text search
-  if (params?.searchTerm) {
-    filters.push({
-      OR: searchableFields.map((field) => ({
+  filters.push({
+    OR: searchableFields.map((field) => {
+      if (field === "securityName") {
+        // search inside related security protocol
+        return {
+          security: {
+            securityName: {
+              contains: params.searchTerm,
+              mode: "insensitive",
+            },
+          },
+        };
+      }
+      return {
         [field]: {
           contains: params.searchTerm,
           mode: "insensitive",
         },
-      })),
-    });
-  }
+      };
+    }),
+  });
 
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
@@ -312,14 +328,47 @@ const getAllSecurityProtocols = async (
     });
   }
 
+  // Exact filter for securityProtocolType (relation)
+  if (params.securityProtocolType) {
+    filters.push({
+      security: {
+        securityProtocolType: {
+          equals: params.securityProtocolType,
+          mode: "insensitive",
+        },
+      },
+    });
+  }
+
+  // fromDate - toDate booking exclude
+  if (filterData.fromDate && filterData.toDate) {
+    filters.push({
+      security_Booking: {
+        none: {
+          AND: [
+            {
+              securityBookedFromDate: { lte: filterData.toDate },
+            },
+            {
+              securityBookedToDate: { gte: filterData.fromDate },
+            },
+            {
+              bookingStatus: { not: BookingStatus.COMPLETED },
+            },
+          ],
+        },
+      },
+    });
+  }
+
   // get only isBooked  AVAILABLE hotels
   // filters.push({
   //   isBooked: EveryServiceStatus.AVAILABLE,
   // });
 
-  const where: Prisma.Security_ProtocolWhereInput = { AND: filters };
+  const where: Prisma.Security_GuardWhereInput = { AND: filters };
 
-  const result = await prisma.security_Protocol.findMany({
+  const result = await prisma.security_Guard.findMany({
     where,
     skip,
     take: limit,
@@ -337,10 +386,142 @@ const getAllSecurityProtocols = async (
           profileImage: true,
         },
       },
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+        },
+      },
     },
   });
 
-  const total = await prisma.security_Protocol.count({
+  const total = await prisma.security_Guard.count({
+    where,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
+// get all security protocols security guard
+const getAllSecurityProtocolsGuards = async (
+  params: ISecurityFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.Security_GuardWhereInput[] = [];
+
+  // text search
+  filters.push({
+    OR: searchableFields.map((field) => {
+      if (field === "securityName") {
+        // search inside related security protocol
+        return {
+          security: {
+            securityName: {
+              contains: params.searchTerm,
+              mode: "insensitive",
+            },
+          },
+        };
+      }
+      return {
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      };
+    }),
+  });
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // Exact filter for securityProtocolType (relation)
+  if (params.securityProtocolType) {
+    filters.push({
+      security: {
+        securityProtocolType: {
+          equals: params.securityProtocolType,
+          mode: "insensitive",
+        },
+      },
+    });
+  }
+
+  // fromDate - toDate booking exclude
+  if (filterData.fromDate && filterData.toDate) {
+    filters.push({
+      security_Booking: {
+        none: {
+          AND: [
+            {
+              securityBookedFromDate: { lte: filterData.toDate },
+            },
+            {
+              securityBookedToDate: { gte: filterData.fromDate },
+            },
+            {
+              bookingStatus: { not: BookingStatus.COMPLETED },
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // get only isBooked  AVAILABLE hotels
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
+
+  const where: Prisma.Security_GuardWhereInput = { AND: filters };
+
+  const result = await prisma.security_Guard.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+        },
+      },
+    },
+  });
+
+  const total = await prisma.security_Guard.count({
     where,
   });
 
@@ -714,6 +895,7 @@ export const Security_ProtocolService = {
   createSecurityProtocol,
   createSecurityProtocolGuardType,
   getAllSecurityProtocols,
+  getAllSecurityProtocolsGuards,
   getAllSecurityProtocolsForPartner,
   getPopularSecurityProtocols,
   getProtocolsGroupedByCategory,

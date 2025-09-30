@@ -13,10 +13,10 @@ export const filterField: string[] = [
 
 export const searchableFields: string[] = [
   "securityName",
+  "securityCity",
   "securityCountry",
   "securityRating",
   "category",
-  "securityProtocolType",
   "securityGuardName",
   //   "securityPriceDay",
 ];
