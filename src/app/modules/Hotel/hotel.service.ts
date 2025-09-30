@@ -27,6 +27,18 @@ const createHotel = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
+  // service check
+  if (
+    partnerExists.isSecurity ||
+    partnerExists.isCar ||
+    partnerExists.isAttraction
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You can only provide one type of service. You already provide another service."
+    );
+  }
+
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
   };
