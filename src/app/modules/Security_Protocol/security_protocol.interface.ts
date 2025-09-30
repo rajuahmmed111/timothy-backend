@@ -6,6 +6,10 @@ export type ISecurityFilterRequest = {
   securityCountry?: string | undefined;
   securityRating?: string | undefined;
   category?: string | undefined;
+  securityProtocolType?: string | undefined;
+  securityGuardName?: string | undefined;
+  fromDate?: string | undefined;
+  toDate?: string | undefined;
   // securityPriceDay?: string | undefined;
 };
 

@@ -6,6 +6,8 @@ export const filterField: string[] = [
   "category",
   "securityProtocolType",
   "securityGuardName",
+  "fromDate",
+  "toDate",
   //   "securityPriceDay",
 ];
 
