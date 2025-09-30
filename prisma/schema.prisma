@@ -102,6 +102,8 @@ model User {
   profession    String?
   gender        String?
   companyName   String?
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
 
   // Stripe
   stripeAccountId   String?
@@ -149,6 +151,7 @@ model User {
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
   support            Support[]
+  room               Room[]
 
   @@map("users")
 }
@@ -167,83 +170,93 @@ model Admin {
 }
 
 model Hotel {
-  id                String @id @default(auto()) @map("_id") @db.ObjectId
-  hotelBusinessName String @unique
-  hotelName         String
-  hotelBusinessType String
-  hotelRegNum       String
-  hotelRegDate      String
-  hotelPhone        String
-  hotelEmail        String
-
-  businessTagline     String
-  businessDescription String
-  businessLogo        String // @default("https://i.ibb.co/zWxSgQL8/download.png")
-
-  hotelRoomType       String
-  hotelRoomPriceNight Int // price  float korte hobe
-
-  hotelAC        Boolean
-  hotelParking   Boolean
-  hoitelWifi     Boolean
-  hotelBreakfast Boolean
-  hotelPool      Boolean
-
-  hotelRating String
-
-  hotelSmoking Boolean
-  hotelTv      Boolean
-  hotelWashing Boolean
-
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  hotelBusinessName      String   @unique
+  hotelName              String
+  hotelBusinessType      String
+  hotelRegNum            String
+  hotelRegDate           String
+  hotelPhone             String
+  hotelEmail             String
+  businessTagline        String
+  businessDescription    String
+  businessLogo           String // @default("https://i.ibb.co/zWxSgQL8/download.png")
   hotelBookingCondition  String
   hotelCancelationPolicy String
   hotelDocs              String[]
-  hotelRoomDescription   String
-  hotelAddress           String
-  hotelCity              String
-  hotelPostalCode        String
-  hotelDistrict          String
-  hotelCountry           String
-  hotelRoomImages        String[] // 5 image
-  hotelRoomCapacity      String
-  hotelNumberOfRooms     Int
-  hotelNumAdults         Int
-  hotelNumChildren       Int
-
-  hotelAccommodationType        String?
-  hotelKitchen                  Boolean?
-  HotelRestaurant               Boolean?
-  hotelGym                      Boolean?
-  hotelSpa                      Boolean?
-  hotel24HourFrontDesk          Boolean?
-  hotelAirportShuttle           Boolean?
-  hotelNoSmokingPreference      Boolean?
-  hotelNoNSmoking               Boolean?
-  hotelPetsAllowed              Boolean?
-  hotelNoPetsPreferences        Boolean?
-  hotelPetsNotAllowed           Boolean?
-  hotelLocationFeatureWaterView Boolean?
-  hotelLocationFeatureIsland    Boolean?
-  hotelCoffeeBar                Boolean?
-  hotelLate                     Int?
-  hotelLong                     Int?
-
-  category         String?
-  discount         Float?             @default(0)
-  isBooked         EveryServiceStatus @default(AVAILABLE)
-  hotelReviewCount Int                @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  hotelLate              Float?
+  hotelLong              Float?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   // relationships
   user           User            @relation(fields: [partnerId], references: [id])
   partnerId      String          @db.ObjectId
   hotel_bookings Hotel_Booking[]
+  favorite       Favorite[]
+  room           Room[]
+
+  @@map("hotels")
+}
+
+model Room {
+  id                            String             @id @default(auto()) @map("_id") @db.ObjectId
+  hotelRoomType                 String
+  hotelAC                       Boolean
+  hotelParking                  Boolean
+  hoitelWifi                    Boolean
+  hotelBreakfast                Boolean
+  hotelPool                     Boolean
+  hotelRating                   String
+  hotelSmoking                  Boolean
+  hotelTv                       Boolean
+  hotelWashing                  Boolean
+  hotelRoomDescription          String
+  hotelAddress                  String
+  hotelCity                     String
+  hotelPostalCode               String
+  hotelDistrict                 String
+  hotelCountry                  String
+  hotelImages                   String[] // 5 image
+  hotelRoomImages               String[] // 5 image
+  hotelRoomCapacity             String
+  hotelNumberOfRooms            Int
+  hotelNumAdults                Int
+  hotelNumChildren              Int
+  hotelAccommodationType        String
+  hotelKitchen                  Boolean
+  hotelRestaurant               Boolean
+  hotelGym                      Boolean
+  hotelSpa                      Boolean
+  hotel24HourFrontDesk          Boolean
+  hotelAirportShuttle           Boolean
+  hotelNoSmokingPreference      Boolean
+  hotelNoNSmoking               Boolean
+  hotelPetsAllowed              Boolean
+  hotelNoPetsPreferences        Boolean
+  hotelPetsNotAllowed           Boolean
+  hotelLocationFeatureWaterView Boolean
+  hotelLocationFeatureIsland    Boolean
+  hotelCoffeeBar                Boolean
+  category                      String
+  hotelRoomPriceNight           Float
+  discount                      Float              @default(0)
+  isBooked                      EveryServiceStatus @default(AVAILABLE)
+  isFavorite                    Boolean            @default(false)
+  hotelReviewCount              Int                @default(0)
+  createdAt                     DateTime           @default(now())
+  updatedAt                     DateTime           @updatedAt
+
+  // relationships
+  hotelId        String?         @db.ObjectId
+  hotel          Hotel?          @relation(fields: [hotelId], references: [id])
+  user           User?           @relation(fields: [partnerId], references: [id])
+  partnerId      String?         @db.ObjectId
+  hotel_bookings Hotel_Booking[]
   review         Review[]
   favorite       Favorite[]
 
-  @@map("hotels")
+  @@map("rooms")
 }
 
 model Hotel_Booking {
@@ -255,6 +268,7 @@ model Hotel_Booking {
   bookedFromDate    String
   bookedToDate      String
   totalPrice        Float
+  specialRequest    String?
   bookingStatus     BookingStatus @default(PENDING)
   category          String?
   createdAt         DateTime      @default(now())
@@ -267,6 +281,8 @@ model Hotel_Booking {
   user      User?     @relation(fields: [userId], references: [id])
   userId    String?   @db.ObjectId
   payment   Payment[]
+  room      Room?     @relation(fields: [roomId], references: [id])
+  roomId    String?   @db.ObjectId
 
   @@map("hotel_bookings")
 }
@@ -560,8 +576,6 @@ model Review {
   updatedAt  DateTime @updatedAt
 
   // relationships
-  hotel        Hotel?             @relation(fields: [hotelId], references: [id])
-  hotelId      String?            @db.ObjectId
   user         User               @relation(fields: [userId], references: [id])
   userId       String             @db.ObjectId
   security     Security_Protocol? @relation(fields: [securityId], references: [id])
@@ -570,6 +584,8 @@ model Review {
   carId        String?            @db.ObjectId
   attraction   Attraction?        @relation(fields: [attractionId], references: [id])
   attractionId String?            @db.ObjectId
+  room         Room?              @relation(fields: [roomId], references: [id])
+  roomId       String?            @db.ObjectId
 
   @@map("reviews")
 }
@@ -582,8 +598,10 @@ model Favorite {
   hotelId   String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  room      Room?    @relation(fields: [roomId], references: [id])
+  roomId    String?  @db.ObjectId
 
-  @@unique([userId, hotelId])
+  @@unique([userId, roomId])
   @@map("favorites")
 }
 

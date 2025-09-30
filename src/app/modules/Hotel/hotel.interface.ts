@@ -10,4 +10,27 @@ export type IHotelFilterRequest = {
   maxPrice?: number | undefined;
   fromDate?: string | undefined;
   toDate?: string | undefined;
+  hotelBreakfast?: boolean | undefined;
+  hotelKitchen?: boolean | undefined;
+  hoitelWifi?: boolean | undefined;
+  hotelParking?: boolean | undefined;
+  hotelRestaurant?: boolean | undefined;
+  hotelGym?: boolean | undefined;
+  hotelPool?: boolean | undefined;
+  hotelSpa?: boolean | undefined;
+  hotel24HourFrontDesk?: boolean | undefined;
+  hotelAirportShuttle?: boolean | undefined;
+  hotelNoSmokingPreference?: boolean | undefined;
+  hotelNoNSmoking?: boolean | undefined;
+  hotelSmoking?: boolean | undefined;
+  hotelNoPetsPreferences?: boolean | undefined;
+  hotelPetsAllowed?: boolean | undefined;
+  hotelPetsNotAllowed?: boolean | undefined;
+  hotelLocationFeatureWaterView?: boolean | undefined;
+  hotelLocationFeatureIsland?: boolean | undefined;
+
+  hotelAC?: boolean | undefined;
+  hotelTv?: boolean | undefined;
+  hotelWashing?: boolean | undefined;
+  hotelCoffeeBar?: boolean | undefined;
 };

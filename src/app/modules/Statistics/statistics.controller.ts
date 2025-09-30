@@ -63,7 +63,8 @@ const financialMetrics = catchAsync(async (req: Request, res: Response) => {
 // cancel refund and contracts
 const cancelRefundAndContracts = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await StatisticsService.cancelRefundAndContracts();
+    const filter = pick(req.query, filterField);
+    const result = await StatisticsService.cancelRefundAndContracts(filter);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -193,17 +194,19 @@ const getPartnerTotalEarningsAttraction = catchAsync(
 );
 
 // user support tickets
-const getUserSupportTickets = catchAsync(async (req: Request, res: Response) => {
-  const filter = pick(req.query, filterField);
-  const result = await StatisticsService.getUserSupportTickets(filter);
+const getUserSupportTickets = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const result = await StatisticsService.getUserSupportTickets(filter);
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Statistics fetched successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Statistics fetched successfully",
+      data: result,
+    });
+  }
+);
 
 export const StatisticsController = {
   getOverview,

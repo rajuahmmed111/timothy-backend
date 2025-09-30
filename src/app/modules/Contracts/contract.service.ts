@@ -1,4 +1,3 @@
-import e from "express";
 import prisma from "../../../shared/prisma";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IContractFilterRequest } from "./contract.interface";
@@ -32,7 +31,7 @@ const getAllContracts = async (
     ...attraction.map((item) => ({ type: "attraction", ...item })),
   ];
 
-  // ✅ timeRange filter
+  // timeRange filter
   let dateRange;
   if (timeRange) {
     dateRange = getDateRange(timeRange);
@@ -44,7 +43,7 @@ const getAllContracts = async (
     });
   }
 
-  // ✅ search filter
+  // search filter
   if (searchTerm) {
     allContracts = allContracts.filter((contract) =>
       searchableFields.some((field) => {
@@ -57,22 +56,22 @@ const getAllContracts = async (
     );
   }
 
-  // ✅ bookingStatus filter
+  // bookingStatus filter
   if (bookingStatus) {
     allContracts = allContracts.filter(
       (contract) => contract.bookingStatus === bookingStatus
     );
   }
 
-  // ✅ total count (before pagination)
+  // total count (before pagination)
   const total = allContracts.length;
 
-  // ✅ sorting (latest first)
+  // sorting (latest first)
   allContracts.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // ✅ pagination slice
+  // pagination slice
   const paginatedContracts = allContracts.slice(skip, skip + limit);
 
   return {
@@ -98,7 +97,7 @@ const getSingleContract = async (id: string, type: string) => {
             select: {
               id: true,
               hotelName: true,
-              hotelRoomDescription: true,
+              // hotelRoomDescription: true,
             },
           },
           user: {

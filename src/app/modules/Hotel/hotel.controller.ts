@@ -18,11 +18,36 @@ const createHotel = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create hotel room
+const createHotelRoom = catchAsync(async (req: Request, res: Response) => {
+  const result = await HotelService.createHotelRoom(req);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Hotel room created successfully",
+    data: result,
+  });
+});
+
 // get all hotels
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);
   const result = await HotelService.getAllHotels(filter, options);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotels fetched successfully",
+    data: result,
+  });
+});
+
+// get all hotel rooms
+const getAllHotelRooms = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const result = await HotelService.getAllHotelRooms(filter, options);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -65,10 +90,23 @@ const getSingleHotel = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get single hotel room
+const getSingleHotelRoom = catchAsync(async (req: Request, res: Response) => {
+  const roomId = req.params.roomId;
+  const result = await HotelService.getSingleHotelRoom(roomId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel fetched successfully",
+    data: result,
+  });
+});
+
 // get popular hotels
 const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
-  const result = await HotelService.getPopularHotels(filter);
+  const options = pick(req.query, paginationFields);
+  const result = await HotelService.getPopularHotels(filter, options);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -81,9 +119,9 @@ const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
 // add favorite hotel
 const toggleFavorite = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const hotelId = req.params.hotelId;
+  const roomId = req.params.roomId;
 
-  const result = await HotelService.toggleFavorite(userId, hotelId);
+  const result = await HotelService.toggleFavorite(userId, roomId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -109,22 +147,44 @@ const getAllFavoriteHotels = catchAsync(async (req: Request, res: Response) => {
 // update hotel
 const updateHotel = catchAsync(async (req: Request, res: Response) => {
   // const hotelId = req.params.id;
-  const updatedHotel = await HotelService.updateHotel(req);
+  // const partnerId = req.user?.id;
+
+  const result = await HotelService.updateHotel(req);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Hotel updated successfully",
-    data: updatedHotel,
+    data: result,
+  });
+});
+
+// update hotel room
+const updateHotelRoom = catchAsync(async (req: Request, res: Response) => {
+  // const roomId = req.params.roomId;
+  // const partnerId = req.user?.id;
+
+  const result = await HotelService.updateHotelRoom(req);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel room updated successfully",
+    data: result,
   });
 });
 
 export const HotelController = {
   createHotel,
+  createHotelRoom,
   getAllHotels,
+  getAllHotelRooms,
   getAllHotelsForPartner,
   getSingleHotel,
+  getSingleHotelRoom,
   getPopularHotels,
   toggleFavorite,
   getAllFavoriteHotels,
   updateHotel,
+  updateHotelRoom,
 };
