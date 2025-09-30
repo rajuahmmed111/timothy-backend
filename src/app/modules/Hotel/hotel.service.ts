@@ -291,9 +291,9 @@ const getAllHotels = async (
 
   const result = await prisma.hotel.findMany({
     where: whereConditions,
-    include: {
-      user: true,
-    },
+    // include: {
+    //   user: true,
+    // },
     skip,
     take: limit,
     orderBy:

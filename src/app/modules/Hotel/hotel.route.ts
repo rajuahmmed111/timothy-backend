@@ -22,7 +22,7 @@ router.get(
 
 // get all hotel rooms
 router.get(
-  "/",
+  "/rooms",
   auth(
     UserRole.ADMIN,
     UserRole.SUPER_ADMIN,
