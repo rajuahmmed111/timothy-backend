@@ -251,7 +251,7 @@ const createStripePaymentIntent = async (
       if (!booking)
         throw new ApiError(httpStatus.NOT_FOUND, "Security booking not found");
 
-      service = await prisma.security_Protocol.findUnique({
+      service = await prisma.security_Guard.findUnique({
         where: { id: booking.securityId },
       });
       if (!service)
@@ -776,7 +776,7 @@ const createCheckoutSessionPayStack = async (
   );
 
   const data = response.data.data;
-  console.log(data);
+  // console.log(data);
 
   // --- Save payment record in DB ---
   await prisma.payment.create({

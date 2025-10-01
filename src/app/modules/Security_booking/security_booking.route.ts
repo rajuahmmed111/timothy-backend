@@ -28,7 +28,7 @@ router.get(
 
 // create security booking
 router.post(
-  "/:securityId",
+  "/:security_GuardId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
   SecurityBookingController.createSecurityBooking
 );

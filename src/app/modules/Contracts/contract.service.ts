@@ -117,11 +117,10 @@ const getSingleContract = async (id: string, type: string) => {
       contract = await prisma.security_Booking.findUnique({
         where: { id },
         include: {
-          security: {
+          security_Guard: {
             select: {
               id: true,
-              securityName: true,
-              securityDescription: true,
+              securityGuardName: true,
             },
           },
           user: {

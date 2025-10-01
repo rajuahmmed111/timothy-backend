@@ -13,7 +13,7 @@ import { ISecurityBookingData } from "./security_booking.interface";
 // create security booking
 const createSecurityBooking = async (
   userId: string,
-  securityId: string,
+  security_GuardId: string,
   data: ISecurityBookingData
 ) => {
   const { number_of_security, securityBookedFromDate, securityBookedToDate } =
@@ -27,15 +27,19 @@ const createSecurityBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
 
   // validate security
-  const security = await prisma.security_Protocol.findUnique({
-    where: { id: securityId },
+  const security = await prisma.security_Guard.findUnique({
+    where: { id: security_GuardId },
     select: {
       securityPriceDay: true,
       partnerId: true,
       discount: true,
       vat: true,
       category: true,
-      securityName: true,
+      security: {
+        select: {
+          securityName: true,
+        },
+      },
     },
   });
   if (!security)
@@ -72,7 +76,7 @@ const createSecurityBooking = async (
   // check overlapping bookings
   const overlappingBooking = await prisma.security_Booking.findFirst({
     where: {
-      securityId,
+      security_GuardId,
       bookingStatus: { not: BookingStatus.CANCELLED },
       OR: [
         {
@@ -108,9 +112,9 @@ const createSecurityBooking = async (
       ...data,
       totalPrice,
       bookingStatus: BookingStatus.PENDING,
-      partnerId: security.partnerId,
+      partnerId: security.partnerId!,
       userId,
-      securityId,
+      security_GuardId,
       category: security.category as string,
     },
   });
@@ -149,11 +153,16 @@ const getSingleSecurityBooking = async (id: string) => {
   const result = await prisma.security_Booking.findUnique({
     where: { id },
     include: {
+      security_Guard: {
+        select: {
+          id: true,
+          securityPriceDay: true,
+        },
+      },
       security: {
         select: {
           id: true,
           securityName: true,
-          securityPriceDay: true,
         },
       },
     },
@@ -176,10 +185,9 @@ const getAllMySecurityBookings = async (userId: string) => {
   const result = await prisma.security_Booking.findMany({
     where: { userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
-      security: {
+      security_Guard: {
         select: {
           id: true,
-          securityName: true,
           securityPriceDay: true,
           securityImages: true,
           securityAddress: true,
