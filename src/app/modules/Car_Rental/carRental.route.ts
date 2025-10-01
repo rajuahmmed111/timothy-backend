@@ -61,13 +61,24 @@ router.post(
 
 // update car rental
 router.patch(
-  "/:id",
+  "/:car_RentalId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "carImages", maxCount: 5 },
+    { name: "businessLogo", maxCount: 1 },
     { name: "carDocs", maxCount: 5 },
   ]),
+  parseBodyData,
   CarRentalController.updateCarRental
 );
+
+// update car
+router.patch(
+  "/car/:carId",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([{ name: "carImages", maxCount: 5 }]),
+  parseBodyData,
+  CarRentalController.updateCar
+);
+
 
 export const carRentalRoutes = router;

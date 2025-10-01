@@ -76,14 +76,26 @@ const getSingleCarRental = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Update Car Rental
-const updateCarRental = catchAsync(async (req, res) => {
+// update Car Rental
+const updateCarRental = catchAsync(async (req: Request, res: Response) => {
   const result = await CarRentalService.updateCarRental(req);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Car rental updated successfully",
+    data: result,
+  });
+});
+
+// update Car
+const updateCar = catchAsync(async (req: Request, res: Response) => {
+  const result = await CarRentalService.updateCar(req);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Car updated successfully",
     data: result,
   });
 });
@@ -95,4 +107,5 @@ export const CarRentalController = {
   getAllCarRentalsForPartner,
   getSingleCarRental,
   updateCarRental,
+  updateCar,
 };

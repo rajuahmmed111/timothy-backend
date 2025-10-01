@@ -243,9 +243,9 @@ const getAllCarRentals = async (
   }
 
   // get only isBooked  AVAILABLE hotels
-  filters.push({
-    isBooked: EveryServiceStatus.AVAILABLE,
-  });
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
 
   const where: Prisma.Car_RentalWhereInput = { AND: filters };
 
@@ -351,12 +351,12 @@ const getSingleCarRental = async (carRentalId: string) => {
   return result;
 };
 
-// Update Car Rental
+// update Car Rental
 const updateCarRental = async (req: Request) => {
   const partnerId = req.user?.id;
-  const carRentalId = req.params.id;
+  const car_RentalId = req.params.car_RentalId;
 
-  // Check if partner exists
+  // check partner exists
   const partnerExists = await prisma.user.findUnique({
     where: { id: partnerId },
   });
@@ -364,43 +364,35 @@ const updateCarRental = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  // Check if Car Rental exists and belongs to partner
-  const existingCarRental = await prisma.car_Rental.findUnique({
-    where: { id: carRentalId },
+  // check if rental exists and belongs to partner
+  const carRentalExists = await prisma.car_Rental.findFirst({
+    where: { id: car_RentalId, partnerId },
   });
-  if (!existingCarRental) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Car Rental not found");
-  }
-  if (existingCarRental.partnerId !== partnerId) {
+  if (!carRentalExists) {
     throw new ApiError(
-      httpStatus.FORBIDDEN,
-      "Not authorized to update this Car Rental"
+      httpStatus.NOT_FOUND,
+      "Car Rental not found or unauthorized"
     );
   }
 
-  const files = req.files as {
-    [fieldname: string]: Express.Multer.File[];
-  };
-
-  const carImageFiles = files?.carImages || [];
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const carLogoFile = files?.businessLogo?.[0];
   const carDocsFiles = files?.carDocs || [];
 
-  // Upload new car images if provided, else keep existing
-  let carImageUrls = existingCarRental.carImages;
-  if (carImageFiles.length > 0) {
-    const uploads = await Promise.all(
-      carImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    carImageUrls = uploads.map((img) => img?.secure_url || "");
+  // upload logo if provided
+  let businessLogo = carRentalExists.businessLogo;
+  if (carLogoFile) {
+    const logoResult = await uploadFile.uploadToCloudinary(carLogoFile);
+    businessLogo = logoResult?.secure_url || businessLogo;
   }
 
-  // Upload new car docs if provided, else keep existing
-  let carDocUrls = existingCarRental.carDocs;
+  // upload docs if provided
+  let carDocUrls = carRentalExists.carDocs || [];
   if (carDocsFiles.length > 0) {
-    const docUploads = await Promise.all(
+    const uploads = await Promise.all(
       carDocsFiles.map((file) => uploadFile.uploadToCloudinary(file))
     );
-    carDocUrls = docUploads.map((img) => img?.secure_url || "");
+    carDocUrls = uploads.map((img) => img?.secure_url || "");
   }
 
   const {
@@ -411,15 +403,72 @@ const updateCarRental = async (req: Request) => {
     carRegDate,
     carPhone,
     carEmail,
+    carTagline,
+    carRentalDescription,
+    carBookingCondition,
+    carCancelationPolicy,
+  } = req.body;
+
+  return await prisma.car_Rental.update({
+    where: { id: car_RentalId },
+    data: {
+      carBusinessName,
+      carName,
+      carBusinessType,
+      carRegNum,
+      carRegDate,
+      carPhone,
+      carEmail,
+      carTagline,
+      carRentalDescription,
+      carBookingCondition,
+      carCancelationPolicy,
+      businessLogo,
+      carDocs: carDocUrls,
+    },
+  });
+};
+
+// update Car
+const updateCar = async (req: Request) => {
+  const partnerId = req.user?.id;
+  const carId = req.params.carId; // ✅ correct param
+
+  // check partner exists
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const carExists = await prisma.car.findFirst({
+    where: { id: carId, partnerId },
+  });
+  if (!carExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unauthorized");
+  }
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const carImageFiles = files?.carImages || [];
+
+  // Upload new images if provided
+  let carImageUrls = carExists.carImages || [];
+  if (carImageFiles.length > 0) {
+    const uploads = await Promise.all(
+      carImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    carImageUrls = uploads.map((img) => img?.secure_url || "");
+  }
+
+  const {
     carAddress,
-    carCity,
     carPostalCode,
     carDistrict,
+    carCity,
     carCountry,
     carDescription,
     carServicesOffered,
-    carBookingCondition,
-    carCancelationPolicy,
     carType,
     carSeats,
     carOilType,
@@ -435,34 +484,26 @@ const updateCarRental = async (req: Request) => {
     gearType,
     carRating,
     carPriceDay,
-    carBookingAbleDays,
     category,
     discount,
+    vat,
+    carReviewCount,
+    carBookingAbleDays,
   } = req.body;
 
-  const updatedCarRental = await prisma.car_Rental.update({
-    where: { id: carRentalId },
+  return await prisma.car.update({
+    where: { id: carId }, // ✅ now correct
     data: {
-      carBusinessName,
-      carName,
-      carBusinessType,
-      carRegNum,
-      carRegDate,
-      carPhone,
-      carEmail,
       carAddress,
-      carCity,
       carPostalCode,
       carDistrict,
+      carCity,
       carCountry,
       carDescription,
       carImages: carImageUrls,
       carServicesOffered: Array.isArray(carServicesOffered)
         ? carServicesOffered
         : carServicesOffered?.split(",") || [],
-      carBookingCondition,
-      carCancelationPolicy,
-      carDocs: carDocUrls,
       carType,
       carSeats,
       carOilType,
@@ -476,17 +517,17 @@ const updateCarRental = async (req: Request) => {
       carColor,
       fuelType,
       gearType,
-      carRating: carRating ? carRating.toString() : undefined,
-      carPriceDay: carPriceDay ? parseInt(carPriceDay) : undefined,
+      carRating,
+      carPriceDay: carPriceDay ? parseFloat(carPriceDay) : undefined,
       carBookingAbleDays: Array.isArray(carBookingAbleDays)
         ? carBookingAbleDays
         : carBookingAbleDays?.split(",") || [],
-      category: category || undefined,
+      category,
       discount: discount ? parseFloat(discount) : undefined,
+      vat: vat ? parseFloat(vat) : undefined,
+      carReviewCount: carReviewCount ? parseInt(carReviewCount) : undefined,
     },
   });
-
-  return updatedCarRental;
 };
 
 export const CarRentalService = {
@@ -496,4 +537,5 @@ export const CarRentalService = {
   getAllCarRentalsForPartner,
   getSingleCarRental,
   updateCarRental,
+  updateCar,
 };
