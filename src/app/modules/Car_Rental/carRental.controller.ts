@@ -7,7 +7,7 @@ import { filterField } from "./carRental.constant";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
 
-// Create Car Rental
+// create Car Rental
 const createCarRental = catchAsync(async (req: Request, res: Response) => {
   const result = await CarRentalService.createCarRental(req);
 
@@ -19,7 +19,7 @@ const createCarRental = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Create Car
+// create Car
 const createCar = catchAsync(async (req: Request, res: Response) => {
   const result = await CarRentalService.createCar(req);
 
