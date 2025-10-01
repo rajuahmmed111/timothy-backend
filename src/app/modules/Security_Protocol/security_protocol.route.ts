@@ -50,6 +50,13 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocolsForPartner
 );
 
+// get all security protocols security guard for partner
+router.get(
+  "/partner",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.getAllSecurityProtocolsForPartner
+);
+
 // get popular security protocols
 router.get(
   "/popular",
