@@ -26,7 +26,7 @@ const createCar = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "Car rental created successfully",
+    message: "Car created successfully",
     data: result,
   });
 });

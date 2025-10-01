@@ -9,7 +9,7 @@ import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { EveryServiceStatus, Prisma } from "@prisma/client";
 import { searchableFields } from "./carRental.constant";
 
-// Create Car Rental
+// create Car Rental
 const createCarRental = async (req: Request) => {
   const partnerId = req.user?.id;
 
@@ -98,9 +98,10 @@ const createCarRental = async (req: Request) => {
   return result;
 };
 
-// Create Car
+// create Car
 const createCar = async (req: Request) => {
   const partnerId = req.user?.id;
+  const carRentalId = req.params.carRentalId;
 
   const partnerExists = await prisma.user.findUnique({
     where: { id: partnerId },
@@ -109,12 +110,22 @@ const createCar = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
+  // check if car rental exists and belongs to this partner
+  const carRentalExists = await prisma.car_Rental.findFirst({
+    where: { id: carRentalId, partnerId },
+  });
+  if (!carRentalExists) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      "Car Rental not found or unauthorized"
+    );
+  }
+
   const files = req.files as {
     [fieldname: string]: Express.Multer.File[];
   };
 
   const carImageFiles = files?.carImages || [];
-  const carDocsFiles = files?.carDocs || [];
 
   // Upload multiple car images
   let carImageUrls: string[] = [];
@@ -125,32 +136,14 @@ const createCar = async (req: Request) => {
     carImageUrls = uploads.map((img) => img?.secure_url || "");
   }
 
-  // Upload multiple car docs
-  let carDocUrls: string[] = [];
-  if (carDocsFiles.length > 0) {
-    const docUploads = await Promise.all(
-      carDocsFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    carDocUrls = docUploads.map((img) => img?.secure_url || "");
-  }
-
   const {
-    carBusinessName,
-    carName,
-    carBusinessType,
-    carRegNum,
-    carRegDate,
-    carPhone,
-    carEmail,
     carAddress,
-    carCity,
     carPostalCode,
     carDistrict,
+    carCity,
     carCountry,
     carDescription,
     carServicesOffered,
-    carBookingCondition,
-    carCancelationPolicy,
     carType,
     carSeats,
     carOilType,
@@ -166,33 +159,25 @@ const createCar = async (req: Request) => {
     gearType,
     carRating,
     carPriceDay,
-    carBookingAbleDays,
     category,
     discount,
+    vat,
+    carReviewCount,
+    carBookingAbleDays,
   } = req.body;
 
-  const result = await prisma.car_Rental.create({
+  const result = await prisma.car.create({
     data: {
-      carBusinessName,
-      carName,
-      carBusinessType,
-      carRegNum,
-      carRegDate,
-      carPhone,
-      carEmail,
       carAddress,
-      carCity,
       carPostalCode,
       carDistrict,
+      carCity,
       carCountry,
       carDescription,
       carImages: carImageUrls,
       carServicesOffered: Array.isArray(carServicesOffered)
         ? carServicesOffered
         : carServicesOffered?.split(",") || [],
-      carBookingCondition,
-      carCancelationPolicy,
-      carDocs: carDocUrls,
       carType,
       carSeats,
       carOilType,
@@ -206,21 +191,18 @@ const createCar = async (req: Request) => {
       carColor,
       fuelType,
       gearType,
-      carRating: carRating ? carRating.toString() : undefined,
-      carPriceDay: parseInt(carPriceDay),
+      carRating,
+      carPriceDay,
       carBookingAbleDays: Array.isArray(carBookingAbleDays)
         ? carBookingAbleDays
         : carBookingAbleDays?.split(",") || [],
       category: category || undefined,
       discount: discount ? parseFloat(discount) : 0,
-      partnerId,
+      vat: vat ? parseFloat(vat) : 0,
+      carReviewCount: carReviewCount ? parseInt(carReviewCount) : 0,
+      partnerId: carRentalExists.partnerId,
+      car_RentalId: carRentalExists.id,
     },
-  });
-
-  // update partner car count
-  await prisma.user.update({
-    where: { id: partnerExists.id },
-    data: { isCar: true },
   });
 
   return result;

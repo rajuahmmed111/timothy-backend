@@ -52,7 +52,7 @@ router.post(
 
 // create car
 router.post(
-  "/car",
+  "/car/:car_RentalId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([{ name: "carImages", maxCount: 5 }]),
   parseBodyData,
