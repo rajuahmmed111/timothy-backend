@@ -56,7 +56,7 @@ router.post(
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([{ name: "carImages", maxCount: 5 }]),
   parseBodyData,
-  CarRentalController.createCarRental
+  CarRentalController.createCar
 );
 
 // update car rental
