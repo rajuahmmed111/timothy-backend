@@ -75,7 +75,7 @@ const createHotelReview = async (
 // create security review
 const createSecurityReview = async (
   userId: string,
-  securityId: string,
+  security_GuardId: string,
   rating: number,
   comment?: string
 ): Promise<Review> => {
@@ -110,7 +110,7 @@ const createSecurityReview = async (
   const review = await prisma.review.create({
     data: {
       userId: user.id,
-      securityId,
+      security_GuardId,
       rating,
       comment,
     },
@@ -118,7 +118,7 @@ const createSecurityReview = async (
 
   const ratings = await prisma.review.findMany({
     where: {
-      securityId,
+      security_GuardId,
     },
     select: {
       rating: true,
@@ -129,8 +129,8 @@ const createSecurityReview = async (
   const averageRating =
     ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
 
-  await prisma.security_Protocol.update({
-    where: { id: securityId },
+  await prisma.security_Guard.update({
+    where: { id: security_GuardId },
     data: {
       securityRating: averageRating.toFixed(1),
       securityReviewCount: ratings.length,

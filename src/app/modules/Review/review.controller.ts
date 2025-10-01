@@ -26,11 +26,11 @@ const createHotelReview = catchAsync(async (req: Request, res: Response) => {
 // create security review
 const createSecurityReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const { securityId, rating, comment } = req.body;
+  const { security_GuardId, rating, comment } = req.body;
 
   const result = await ReviewService.createSecurityReview(
     userId,
-    securityId,
+    security_GuardId,
     rating,
     comment
   );
