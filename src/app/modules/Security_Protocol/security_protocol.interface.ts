@@ -1,4 +1,4 @@
-import { EveryServiceStatus, Security_Protocol } from "@prisma/client";
+import { EveryServiceStatus, Security_Guard, Security_Protocol } from "@prisma/client";
 
 export type ISecurityFilterRequest = {
   searchTerm?: string | undefined;
@@ -56,4 +56,4 @@ export interface PopularSecurityProtocol {
   };
 }
 
-export type GroupedProtocols = Record<string, Security_Protocol[]>;
+export type GroupedProtocols = Record<string, Security_Guard[]>;

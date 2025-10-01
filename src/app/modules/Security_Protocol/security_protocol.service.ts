@@ -557,7 +557,7 @@ const getAllSecurityProtocolsGuards = async (
         orderBy:
           options.sortBy && options.sortOrder
             ? { [options.sortBy]: options.sortOrder }
-            : { createdAt: "desc" },
+            : { securityRating: "desc" },
         include: {
           user: {
             select: { id: true, fullName: true, profileImage: true },
@@ -727,12 +727,10 @@ const getAllSecurityProtocolsGuardsApp = async (
 };
 
 // get popular security protocols
-const getPopularSecurityProtocols = async (
-  params: ISecurityFilterRequest
-): Promise<PopularSecurityProtocol[]> => {
+const getPopularSecurityProtocols = async (params: ISecurityFilterRequest) => {
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.Security_ProtocolWhereInput[] = [];
+  const filters: Prisma.Security_GuardWhereInput[] = [];
 
   // text search
   if (searchTerm) {
@@ -757,7 +755,7 @@ const getPopularSecurityProtocols = async (
     });
   }
 
-  const where: Prisma.Security_ProtocolWhereInput = {
+  const where: Prisma.Security_GuardWhereInput = {
     AND: filters,
     // hotelRating: {
     //   not: null,
@@ -765,56 +763,16 @@ const getPopularSecurityProtocols = async (
   };
 
   // get only isBooked  AVAILABLE hotels
-  filters.push({
-    isBooked: EveryServiceStatus.AVAILABLE,
-  });
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
 
-  const result = await prisma.security_Protocol.findMany({
+  const result = await prisma.security_Guard.findMany({
     where,
     orderBy: {
       securityRating: "desc",
     },
     take: 10,
-    select: {
-      id: true,
-      securityBusinessName: true,
-      securityName: true,
-      securityBusinessType: true,
-      securityRegNum: true,
-      securityRegDate: true,
-      securityPhone: true,
-      securityEmail: true,
-      securityAddress: true,
-      securityCity: true,
-      securityPostalCode: true,
-      securityDistrict: true,
-      securityCountry: true,
-      securityDescription: true,
-      securityImages: true,
-      securityServicesOffered: true,
-      securityBookingCondition: true,
-      securityCancelationPolicy: true,
-      securityDocs: true,
-      securityRating: true,
-      securityPriceDay: true,
-      discount: true,
-      securityReviewCount: true,
-      securityBookingAbleDays: true,
-      category: true,
-      isBooked: true,
-      vat: true,
-      hiredCount: true, // ✅ Add this
-      createdAt: true,
-      updatedAt: true,
-
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          profileImage: true,
-        },
-      },
-    },
   });
 
   return result;
@@ -839,7 +797,7 @@ const getSingleSecurityProtocolGuard = async (guardId: string) => {
 
 // get protocols grouped by category
 const getProtocolsGroupedByCategory = async (): Promise<GroupedProtocols> => {
-  const groupedData = await prisma.security_Protocol.groupBy({
+  const groupedData = await prisma.security_Guard.groupBy({
     by: ["category"],
     _count: { id: true },
   });
@@ -848,7 +806,7 @@ const getProtocolsGroupedByCategory = async (): Promise<GroupedProtocols> => {
   const grouped: GroupedProtocols = {};
 
   for (const group of groupedData) {
-    const protocols = await prisma.security_Protocol.findMany({
+    const protocols = await prisma.security_Guard.findMany({
       where: { category: group.category },
       orderBy: { securityRating: "desc" },
     });
@@ -862,7 +820,7 @@ const getProtocolsGroupedByCategory = async (): Promise<GroupedProtocols> => {
 // get single security protocol
 const getSingleSecurityProtocol = async (id: string) => {
   const result = await prisma.security_Protocol.findUnique({
-    where: { id, isBooked: EveryServiceStatus.AVAILABLE },
+    where: { id },
     include: {
       user: {
         select: {
