@@ -399,134 +399,257 @@ const getAllSecurityProtocols = async (
   };
 };
 
-// get all security protocols security guard
+// get all security protocols with guards
 const getAllSecurityProtocolsGuards = async (
   params: ISecurityFilterRequest,
   options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+  const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } =
+    params;
 
-  const { searchTerm, ...filterData } = params;
+  // exact search filter
+  const protocols = await prisma.security_Protocol.findMany({
+    where: securityProtocolType
+      ? { securityProtocolType: { equals: securityProtocolType } }
+      : {},
 
-  const filters: Prisma.Security_GuardWhereInput[] = [];
-
-  // text search
-  filters.push({
-    OR: searchableFields.map((field) => {
-      if (field === "securityName") {
-        // search inside related security protocol
-        return {
-          security: {
-            securityName: {
-              contains: params.searchTerm,
-              mode: "insensitive",
-            },
-          },
-        };
-      }
-      return {
-        [field]: {
-          contains: params.searchTerm,
-          mode: "insensitive",
-        },
-      };
-    }),
+    select: {
+      id: true,
+      securityName: true,
+      securityProtocolType: true,
+    },
   });
 
-  // // Exact search filter
-  // if (Object.keys(filterData).length > 0) {
-  //   filters.push({
-  //     AND: Object.keys(filterData).map((key) => ({
-  //       [key]: {
-  //         equals: (filterData as any)[key],
-  //       },
-  //     })),
-  //   });
-  // }
+  //  get all security protocols
+  const data = await Promise.all(
+    protocols.map(async (protocol) => {
+      const filters: Prisma.Security_GuardWhereInput[] = [];
 
-  // Exact filter for securityProtocolType (relation)
-  if (params.securityProtocolType) {
-    filters.push({
-      security: {
-        securityProtocolType: {
-          equals: params.securityProtocolType,
-          mode: "insensitive",
-        },
-      },
-    });
-  }
-
-  // fromDate - toDate booking exclude
-  if (filterData.fromDate && filterData.toDate) {
-    filters.push({
-      security_Booking: {
-        none: {
-          AND: [
-            {
-              securityBookedFromDate: { lte: filterData.toDate },
-            },
-            {
-              securityBookedToDate: { gte: filterData.fromDate },
-            },
-            {
-              bookingStatus: { not: BookingStatus.COMPLETED },
-            },
+      // text search
+      if (searchTerm) {
+        filters.push({
+          OR: [
+            ...searchableFields.map((field) => ({
+              [field]: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            })),
           ],
-        },
-      },
-    });
-  }
+        });
+      }
 
-  // get only isBooked  AVAILABLE hotels
-  // filters.push({
-  //   isBooked: EveryServiceStatus.AVAILABLE,
-  // });
+      // Exact filters (for guard fields)
+      if (Object.keys(filterData).length > 0) {
+        filters.push({
+          AND: Object.keys(filterData).map((key) => ({
+            [key]: { equals: (filterData as any)[key] },
+          })),
+        });
+      }
 
-  const where: Prisma.Security_GuardWhereInput = { AND: filters };
-
-  const result = await prisma.security_Guard.findMany({
-    where,
-    skip,
-    take: limit,
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? { [options.sortBy]: options.sortOrder }
-        : {
-            createdAt: "desc",
+      // fromDate - toDate booking exclude
+      if (fromDate && toDate) {
+        filters.push({
+          security_Booking: {
+            none: {
+              AND: [
+                { securityBookedFromDate: { lte: toDate } },
+                { securityBookedToDate: { gte: fromDate } },
+                { bookingStatus: { not: BookingStatus.COMPLETED } },
+              ],
+            },
           },
-    include: {
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          profileImage: true,
-        },
-      },
-      security: {
-        select: {
-          id: true,
-          securityName: true,
-          securityProtocolType: true,
-        },
-      },
-    },
-  });
+        });
+      }
 
-  const total = await prisma.security_Guard.count({
-    where,
-  });
+      // get only isBooked  AVAILABLE hotels
+      filters.push({
+        securityId: protocol.id,
+      });
 
-  return {
-    meta: {
-      total,
-      page,
-      limit,
-    },
-    data: result,
-  };
+      const where: Prisma.Security_GuardWhereInput = { AND: filters };
+
+      const guards = await prisma.security_Guard.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy:
+          options.sortBy && options.sortOrder
+            ? { [options.sortBy]: options.sortOrder }
+            : { createdAt: "desc" },
+        include: {
+          user: {
+            select: { id: true, fullName: true, profileImage: true },
+          },
+          security: {
+            select: {
+              id: true,
+              securityName: true,
+              securityProtocolType: true,
+            },
+          },
+        },
+      });
+
+      const totalGuards = await prisma.security_Guard.count({ where });
+
+      return {
+        protocolId: protocol.id,
+        protocolName: protocol.securityName,
+        protocolType: protocol.securityProtocolType,
+        meta: {
+          total: totalGuards,
+          page,
+          limit,
+        },
+        guards,
+      };
+    })
+  );
+
+  return data;
 };
 
+// // get all security protocols security guard
+// const getAllSecurityProtocolsGuards = async (
+//   params: ISecurityFilterRequest,
+//   options: IPaginationOptions
+// ) => {
+//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+//   const { searchTerm, ...filterData } = params;
+
+//   const filters: Prisma.Security_GuardWhereInput[] = [];
+
+//   // get all security protocols
+//   const getAllSecurityProtocol = await prisma.security_Protocol.findMany({
+//     select: {
+//       id: true,
+//       securityProtocolType: true,
+//     }
+//   });
+//   console.log(getAllSecurityProtocol, "getAllSecurityProtocol");
+
+//   // text search
+//   filters.push({
+//     OR: searchableFields.map((field) => {
+//       if (field === "securityName") {
+//         // search inside related security protocol
+//         return {
+//           security: {
+//             securityName: {
+//               contains: params.searchTerm,
+//               mode: "insensitive",
+//             },
+//           },
+//         };
+//       }
+//       return {
+//         [field]: {
+//           contains: params.searchTerm,
+//           mode: "insensitive",
+//         },
+//       };
+//     }),
+//   });
+
+//   // // Exact search filter
+//   // if (Object.keys(filterData).length > 0) {
+//   //   filters.push({
+//   //     AND: Object.keys(filterData).map((key) => ({
+//   //       [key]: {
+//   //         equals: (filterData as any)[key],
+//   //       },
+//   //     })),
+//   //   });
+//   // }
+
+//   // Exact filter for securityProtocolType (relation)
+//   if (params.securityProtocolType) {
+//     filters.push({
+//       security: {
+//         securityProtocolType: {
+//           equals: params.securityProtocolType,
+//           mode: "insensitive",
+//         },
+//       },
+//     });
+//   }
+
+//   // fromDate - toDate booking exclude
+//   if (filterData.fromDate && filterData.toDate) {
+//     filters.push({
+//       security_Booking: {
+//         none: {
+//           AND: [
+//             {
+//               securityBookedFromDate: { lte: filterData.toDate },
+//             },
+//             {
+//               securityBookedToDate: { gte: filterData.fromDate },
+//             },
+//             {
+//               bookingStatus: { not: BookingStatus.COMPLETED },
+//             },
+//           ],
+//         },
+//       },
+//     });
+//   }
+
+//   // get only isBooked  AVAILABLE hotels
+//   // filters.push({
+//   //   isBooked: EveryServiceStatus.AVAILABLE,
+//   // });
+
+//   const where: Prisma.Security_GuardWhereInput = { AND: filters };
+
+//   const result = await prisma.security_Guard.findMany({
+//     where,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : {
+//             createdAt: "desc",
+//           },
+//     include: {
+//       user: {
+//         select: {
+//           id: true,
+//           fullName: true,
+//           profileImage: true,
+//         },
+//       },
+//       security: {
+//         select: {
+//           id: true,
+//           securityName: true,
+//           securityProtocolType: true,
+//         },
+//       },
+//     },
+//   });
+
+//   const total = await prisma.security_Guard.count({
+//     where,
+//   });
+
+//   return {
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//     },
+//     data: result,
+//   };
+// };
+
 // get popular security protocols
+
 const getPopularSecurityProtocols = async (
   params: ISecurityFilterRequest
 ): Promise<PopularSecurityProtocol[]> => {
