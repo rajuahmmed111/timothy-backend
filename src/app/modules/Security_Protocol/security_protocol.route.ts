@@ -50,6 +50,13 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocolsForPartner
 );
 
+// get all security protocols for partner security guard
+router.get(
+  "/partner-security-guard/:securityId",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.getAllSecurityProtocolsForPartnerSecurityGuards
+);
+
 // get all security protocols security guard for partner
 router.get(
   "/partner",
@@ -87,6 +94,18 @@ router.get(
   ),
   Security_ProtocolController.getSingleSecurityProtocol
 );
+
+// get single security protocol security guard
+router.get(
+  "/security-guard/:guardId",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  Security_ProtocolController.getSingleSecurityProtocolGuard
+)
 
 // create security protocol
 router.post(

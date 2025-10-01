@@ -79,10 +79,11 @@ const getAllSecurityProtocolsGuardsApp = catchAsync(
   async (req: Request, res: Response) => {
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
-    const result = await Security_ProtocolService.getAllSecurityProtocolsGuardsApp(
-      filter,
-      options
-    );
+    const result =
+      await Security_ProtocolService.getAllSecurityProtocolsGuardsApp(
+        filter,
+        options
+      );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -102,6 +103,28 @@ const getAllSecurityProtocolsForPartner = catchAsync(
     const result =
       await Security_ProtocolService.getAllSecurityProtocolsForPartner(
         partnerId,
+        filter,
+        options
+      );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security protocols fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// get all security protocols for partner security guard
+const getAllSecurityProtocolsForPartnerSecurityGuards = catchAsync(
+  async (req: Request, res: Response) => {
+    const securityId = req.params.securityId;
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const result =
+      await Security_ProtocolService.getAllSecurityProtocolsForPartnerSecurityGuards(
+        securityId,
         filter,
         options
       );
@@ -160,6 +183,21 @@ const getSingleSecurityProtocol = catchAsync(
   }
 );
 
+// get single security protocol security guard
+const getSingleSecurityProtocolGuard = catchAsync(
+  async (req: Request, res: Response) => {
+    const guardId = req.params.guardId;
+    const result =
+      await Security_ProtocolService.getSingleSecurityProtocolGuard(guardId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security Guard fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // update security protocol
 const updateSecurityProtocol = catchAsync(
   async (req: Request, res: Response) => {
@@ -196,9 +234,11 @@ export const Security_ProtocolController = {
   getAllSecurityProtocolsGuardsApp,
   getAllSecurityProtocolsGuards,
   getAllSecurityProtocolsForPartner,
+  getAllSecurityProtocolsForPartnerSecurityGuards,
   getPopularSecurityProtocols,
   getProtocolsGroupedByCategory,
   getSingleSecurityProtocol,
+  getSingleSecurityProtocolGuard,
   updateSecurityProtocol,
   updateSecurityProtocolGuardType,
 };

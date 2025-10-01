@@ -286,6 +286,85 @@ const getAllSecurityProtocolsForPartner = async (
   };
 };
 
+// get all security protocols for partner security guards
+const getAllSecurityProtocolsForPartnerSecurityGuards = async (
+  securityId: string,
+  params: ISecurityFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.Security_GuardWhereInput[] = [];
+
+  filters.push({
+    securityId,
+  });
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.Security_GuardWhereInput =
+    filters.length > 0 ? { AND: filters } : {};
+
+  const result = await prisma.security_Guard.findMany({
+    where: where,
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.security_Guard.count({
+    where,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get all security protocols
 const getAllSecurityProtocols = async (
   params: ISecurityFilterRequest,
@@ -399,7 +478,7 @@ const getAllSecurityProtocols = async (
   };
 };
 
-// get all security protocols with guards 
+// get all security protocols with guards
 const getAllSecurityProtocolsGuards = async (
   params: ISecurityFilterRequest,
   options: IPaginationOptions
@@ -528,9 +607,8 @@ const getAllSecurityProtocolsGuardsApp = async (
     select: {
       id: true,
       securityProtocolType: true,
-    }
+    },
   });
-  console.log(getAllSecurityProtocol, "getAllSecurityProtocol");
 
   // text search
   filters.push({
@@ -739,6 +817,23 @@ const getPopularSecurityProtocols = async (
     },
   });
 
+  return result;
+};
+
+// get single security protocol security guard
+const getSingleSecurityProtocolGuard = async (guardId: string) => {
+  const result = await prisma.security_Guard.findUnique({
+    where: { id: guardId },
+    include: {
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+          securityProtocolType: true,
+        },
+      },
+    },
+  });
   return result;
 };
 
@@ -1011,9 +1106,11 @@ export const Security_ProtocolService = {
   getAllSecurityProtocolsGuardsApp,
   getAllSecurityProtocolsGuards,
   getAllSecurityProtocolsForPartner,
+  getAllSecurityProtocolsForPartnerSecurityGuards,
   getPopularSecurityProtocols,
   getProtocolsGroupedByCategory,
   getSingleSecurityProtocol,
+  getSingleSecurityProtocolGuard,
   updateSecurityProtocol,
   updateSecurityProtocolGuardType,
 };
