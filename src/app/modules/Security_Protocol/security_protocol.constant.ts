@@ -8,15 +8,14 @@ export const filterField: string[] = [
   "securityGuardName",
   "fromDate",
   "toDate",
-  //   "securityPriceDay",
 ];
 
 export const searchableFields: string[] = [
-  "securityName",
   "securityCity",
   "securityCountry",
   "securityRating",
   "category",
   "securityGuardName",
-  //   "securityPriceDay",
 ];
+
+export const protocolSearchFields = ["securityName", "securityProtocolType"];

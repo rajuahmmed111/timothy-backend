@@ -16,7 +16,10 @@ import {
   Security_Protocol,
 } from "@prisma/client";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
-import { searchableFields } from "./security_protocol.constant";
+import {
+  protocolSearchFields,
+  searchableFields,
+} from "./security_protocol.constant";
 
 // create security protocol
 const createSecurityProtocol = async (req: Request) => {
@@ -292,30 +295,34 @@ const getAllSecurityProtocols = async (
 
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.Security_GuardWhereInput[] = [];
+  const filters: Prisma.Security_ProtocolWhereInput[] = [];
 
   // text search
-  filters.push({
-    OR: searchableFields.map((field) => {
-      if (field === "securityName") {
-        // search inside related security protocol
-        return {
-          security: {
-            securityName: {
-              contains: params.searchTerm,
-              mode: "insensitive",
+  if (searchTerm) {
+    filters.push({
+      OR: [
+        // search in Security_Protocol fields
+        ...protocolSearchFields.map((field) => ({
+          [field]: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        })),
+
+        // search in Security_Guard relation fields
+        ...searchableFields.map((field) => ({
+          security_Guard: {
+            some: {
+              [field]: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
             },
           },
-        };
-      }
-      return {
-        [field]: {
-          contains: params.searchTerm,
-          mode: "insensitive",
-        },
-      };
-    }),
-  });
+        })),
+      ],
+    });
+  }
 
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
@@ -325,18 +332,6 @@ const getAllSecurityProtocols = async (
           equals: (filterData as any)[key],
         },
       })),
-    });
-  }
-
-  // Exact filter for securityProtocolType (relation)
-  if (params.securityProtocolType) {
-    filters.push({
-      security: {
-        securityProtocolType: {
-          equals: params.securityProtocolType,
-          mode: "insensitive",
-        },
-      },
     });
   }
 
@@ -366,9 +361,9 @@ const getAllSecurityProtocols = async (
   //   isBooked: EveryServiceStatus.AVAILABLE,
   // });
 
-  const where: Prisma.Security_GuardWhereInput = { AND: filters };
+  const where: Prisma.Security_ProtocolWhereInput = { AND: filters };
 
-  const result = await prisma.security_Guard.findMany({
+  const result = await prisma.security_Protocol.findMany({
     where,
     skip,
     take: limit,
@@ -386,16 +381,11 @@ const getAllSecurityProtocols = async (
           profileImage: true,
         },
       },
-      security: {
-        select: {
-          id: true,
-          securityName: true,
-        },
-      },
+      security_Guard: true,
     },
   });
 
-  const total = await prisma.security_Guard.count({
+  const total = await prisma.security_Protocol.count({
     where,
   });
 
