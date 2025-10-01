@@ -99,6 +99,7 @@ model User {
   status          UserStatus @default(ACTIVE)
   fcmToken        String?    @default("")
   age             Int?
+  dateOfBirth     DateTime?
   profession      String?
   gender          String?
   companyName     String?

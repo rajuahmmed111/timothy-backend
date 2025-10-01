@@ -11,24 +11,24 @@ const router = express.Router();
 // get all hotels
 router.get(
   "/",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   HotelController.getAllHotels
 );
 
 // get all hotel rooms
 router.get(
   "/rooms",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   HotelController.getAllHotelRooms
 );
 
@@ -61,12 +61,12 @@ router.get(
 // get single hotel
 router.get(
   "/:id",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   HotelController.getSingleHotel
 );
 
