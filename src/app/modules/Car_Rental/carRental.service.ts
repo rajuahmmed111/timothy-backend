@@ -13,6 +13,95 @@ import { searchableFields } from "./carRental.constant";
 const createCarRental = async (req: Request) => {
   const partnerId = req.user?.id;
 
+  // Check if partner exists
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // service check
+  if (
+    partnerExists.isHotel ||
+    partnerExists.isSecurity ||
+    partnerExists.isAttraction
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You can only provide one type of service. You already provide another service."
+    );
+  }
+
+  const files = req.files as {
+    [fieldname: string]: Express.Multer.File[];
+  };
+
+  const carLogoFile = files?.businessLogo?.[0];
+  const carDocsFiles = files?.carDocs || [];
+
+  // Upload logo
+  let businessLogo = "https://i.ibb.co/zWxSgQL8/download.png";
+  if (carLogoFile) {
+    const logoResult = await uploadFile.uploadToCloudinary(carLogoFile);
+    businessLogo = logoResult?.secure_url || businessLogo;
+  }
+
+  // Upload multiple car docs
+  let carDocUrls: string[] = [];
+  if (carDocsFiles.length > 0) {
+    const docUploads = await Promise.all(
+      carDocsFiles.map((file) => uploadFile.uploadToCloudinary(file))
+    );
+    carDocUrls = docUploads.map((img) => img?.secure_url || "");
+  }
+
+  const {
+    carBusinessName,
+    carName,
+    carBusinessType,
+    carRegNum,
+    carRegDate,
+    carPhone,
+    carEmail,
+    carTagline,
+    carRentalDescription,
+    carBookingCondition,
+    carCancelationPolicy,
+  } = req.body;
+
+  const result = await prisma.car_Rental.create({
+    data: {
+      carBusinessName,
+      carName,
+      carBusinessType,
+      carRegNum,
+      carRegDate,
+      carPhone,
+      carEmail,
+      carTagline,
+      carRentalDescription,
+      carBookingCondition,
+      carCancelationPolicy,
+      businessLogo,
+      carDocs: carDocUrls,
+      partnerId,
+    },
+  });
+
+  // update partner car count
+  await prisma.user.update({
+    where: { id: partnerExists.id },
+    data: { isCar: true },
+  });
+
+  return result;
+};
+
+// Create Car
+const createCar = async (req: Request) => {
+  const partnerId = req.user?.id;
+
   const partnerExists = await prisma.user.findUnique({
     where: { id: partnerId },
   });
@@ -420,6 +509,7 @@ const updateCarRental = async (req: Request) => {
 
 export const CarRentalService = {
   createCarRental,
+  createCar,
   getAllCarRentals,
   getAllCarRentalsForPartner,
   getSingleCarRental,

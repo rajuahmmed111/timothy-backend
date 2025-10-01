@@ -154,6 +154,7 @@ model User {
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
   support            Support[]
+  car                Car[]
 
   @@map("users")
 }
@@ -348,7 +349,7 @@ model Security_Guard {
   updatedAt                DateTime           @updatedAt
 
   // relationships
-  partnerId      String?         @db.ObjectId
+  partnerId        String?            @db.ObjectId
   user             User?              @relation(fields: [partnerId], references: [id])
   securityId       String?            @db.ObjectId
   security         Security_Protocol? @relation(fields: [securityId], references: [id])
@@ -384,63 +385,78 @@ model Security_Booking {
 }
 
 model Car_Rental {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  carBusinessName String   @unique
-  carName         String
-  carBusinessType String
-  carRegNum       String
-  carRegDate      String
-  carPhone        String
-  carEmail        String
-  carAddress      String
-  carCity         String
-  carPostalCode   String
-  carDistrict     String
-  carCountry      String
-  carDescription  String
-  carImages       String[] // 5 image
-
-  carServicesOffered   String[]
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  carBusinessName      String   @unique
+  carName              String
+  carBusinessType      String
+  carRegNum            String
+  carRegDate           String
+  carPhone             String
+  carEmail             String
+  businessLogo         String   @default("https://i.ibb.co/zWxSgQL8/download.png")
+  carTagline           String?
+  carRentalDescription String?
   carBookingCondition  String
   carCancelationPolicy String
   carDocs              String[] // 5 image
-
-  carType    String
-  carSeats   String
-  carOilType String
-
-  carEngineType   String
-  carTransmission String
-  carPower        String
-  carDrivetrain   String
-  carMileage      String
-
-  carModel    String
-  carCapacity String
-  carColor    String
-  fuelType    String
-  gearType    String
-
-  carRating          String
-  carPriceDay        Int
-  carBookingAbleDays String[]
-
-  category       String?
-  discount       Float?
-  isBooked       EveryServiceStatus @default(AVAILABLE)
-  vat            Float              @default(0)
-  carReviewCount Int                @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  carLate              Float?
+  carLong              Float?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   // relationships
   user        User          @relation(fields: [partnerId], references: [id])
   partnerId   String        @db.ObjectId
   car_Booking Car_Booking[]
   review      Review[]
+  car         Car[]
 
   @@map("car_rentals")
+}
+
+model Car {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  carAddress         String
+  carPostalCode      String
+  carDistrict        String
+  carCity            String
+  carCountry         String
+  carDescription     String
+  carImages          String[] // 5 image
+  carServicesOffered String[]
+  carType            String
+  carSeats           String
+  carOilType         String // fuel type
+  carEngineType      String
+  carTransmission    String // transmission
+  carPower           String
+  carDrivetrain      String
+  carMileage         String // mileage
+  carModel           String
+  carCapacity        String
+  carColor           String
+  fuelType           String
+  gearType           String
+  carRating          String
+  carPriceDay        Float
+  category           String?
+  discount           Float?
+  isBooked           EveryServiceStatus @default(AVAILABLE)
+  vat                Float              @default(0)
+  carReviewCount     Int                @default(0)
+  carBookingAbleDays String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+  partnerId    String?       @db.ObjectId
+  user         User?         @relation(fields: [partnerId], references: [id])
+  car_Rental   Car_Rental?   @relation(fields: [car_RentalId], references: [id])
+  car_RentalId String?       @db.ObjectId
+  car_Booking  Car_Booking[]
+  review       Review[]
+
+  @@map("cars")
 }
 
 model PromoCode {
@@ -480,14 +496,16 @@ model Car_Booking {
   updatedAt         DateTime      @updatedAt
 
   // relationships
-  partnerId   String      @db.ObjectId
-  car         Car_Rental? @relation(fields: [carId], references: [id])
-  carId       String?     @db.ObjectId
-  user        User?       @relation(fields: [userId], references: [id])
-  userId      String?     @db.ObjectId
-  promoCode   PromoCode?  @relation(fields: [promoCodeId], references: [id])
-  promoCodeId String?     @db.ObjectId
-  payment     Payment[]
+  partnerId    String      @db.ObjectId
+  car_Rental   Car_Rental? @relation(fields: [car_RentalId], references: [id])
+  car_RentalId String?     @db.ObjectId
+  user         User?       @relation(fields: [userId], references: [id])
+  userId       String?     @db.ObjectId
+  promoCode    PromoCode?  @relation(fields: [promoCodeId], references: [id])
+  promoCodeId  String?     @db.ObjectId
+  payment      Payment[]
+  car          Car?        @relation(fields: [carId], references: [id])
+  carId        String?     @db.ObjectId
 
   @@map("car_bookings")
 }
@@ -607,14 +625,16 @@ model Review {
   userId           String             @db.ObjectId
   security         Security_Protocol? @relation(fields: [securityId], references: [id])
   securityId       String?            @db.ObjectId
-  car_Rental       Car_Rental?        @relation(fields: [carId], references: [id])
-  carId            String?            @db.ObjectId
+  car_Rental       Car_Rental?        @relation(fields: [car_RentalId], references: [id])
+  car_RentalId     String?            @db.ObjectId
   attraction       Attraction?        @relation(fields: [attractionId], references: [id])
   attractionId     String?            @db.ObjectId
   room             Room?              @relation(fields: [roomId], references: [id])
   roomId           String?            @db.ObjectId
   security_Guard   Security_Guard?    @relation(fields: [security_GuardId], references: [id])
   security_GuardId String?            @db.ObjectId
+  Car              Car?               @relation(fields: [carId], references: [id])
+  carId            String?            @db.ObjectId
 
   @@map("reviews")
 }

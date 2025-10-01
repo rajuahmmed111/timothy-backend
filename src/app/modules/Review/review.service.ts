@@ -193,7 +193,7 @@ const createCarReview = async (
   // average rating calculation
   const averageRating =
     ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
-  await prisma.car_Rental.update({
+  await prisma.car.update({
     where: { id: carId },
     data: {
       carRating: averageRating.toFixed(1),

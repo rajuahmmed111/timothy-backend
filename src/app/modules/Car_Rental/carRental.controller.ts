@@ -19,6 +19,18 @@ const createCarRental = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Create Car
+const createCar = catchAsync(async (req: Request, res: Response) => {
+  const result = await CarRentalService.createCar(req);
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Car rental created successfully",
+    data: result,
+  });
+});
+
 // get all car rentals
 const getAllCarRentals = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -78,6 +90,7 @@ const updateCarRental = catchAsync(async (req, res) => {
 
 export const CarRentalController = {
   createCarRental,
+  createCar,
   getAllCarRentals,
   getAllCarRentalsForPartner,
   getSingleCarRental,
