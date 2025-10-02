@@ -28,7 +28,7 @@ const createCarBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "User not found or inactive");
 
   // validate car
-  const car = await prisma.car_Rental.findUnique({
+  const car = await prisma.car.findUnique({
     where: { id: carId },
     select: {
       id: true,
@@ -37,7 +37,11 @@ const createCarBooking = async (
       discount: true,
       vat: true,
       category: true,
-      carName: true,
+      car_Rental: {
+        select: {
+          carName: true,
+        },
+      },
     },
   });
   if (!car)
@@ -132,7 +136,7 @@ const createCarBooking = async (
     data: {
       totalPrice,
       bookingStatus: BookingStatus.PENDING,
-      partnerId: car.partnerId,
+      partnerId: car.partnerId!,
       userId,
       carId,
       category: car.category as string,
@@ -159,6 +163,11 @@ const getAllCarBookings = async (partnerId: string) => {
       car: {
         select: {
           id: true,
+          carPriceDay: true,
+        },
+      },
+      car_Rental: {
+        select: {
           carName: true,
         },
       },
@@ -179,11 +188,15 @@ const getSingleCarBooking = async (id: string) => {
       car: {
         select: {
           id: true,
-          carName: true,
           carPriceDay: true,
           discount: true,
           category: true,
           partnerId: true,
+        },
+      },
+      car_Rental: {
+        select: {
+          carName: true,
         },
       },
     },
@@ -209,7 +222,6 @@ const getAllMyCarBookings = async (userId: string) => {
       car: {
         select: {
           id: true,
-          carName: true,
           carModel: true,
           carSeats: true,
           carCity: true,
@@ -220,6 +232,11 @@ const getAllMyCarBookings = async (userId: string) => {
           discount: true,
           category: true,
           partnerId: true,
+        },
+      },
+      car_Rental: {
+        select: {
+          carName: true,
         },
       },
       payment: {
