@@ -422,6 +422,74 @@ const getAllCarRentalsForPartner = async (
   };
 };
 
+// get all car rentals cars for partner
+const getAllCarRentalsCarsForPartner = async (
+  car_RentalId: string,
+  params: ICarRentalFilter,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.CarWhereInput[] = [];
+
+  filters.push({
+    car_RentalId,
+  });
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.CarWhereInput = { AND: filters };
+
+  const result = await prisma.car.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: true,
+    },
+  });
+
+  const total = await prisma.car.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get single car rental
 const getSingleCarRental = async (carRentalId: string) => {
   const result = await prisma.car_Rental.findUnique({
@@ -618,6 +686,7 @@ export const CarRentalService = {
   getAllCarRentals,
   getAllCarRentalsCars,
   getAllCarRentalsForPartner,
+  getAllCarRentalsCarsForPartner,
   getSingleCarRental,
   updateCarRental,
   updateCar,
