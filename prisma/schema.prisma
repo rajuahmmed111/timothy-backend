@@ -147,14 +147,15 @@ model User {
   security_Guard     Security_Guard[]
   security_Booking   Security_Booking[]
   car_Rental         Car_Rental[]
+  car                Car[]
   car_Booking        Car_Booking[]
   attraction         Attraction[]
+  appeal             Appeal[]
   attraction_Booking Attraction_Booking[]
   sender             Channel[]            @relation("ChannelPerson1")
   receiver           Channel[]            @relation("ChannelPerson2")
   messages           Message[]            @relation("sentMessages")
   support            Support[]
-  car                Car[]
 
   @@map("users")
 }
@@ -445,8 +446,8 @@ model Car {
   vat                Float              @default(0)
   carReviewCount     Int                @default(0)
   carBookingAbleDays String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   // relationships
   partnerId    String?       @db.ObjectId
@@ -511,25 +512,37 @@ model Car_Booking {
 }
 
 model Attraction {
-  id                     String @id @default(auto()) @map("_id") @db.ObjectId
-  attractionBusinessName String @unique
-  attractionName         String
-  attractionBusinessType String
-  attractionRegNum       String
-  attractionRegDate      String
-
+  id                            String   @id @default(auto()) @map("_id") @db.ObjectId
+  attractionBusinessName        String   @unique
+  attractionName                String
+  attractionBusinessType        String
+  attractionRegNum              String
+  attractionRegDate             String
+  attractionPhone               String
+  attractionEmail               String
+  businessLogo                  String   @default("https://i.ibb.co/zWxSgQL8/download.png")
   attractionBusinessTagline     String
   attractionBusinessDescription String
-  attractionBusinessLogo        String // 1 image
   attractionBookingCondition    String
   attractionCancelationPolicy   String
   attractionDocs                String[] // 5 image
+  hotelLate                     Float?
+  hotelLong                     Float?
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
 
-  attractionServicesOffered String[]
-  attractionRating          String
+  // relationships
+  user      User?    @relation(fields: [partnerId], references: [id])
+  partnerId String?  @db.ObjectId
+  review    Review[]
+  appeal    Appeal[]
+
+  @@map("attractions")
+}
+
+model Appeal {
+  id                        String             @id @default(auto()) @map("_id") @db.ObjectId
   attractionDestinationType String
-  attractionAdultPrice      Int
-  attractionChildPrice      Int
   attractionDescription     String
   attractionPhone           String
   attractionEmail           String
@@ -539,25 +552,35 @@ model Attraction {
   attractionDistrict        String
   attractionCountry         String
   attractionImages          String[] // 5 image
-
-  category              String?
-  discount              Float?
-  isBooked              EveryServiceStatus @default(AVAILABLE)
-  vat                   Float              @default(0)
-  attractionReviewCount Int                @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  attractionServicesOffered String[]
+  attractionFreeWifi        Boolean
+  attractionFreeParking     Boolean
+  attractionKitchen         Boolean
+  attractionTv              Boolean
+  attractionAirConditioning Boolean
+  attractionPool            Boolean
+  attractionRating          Float
+  attractionAdultPrice      Float
+  attractionChildPrice      Float
+  category                  String?
+  discount                  Float?
+  isBooked                  EveryServiceStatus @default(AVAILABLE)
+  vat                       Float              @default(0)
+  attractionReviewCount     Int                @default(0)
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
 
   // relationships
   user               User?                @relation(fields: [partnerId], references: [id])
   partnerId          String?              @db.ObjectId
+  attraction         Attraction?          @relation(fields: [attractionId], references: [id])
+  attractionId       String?              @db.ObjectId
   attraction_Booking Attraction_Booking[]
   review             Review[]
   attractionSchedule AttractionSchedule[]
   scheduleSlot       ScheduleSlot[]
 
-  @@map("attractions")
+  @@map("appeals")
 }
 
 model AttractionSchedule {
@@ -566,9 +589,9 @@ model AttractionSchedule {
   // date String
 
   // relationships
-  attractionId String         @db.ObjectId
-  attraction   Attraction     @relation(fields: [attractionId], references: [id])
-  slots        ScheduleSlot[]
+  appealId String?        @db.ObjectId
+  appeal   Appeal?        @relation(fields: [appealId], references: [id])
+  slots    ScheduleSlot[]
 
   @@map("attraction_schedules")
 }
@@ -579,8 +602,8 @@ model ScheduleSlot {
   to   String // "12:00:00"
 
   // relationships
-  attractionId         String             @db.ObjectId
-  attraction           Attraction         @relation(fields: [attractionId], references: [id])
+  appealId             String?            @db.ObjectId
+  appeal               Appeal?            @relation(fields: [appealId], references: [id])
   attractionScheduleId String             @db.ObjectId
   weeklySchedule       AttractionSchedule @relation(fields: [attractionScheduleId], references: [id])
 
@@ -602,12 +625,12 @@ model Attraction_Booking {
   updatedAt         DateTime      @updatedAt
 
   // relationships
-  partnerId    String      @db.ObjectId
-  attraction   Attraction? @relation(fields: [attractionId], references: [id])
-  attractionId String?     @db.ObjectId
-  user         User?       @relation(fields: [userId], references: [id])
-  userId       String?     @db.ObjectId
-  payment      Payment[]
+  partnerId String    @db.ObjectId
+  appealId  String?   @db.ObjectId
+  appeal    Appeal?   @relation(fields: [appealId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?   @db.ObjectId
+  payment   Payment[]
 
   @@map("attraction_bookings")
 }
@@ -635,6 +658,8 @@ model Review {
   security_GuardId String?            @db.ObjectId
   Car              Car?               @relation(fields: [carId], references: [id])
   carId            String?            @db.ObjectId
+  appeal           Appeal?            @relation(fields: [appealId], references: [id])
+  appealId         String?            @db.ObjectId
 
   @@map("reviews")
 }
