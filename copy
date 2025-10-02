@@ -59,3 +59,5 @@ PAYSTACK_WEBHOOK_SECRET=sk_test_2eda6a864e1c333a28934d2b1ec60ffdac0dd732
 OWNER_PAYOUT_PERCENT=80         # provider payout %
 OWNER_COMMISSION_PERCENT=20     # owner commission %
 CURRENCY=USD
+
+// AIzaSyBSfvbBBFF8cmEPccmgQhg4J8tH9RlW06A Google map key

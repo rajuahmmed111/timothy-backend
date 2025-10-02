@@ -217,7 +217,7 @@ const createStripePaymentIntent = async (
       if (!booking)
         throw new ApiError(httpStatus.NOT_FOUND, "Car booking not found");
 
-      service = await prisma.car_Rental.findUnique({
+      service = await prisma.car.findUnique({
         where: { id: booking.carId },
       });
       if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Car not found");

@@ -33,7 +33,7 @@ export const serviceConfig: Record<
 > = {
   CAR: {
     bookingModel: prisma.car_Booking,
-    serviceModel: prisma.car_Rental,
+    serviceModel: prisma.car,
     serviceTypeField: "car_bookingId",
     nameField: "carName",
     partnerIdField: "partnerId",
