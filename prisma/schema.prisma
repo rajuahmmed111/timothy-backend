@@ -557,7 +557,7 @@ model Appeal {
   attractionTv              Boolean
   attractionAirConditioning Boolean
   attractionPool            Boolean
-  attractionRating          Float
+  attractionRating          String
   attractionAdultPrice      Float
   attractionChildPrice      Float
   category                  String?

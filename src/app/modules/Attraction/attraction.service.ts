@@ -201,7 +201,7 @@ const createAttractionAppeal = async (req: Request) => {
       attractionTv,
       attractionAirConditioning,
       attractionPool,
-      attractionRating: attractionRating?.toString(),
+      attractionRating,
       attractionAdultPrice,
       attractionChildPrice,
       category,
@@ -221,33 +221,33 @@ const createAttractionAppeal = async (req: Request) => {
     );
   }
 
-  const scheduleData = JSON.parse(schedules);
+const scheduleData =
+  typeof schedules === "string" ? JSON.parse(schedules) : schedules;
 
-  for (const schedule of scheduleData) {
-    // date as string
-    const attractionSchedule = await prisma.attractionSchedule.create({
-      data: {
-        appealId: appeal.id,
-        day: schedule.day,
-      },
-    });
+for (const schedule of scheduleData) {
+  const attractionSchedule = await prisma.attractionSchedule.create({
+    data: {
+      appealId: appeal.id,
+      day: schedule.day,
+    },
+  });;
 
     // remove duplicate slots for same date
-    const uniqueSlots = Array.from(
-      new Map(schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])).values()
-    ) as ISlot[];
+  const uniqueSlots = Array.from(
+    new Map(schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])).values()
+  ) as ISlot[];
 
-    for (const slot of uniqueSlots) {
-      await prisma.scheduleSlot.create({
-        data: {
-          appealId: appeal.id,
-          attractionScheduleId: attractionSchedule.id,
-          from: slot.from,
-          to: slot.to,
-        },
-      });
-    }
+  for (const slot of uniqueSlots) {
+    await prisma.scheduleSlot.create({
+      data: {
+        appealId: appeal.id,
+        attractionScheduleId: attractionSchedule.id,
+        from: slot.from,
+        to: slot.to,
+      },
+    });
   }
+}
 
   // for (const schedule of schedules) {
   //   // date as string
@@ -277,12 +277,6 @@ const createAttractionAppeal = async (req: Request) => {
   //     });
   //   }
   // }
-
-  // update partner attraction count
-  await prisma.user.update({
-    where: { id: partnerExists.id },
-    data: { isAttraction: true },
-  });
 
   return await prisma.appeal.findUnique({
     where: { id: attractionId },
@@ -353,13 +347,10 @@ const getAllAttractions = async (
           profileImage: true,
         },
       },
-
     },
   });
 
   const total = await prisma.attraction.count({ where });
-
-
 
   return {
     meta: {
@@ -811,7 +802,7 @@ const updateAttractionAppeal = async (req: Request) => {
       attractionTv,
       attractionAirConditioning,
       attractionPool,
-      attractionRating: parseFloat(attractionRating),
+      attractionRating,
       attractionAdultPrice: parseFloat(attractionAdultPrice),
       attractionChildPrice: parseFloat(attractionChildPrice),
       category,
