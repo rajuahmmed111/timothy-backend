@@ -95,7 +95,7 @@ const createAttraction = async (req: Request) => {
   });
 };
 
-// create attraction appeal
+// create attraction appeal with schedules
 const createAttractionAppeal = async (req: Request) => {
   const partnerId = req.user?.id;
   const attractionId = req.params.attractionId;
