@@ -5,14 +5,12 @@ export const filterField: string[] = [
   "carCity",
   "carCountry",
   "category",
-//   "carPriceDay",
 ];
 
 export const searchableFields: string[] = [
-  "carName",
+  // "carName",
   "carRating",
   "carCity",
   "carCountry",
    "category",
-//   "carPriceDay",
 ];

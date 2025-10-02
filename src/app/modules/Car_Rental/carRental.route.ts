@@ -10,13 +10,25 @@ const router = express.Router();
 // get all car rentals
 router.get(
   "/",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   CarRentalController.getAllCarRentals
+);
+
+// get all car rentals cars
+router.get(
+  "/cars",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  CarRentalController.getAllCarRentalsCars
 );
 
 // get all my created car rentals for partner
@@ -79,6 +91,5 @@ router.patch(
   parseBodyData,
   CarRentalController.updateCar
 );
-
 
 export const carRentalRoutes = router;
