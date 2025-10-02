@@ -501,6 +501,17 @@ const getSingleCarRental = async (carRentalId: string) => {
   return result;
 };
 
+// get single cars
+const getSingleCar = async (carId: string) => {
+  const result = await prisma.car.findUnique({
+    where: { id: carId },
+  });
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
+  }
+  return result;
+};
+
 // update Car Rental
 const updateCarRental = async (req: Request) => {
   const partnerId = req.user?.id;
@@ -688,6 +699,7 @@ export const CarRentalService = {
   getAllCarRentalsForPartner,
   getAllCarRentalsCarsForPartner,
   getSingleCarRental,
+  getSingleCar,
   updateCarRental,
   updateCar,
 };

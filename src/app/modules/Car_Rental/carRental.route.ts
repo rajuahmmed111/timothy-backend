@@ -57,6 +57,18 @@ router.get(
   CarRentalController.getSingleCarRental
 );
 
+// get single by car id
+router.get(
+  "/car/:carId",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  CarRentalController.getSingleCar
+);
+
 // create car rental
 router.post(
   "/",
