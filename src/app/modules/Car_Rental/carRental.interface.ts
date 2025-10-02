@@ -1,9 +1,10 @@
 export interface ICarRentalFilter {
   searchTerm?: string | undefined;
-  carName?: string | undefined;
+  // carName?: string | undefined;
   carRating?: string | undefined;
   carCity?: string | undefined;
   carCountry?: string | undefined;
   category?: string | undefined;
-  // carPriceDay?: number | undefined;
+  fromDate?: string | undefined;
+  toDate?: string | undefined;
 }

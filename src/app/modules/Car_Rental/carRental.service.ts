@@ -6,7 +6,7 @@ import { uploadFile } from "../../../helpars/fileUploader";
 import { ICarRentalFilter } from "./carRental.interface";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
-import { EveryServiceStatus, Prisma } from "@prisma/client";
+import { BookingStatus, EveryServiceStatus, Prisma } from "@prisma/client";
 import { searchableFields } from "./carRental.constant";
 
 // create Car Rental
@@ -279,16 +279,16 @@ const getAllCarRentalsCars = async (
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, fromDate, toDate, ...filterData } = params;
 
   const filters: Prisma.CarWhereInput[] = [];
 
   // text search
-  if (params?.searchTerm) {
+  if (searchTerm) {
     filters.push({
       OR: searchableFields.map((field) => ({
         [field]: {
-          contains: params.searchTerm,
+          contains: searchTerm,
           mode: "insensitive",
         },
       })),
@@ -306,10 +306,24 @@ const getAllCarRentalsCars = async (
     });
   }
 
-  // get only isBooked  AVAILABLE hotels
-  // filters.push({
-  //   isBooked: EveryServiceStatus.AVAILABLE,
-  // });
+  // Availability filter
+  if (fromDate && toDate) {
+    filters.push({
+      car_Booking: {
+        none: {
+          bookingStatus: BookingStatus.CONFIRMED,
+          AND: [
+            {
+              carBookedFromDate: { lte: toDate },
+            },
+            {
+              carBookedToDate: { gte: fromDate },
+            },
+          ],
+        },
+      },
+    });
+  }
 
   const where: Prisma.CarWhereInput = { AND: filters };
 
@@ -323,7 +337,11 @@ const getAllCarRentalsCars = async (
         : {
             createdAt: "desc",
           },
+    include: {
+      car_Rental: true,
+    },
   });
+
   const total = await prisma.car.count({ where });
 
   return {
