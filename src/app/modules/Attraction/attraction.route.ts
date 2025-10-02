@@ -26,16 +26,28 @@ router.get(
   AttractionController.getAllAttractionsForPartner
 );
 
-// get attraction by id
+// get attraction by attractionId
 router.get(
-  "/:id",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  "/:attractionId",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   AttractionController.getSingleAttraction
+);
+
+// get single attraction appeal
+router.get(
+  "/appeal/:appealId",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  AttractionController.getSingleAttractionAppeal
 );
 
 // create attraction
@@ -54,24 +66,30 @@ router.post(
 router.post(
   "/appeal/:attractionId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([
-    { name: "attractionImages", maxCount: 10 },
-  ]),
+  uploadFile.upload.fields([{ name: "attractionImages", maxCount: 10 }]),
   parseBodyData,
   AttractionController.createAttractionAppeal
 );
 
 // update attraction
 router.patch(
-  "/:id",
+  "/:attractionId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
     { name: "attractionBusinessLogo", maxCount: 1 },
-    { name: "attractionImages", maxCount: 5 },
     { name: "attractionDocs", maxCount: 5 },
   ]),
   parseBodyData,
   AttractionController.updateAttraction
+);
+
+// update attraction appeal
+router.patch(
+  "/appeal/:appealId",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([{ name: "attractionImages", maxCount: 10 }]),
+  parseBodyData,
+  AttractionController.updateAttractionAppeal
 );
 
 export const attractionRoute = router;

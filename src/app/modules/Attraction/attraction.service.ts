@@ -149,7 +149,7 @@ const createAttractionAppeal = async (req: Request) => {
     discount,
     vat,
     attractionReviewCount,
-    schedules, // [{ date: "2025-08-12", slots: [{ from, to }] }]
+    schedules, // [{ day, slots:[{from,to}] }]
   } = req.body;
 
   // check same schedule exists
@@ -351,23 +351,13 @@ const getAllAttractions = async (
           profileImage: true,
         },
       },
-      attractionSchedule: {
-        include: { slots: true },
-      },
+
     },
   });
 
   const total = await prisma.attraction.count({ where });
 
-  // Step 2: Group by attractionCountry
-  const grouped = result.reduce((acc, attraction) => {
-    const country = attraction.attractionCountry || "Unknown";
-    if (!acc[country]) {
-      acc[country] = [];
-    }
-    acc[country].push(attraction);
-    return acc;
-  }, {} as Record<string, typeof result>);
+
 
   return {
     meta: {
@@ -375,9 +365,96 @@ const getAllAttractions = async (
       page,
       limit,
     },
-    data: grouped,
+    data: result,
   };
 };
+
+// get all attractions appeals
+// const getAllAttractionsAppeals = async (
+//   params: IAttractionFilter,
+//   options: IPaginationOptions
+// ) => {
+//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+//   const { searchTerm, ...filterData } = params;
+
+//   const filters: Prisma.AttractionWhereInput[] = [];
+
+//   // text search
+//   if (params?.searchTerm) {
+//     filters.push({
+//       OR: searchableFields.map((field) => ({
+//         [field]: {
+//           contains: params.searchTerm,
+//           mode: "insensitive",
+//         },
+//       })),
+//     });
+//   }
+
+//   // Exact search filter
+//   if (Object.keys(filterData).length > 0) {
+//     filters.push({
+//       AND: Object.keys(filterData).map((key) => ({
+//         [key]: {
+//           equals: (filterData as any)[key],
+//         },
+//       })),
+//     });
+//   }
+
+//   // get only isBooked  AVAILABLE hotels
+//   // filters.push({
+//   //   isBooked: EveryServiceStatus.AVAILABLE,
+//   // });
+
+//   const where: Prisma.AttractionWhereInput = { AND: filters };
+
+//   const result = await prisma.attraction.findMany({
+//     where,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : {
+//             createdAt: "desc",
+//           },
+//     include: {
+//       user: {
+//         select: {
+//           id: true,
+//           fullName: true,
+//           profileImage: true,
+//         },
+//       },
+//       attractionSchedule: {
+//         include: { slots: true },
+//       },
+//     },
+//   });
+
+//   const total = await prisma.attraction.count({ where });
+
+//   // Step 2: Group by attractionCountry
+//   const grouped = result.reduce((acc, attraction) => {
+//     const country = attraction.attractionCountry || "Unknown";
+//     if (!acc[country]) {
+//       acc[country] = [];
+//     }
+//     acc[country].push(attraction);
+//     return acc;
+//   }, {} as Record<string, typeof result>);
+
+//   return {
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//     },
+//     data: grouped,
+//   };
+// };
 
 // get all attractions for partner
 const getAllAttractionsForPartner = async (
@@ -453,10 +530,106 @@ const getAllAttractionsForPartner = async (
   };
 };
 
+// get all attractions appeals for partner
+const getAllAttractionsAppealsForPartner = async (
+  partnerId: string,
+  params: IAttractionFilter,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.AttractionWhereInput[] = [];
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // get only isBooked  AVAILABLE hotels
+  filters.push({
+    partnerId,
+  });
+
+  const where: Prisma.AttractionWhereInput = { AND: filters };
+
+  const result = await prisma.attraction.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+  });
+  const total = await prisma.attraction.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get single attraction
-const getSingleAttraction = async (id: string) => {
+const getSingleAttraction = async (attractionId: string) => {
   const result = await prisma.attraction.findUnique({
-    where: { id },
+    where: { id: attractionId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!result) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
+  }
+
+  return result;
+};
+
+// get single attraction appeal
+const getSingleAttractionAppeal = async (appealId: string) => {
+  const result = await prisma.appeal.findUnique({
+    where: { id: appealId },
     include: {
       user: {
         select: {
@@ -478,10 +651,10 @@ const getSingleAttraction = async (id: string) => {
   return result;
 };
 
-// update attraction (with consistent schedule handling)
+// update attraction
 const updateAttraction = async (req: Request) => {
-  const attractionId = req.params.id;
   const partnerId = req.user?.id;
+  const attractionId = req.params.attractionId;
 
   // partner check
   const partnerExists = await prisma.user.findUnique({
@@ -491,52 +664,35 @@ const updateAttraction = async (req: Request) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  // attraction check
+  // check attraction exists
   const attractionExists = await prisma.attraction.findUnique({
     where: { id: attractionId },
-    include: { attractionSchedule: { include: { slots: true } } },
   });
   if (!attractionExists) {
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  // owner check
-  if (attractionExists.partnerId !== partnerId) {
-    throw new ApiError(
-      httpStatus.FORBIDDEN,
-      "You are not authorized to update"
-    );
-  }
-
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-  // file uploads
+  // Upload new logo (if provided)
+  let businessLogo = attractionExists.businessLogo;
   const attractionBusinessLogoFile = files?.attractionBusinessLogo?.[0];
-  const attractionImageFiles = files?.attractionImages || [];
-  const attractionDocsFiles = files?.attractionDocs || [];
-
-  let attractionBusinessLogo = attractionExists.attractionBusinessLogo;
   if (attractionBusinessLogoFile) {
     const logoResult = await uploadFile.uploadToCloudinary(
       attractionBusinessLogoFile
     );
-    attractionBusinessLogo = logoResult?.secure_url || attractionBusinessLogo;
+    businessLogo = logoResult?.secure_url || businessLogo;
   }
 
-  let attractionImages: string[] = attractionExists.attractionImages || [];
-  if (attractionImageFiles.length > 0) {
-    const uploads = await Promise.all(
-      attractionImageFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    attractionImages = uploads.map((img) => img?.secure_url || "");
-  }
-
-  let attractionDocs: string[] = attractionExists.attractionDocs || [];
-  if (attractionDocsFiles.length > 0) {
-    const uploads = await Promise.all(
-      attractionDocsFiles.map((file) => uploadFile.uploadToCloudinary(file))
-    );
-    attractionDocs = uploads.map((img) => img?.secure_url || "");
+  // Upload new docs (if provided)
+  let attractionDocs = attractionExists.attractionDocs;
+  const attractionDocsFiles = files?.attractionDocs || [];
+  if (attractionDocsFiles.length) {
+    attractionDocs = (
+      await Promise.all(
+        attractionDocsFiles.map((f) => uploadFile.uploadToCloudinary(f))
+      )
+    ).map((img) => img?.secure_url || "");
   }
 
   const {
@@ -545,27 +701,12 @@ const updateAttraction = async (req: Request) => {
     attractionBusinessType,
     attractionRegNum,
     attractionRegDate,
+    attractionPhone,
+    attractionEmail,
     attractionBusinessTagline,
     attractionBusinessDescription,
     attractionBookingCondition,
     attractionCancelationPolicy,
-    attractionServicesOffered,
-    attractionRating,
-    attractionDestinationType,
-    attractionAdultPrice,
-    attractionChildPrice,
-    attractionDescription,
-    attractionPhone,
-    attractionEmail,
-    attractionAddress,
-    attractionCity,
-    attractionPostalCode,
-    attractionDistrict,
-    attractionCountry,
-    category,
-    discount,
-    attractionReviewCount,
-    schedules, // comes as JSON string just like create
   } = req.body;
 
   // update attraction
@@ -577,75 +718,135 @@ const updateAttraction = async (req: Request) => {
       attractionBusinessType,
       attractionRegNum,
       attractionRegDate,
+      attractionPhone,
+      attractionEmail,
+      businessLogo,
       attractionBusinessTagline,
       attractionBusinessDescription,
-      attractionBusinessLogo,
       attractionBookingCondition,
       attractionCancelationPolicy,
       attractionDocs,
-      attractionServicesOffered: Array.isArray(attractionServicesOffered)
-        ? attractionServicesOffered
-        : attractionServicesOffered?.split(","),
-      attractionRating: attractionRating?.toString(),
+    },
+  });
+
+  return updatedAttraction;
+};
+
+// update appeal with schedules
+const updateAttractionAppeal = async (req: Request) => {
+  const partnerId = req.user?.id;
+  const appealId = req.params.appealId;
+
+  // check partner
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+
+  // check appeal exists
+  const appealExists = await prisma.appeal.findUnique({
+    where: { id: appealId },
+  });
+  if (!appealExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Appeal not found");
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const attractionImageFiles = files?.attractionImages || [];
+
+  // upload new images
+  const newImages = attractionImageFiles.length
+    ? (
+        await Promise.all(
+          attractionImageFiles.map((f) => uploadFile.uploadToCloudinary(f))
+        )
+      ).map((img) => img?.secure_url || "")
+    : [];
+
+  const {
+    attractionDestinationType,
+    attractionDescription,
+    attractionAddress,
+    attractionCity,
+    attractionPostalCode,
+    attractionDistrict,
+    attractionCountry,
+    attractionFreeWifi,
+    attractionFreeParking,
+    attractionKitchen,
+    attractionTv,
+    attractionAirConditioning,
+    attractionPool,
+    attractionServicesOffered,
+    attractionRating,
+    attractionAdultPrice,
+    attractionChildPrice,
+    category,
+    discount,
+    vat,
+    attractionReviewCount,
+    schedules, // [{ day, slots:[{from,to}] }]
+  } = req.body;
+
+  // update appeal main data
+  const updatedAppeal = await prisma.appeal.update({
+    where: { id: appealId },
+    data: {
       attractionDestinationType,
-      attractionAdultPrice: parseInt(attractionAdultPrice),
-      attractionChildPrice: parseInt(attractionChildPrice),
       attractionDescription,
-      attractionPhone,
-      attractionEmail,
       attractionAddress,
       attractionCity,
       attractionPostalCode,
       attractionDistrict,
       attractionCountry,
-      attractionImages,
-      category: category || undefined,
-      discount: discount ? parseFloat(discount) : undefined,
-      attractionReviewCount: attractionReviewCount
-        ? parseInt(attractionReviewCount)
-        : 0,
+      ...(newImages.length > 0 && { attractionImages: newImages }),
+      attractionServicesOffered: Array.isArray(attractionServicesOffered)
+        ? attractionServicesOffered
+        : attractionServicesOffered?.split(","),
+      attractionFreeWifi,
+      attractionFreeParking,
+      attractionKitchen,
+      attractionTv,
+      attractionAirConditioning,
+      attractionPool,
+      attractionRating: parseFloat(attractionRating),
+      attractionAdultPrice: parseFloat(attractionAdultPrice),
+      attractionChildPrice: parseFloat(attractionChildPrice),
+      category,
+      discount: parseFloat(discount),
+      vat: parseFloat(vat),
+      attractionReviewCount: parseInt(attractionReviewCount),
     },
   });
 
-  // update schedules & slots if provided
-  if (schedules && schedules.length > 0) {
-    // parse schedules same as create
+  // update schedules if provided
+  if (schedules) {
     const scheduleData = JSON.parse(schedules);
 
-    // delete old slots
-    await prisma.scheduleSlot.deleteMany({
-      where: {
-        attractionScheduleId: {
-          in: attractionExists.attractionSchedule.map((s) => s.id),
-        },
-      },
-    });
+    // delete old schedules + slots
+    await prisma.scheduleSlot.deleteMany({ where: { appealId } });
+    await prisma.attractionSchedule.deleteMany({ where: { appealId } });
 
-    // delete old schedules
-    await prisma.attractionSchedule.deleteMany({
-      where: { attractionId },
-    });
-
-    // create new schedules & slots
+    // insert new schedules + slots
     for (const schedule of scheduleData) {
       const attractionSchedule = await prisma.attractionSchedule.create({
         data: {
-          attractionId: updatedAttraction.id,
-          // date: schedule.date,
+          appealId: appealId,
           day: schedule.day,
         },
       });
 
+      // remove duplicate slots for same date
       const uniqueSlots = Array.from(
         new Map(
-          (schedule.slots ?? []).map((s: any) => [`${s.from}-${s.to}`, s])
+          schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
         ).values()
-      ) as { from: string; to: string }[];
+      ) as ISlot[];
 
       for (const slot of uniqueSlots) {
         await prisma.scheduleSlot.create({
           data: {
-            attractionId: updatedAttraction.id,
+            appealId: appealId,
             attractionScheduleId: attractionSchedule.id,
             from: slot.from,
             to: slot.to,
@@ -655,13 +856,10 @@ const updateAttraction = async (req: Request) => {
     }
   }
 
-  // final fetch
-  return await prisma.attraction.findUnique({
-    where: { id: updatedAttraction.id },
+  return await prisma.appeal.findUnique({
+    where: { id: appealId },
     include: {
-      attractionSchedule: {
-        include: { slots: true },
-      },
+      attractionSchedule: { include: { slots: true } },
     },
   });
 };
@@ -672,5 +870,7 @@ export const AttractionService = {
   getAllAttractions,
   getAllAttractionsForPartner,
   getSingleAttraction,
+  getSingleAttractionAppeal,
   updateAttraction,
+  updateAttractionAppeal,
 };

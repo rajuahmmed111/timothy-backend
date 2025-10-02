@@ -19,15 +19,17 @@ const createAttraction = catchAsync(async (req: Request, res: Response) => {
 });
 
 // create attraction appeal
-const createAttractionAppeal = catchAsync(async (req: Request, res: Response) => {
-  const result = await AttractionService.createAttractionAppeal(req);
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: "Attraction created successfully",
-    data: result,
-  });
-});
+const createAttractionAppeal = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await AttractionService.createAttractionAppeal(req);
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Attraction created successfully",
+      data: result,
+    });
+  }
+);
 
 // get all attractions
 const getAllAttractions = catchAsync(async (req: Request, res: Response) => {
@@ -64,8 +66,8 @@ const getAllAttractionsForPartner = catchAsync(
 
 // get single attraction
 const getSingleAttraction = catchAsync(async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const result = await AttractionService.getSingleAttraction(id);
+  const appealId = req.params.appealId;
+  const result = await AttractionService.getSingleAttraction(appealId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -73,6 +75,20 @@ const getSingleAttraction = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+// get single attraction appeal
+const getSingleAttractionAppeal = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await AttractionService.getSingleAttractionAppeal(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Attraction appeal fetched successfully",
+      data: result,
+    });
+  }
+);
 
 // update attraction
 const updateAttraction = catchAsync(async (req: Request, res: Response) => {
@@ -85,11 +101,24 @@ const updateAttraction = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update appeal
+const updateAttractionAppeal = catchAsync(async (req: Request, res: Response) => {
+  const result = await AttractionService.updateAttractionAppeal(req);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Appeal updated successfully",
+    data: result,
+  });
+});
+
 export const AttractionController = {
   createAttraction,
   createAttractionAppeal,
   getAllAttractions,
   getAllAttractionsForPartner,
   getSingleAttraction,
+  getSingleAttractionAppeal,
   updateAttraction,
+  updateAttractionAppeal,
 };
