@@ -10,20 +10,39 @@ const router = express.Router();
 // get all attractions
 router.get(
   "/",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   AttractionController.getAllAttractions
 );
 
-// get all my created attractions for partner
+// get all attractions appeals
+router.get(
+  "/appeals",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  AttractionController.getAllAttractionsAppeals
+);
+
+// get all my attractions for partner
 router.get(
   "/partner",
   auth(UserRole.BUSINESS_PARTNER),
   AttractionController.getAllAttractionsForPartner
+);
+
+// get all attractions appeals for partner
+router.get(
+  "/partner-appeals/:attractionId",
+  auth(UserRole.BUSINESS_PARTNER),
+  AttractionController.getAllAttractionsAppealsForPartner
 );
 
 // get attraction by attractionId

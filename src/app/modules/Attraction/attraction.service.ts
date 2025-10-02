@@ -370,91 +370,91 @@ const getAllAttractions = async (
 };
 
 // get all attractions appeals
-// const getAllAttractionsAppeals = async (
-//   params: IAttractionFilter,
-//   options: IPaginationOptions
-// ) => {
-//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+const getAllAttractionsAppeals = async (
+  params: IAttractionFilter,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-//   const { searchTerm, ...filterData } = params;
+  const { searchTerm, ...filterData } = params;
 
-//   const filters: Prisma.AttractionWhereInput[] = [];
+  const filters: Prisma.AppealWhereInput[] = [];
 
-//   // text search
-//   if (params?.searchTerm) {
-//     filters.push({
-//       OR: searchableFields.map((field) => ({
-//         [field]: {
-//           contains: params.searchTerm,
-//           mode: "insensitive",
-//         },
-//       })),
-//     });
-//   }
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
 
-//   // Exact search filter
-//   if (Object.keys(filterData).length > 0) {
-//     filters.push({
-//       AND: Object.keys(filterData).map((key) => ({
-//         [key]: {
-//           equals: (filterData as any)[key],
-//         },
-//       })),
-//     });
-//   }
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
 
-//   // get only isBooked  AVAILABLE hotels
-//   // filters.push({
-//   //   isBooked: EveryServiceStatus.AVAILABLE,
-//   // });
+  // get only isBooked  AVAILABLE hotels
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
 
-//   const where: Prisma.AttractionWhereInput = { AND: filters };
+  const where: Prisma.AppealWhereInput = { AND: filters };
 
-//   const result = await prisma.attraction.findMany({
-//     where,
-//     skip,
-//     take: limit,
-//     orderBy:
-//       options.sortBy && options.sortOrder
-//         ? { [options.sortBy]: options.sortOrder }
-//         : {
-//             createdAt: "desc",
-//           },
-//     include: {
-//       user: {
-//         select: {
-//           id: true,
-//           fullName: true,
-//           profileImage: true,
-//         },
-//       },
-//       attractionSchedule: {
-//         include: { slots: true },
-//       },
-//     },
-//   });
+  const result = await prisma.appeal.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+      attractionSchedule: {
+        include: { slots: true },
+      },
+    },
+  });
 
-//   const total = await prisma.attraction.count({ where });
+  const total = await prisma.appeal.count({ where });
 
-//   // Step 2: Group by attractionCountry
-//   const grouped = result.reduce((acc, attraction) => {
-//     const country = attraction.attractionCountry || "Unknown";
-//     if (!acc[country]) {
-//       acc[country] = [];
-//     }
-//     acc[country].push(attraction);
-//     return acc;
-//   }, {} as Record<string, typeof result>);
+  // Step 2: Group by attractionCountry
+  const grouped = result.reduce((acc, attraction) => {
+    const country = attraction.attractionCountry || "Unknown";
+    if (!acc[country]) {
+      acc[country] = [];
+    }
+    acc[country].push(attraction);
+    return acc;
+  }, {} as Record<string, typeof result>);
 
-//   return {
-//     meta: {
-//       total,
-//       page,
-//       limit,
-//     },
-//     data: grouped,
-//   };
-// };
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: grouped,
+  };
+};
 
 // get all attractions for partner
 const getAllAttractionsForPartner = async (
@@ -532,7 +532,7 @@ const getAllAttractionsForPartner = async (
 
 // get all attractions appeals for partner
 const getAllAttractionsAppealsForPartner = async (
-  partnerId: string,
+  attractionId: string,
   params: IAttractionFilter,
   options: IPaginationOptions
 ) => {
@@ -540,7 +540,7 @@ const getAllAttractionsAppealsForPartner = async (
 
   const { searchTerm, ...filterData } = params;
 
-  const filters: Prisma.AttractionWhereInput[] = [];
+  const filters: Prisma.AppealWhereInput[] = [];
 
   // text search
   if (params?.searchTerm) {
@@ -567,12 +567,12 @@ const getAllAttractionsAppealsForPartner = async (
 
   // get only isBooked  AVAILABLE hotels
   filters.push({
-    partnerId,
+    attractionId,
   });
 
-  const where: Prisma.AttractionWhereInput = { AND: filters };
+  const where: Prisma.AppealWhereInput = { AND: filters };
 
-  const result = await prisma.attraction.findMany({
+  const result = await prisma.appeal.findMany({
     where,
     skip,
     take: limit,
@@ -592,7 +592,7 @@ const getAllAttractionsAppealsForPartner = async (
       },
     },
   });
-  const total = await prisma.attraction.count({ where });
+  const total = await prisma.appeal.count({ where });
 
   return {
     meta: {
@@ -868,7 +868,9 @@ export const AttractionService = {
   createAttraction,
   createAttractionAppeal,
   getAllAttractions,
+  getAllAttractionsAppeals,
   getAllAttractionsForPartner,
+  getAllAttractionsAppealsForPartner,
   getSingleAttraction,
   getSingleAttractionAppeal,
   updateAttraction,
