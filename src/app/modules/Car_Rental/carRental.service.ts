@@ -335,7 +335,7 @@ const getAllCarRentalsCars = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : {
-            createdAt: "desc",
+            carRating: "desc",
           },
     include: {
       car_Rental: true,
