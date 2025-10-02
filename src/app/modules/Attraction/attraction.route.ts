@@ -44,11 +44,21 @@ router.post(
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
     { name: "attractionBusinessLogo", maxCount: 1 },
-    { name: "attractionImages", maxCount: 5 },
     { name: "attractionDocs", maxCount: 5 },
   ]),
   parseBodyData,
   AttractionController.createAttraction
+);
+
+// create attraction appeal
+router.post(
+  "/appeal/:attractionId",
+  auth(UserRole.BUSINESS_PARTNER),
+  uploadFile.upload.fields([
+    { name: "attractionImages", maxCount: 10 },
+  ]),
+  parseBodyData,
+  AttractionController.createAttractionAppeal
 );
 
 // update attraction

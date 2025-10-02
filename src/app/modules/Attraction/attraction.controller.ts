@@ -18,6 +18,17 @@ const createAttraction = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create attraction appeal
+const createAttractionAppeal = catchAsync(async (req: Request, res: Response) => {
+  const result = await AttractionService.createAttractionAppeal(req);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Attraction created successfully",
+    data: result,
+  });
+});
+
 // get all attractions
 const getAllAttractions = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -76,6 +87,7 @@ const updateAttraction = catchAsync(async (req: Request, res: Response) => {
 
 export const AttractionController = {
   createAttraction,
+  createAttractionAppeal,
   getAllAttractions,
   getAllAttractionsForPartner,
   getSingleAttraction,

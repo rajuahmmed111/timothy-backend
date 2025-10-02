@@ -544,8 +544,6 @@ model Appeal {
   id                        String             @id @default(auto()) @map("_id") @db.ObjectId
   attractionDestinationType String
   attractionDescription     String
-  attractionPhone           String
-  attractionEmail           String
   attractionAddress         String
   attractionCity            String
   attractionPostalCode      String
@@ -602,10 +600,10 @@ model ScheduleSlot {
   to   String // "12:00:00"
 
   // relationships
-  appealId             String?            @db.ObjectId
-  appeal               Appeal?            @relation(fields: [appealId], references: [id])
-  attractionScheduleId String             @db.ObjectId
-  weeklySchedule       AttractionSchedule @relation(fields: [attractionScheduleId], references: [id])
+  appealId             String?             @db.ObjectId
+  appeal               Appeal?             @relation(fields: [appealId], references: [id])
+  attractionScheduleId String?             @db.ObjectId
+  weeklySchedule       AttractionSchedule? @relation(fields: [attractionScheduleId], references: [id])
 
   @@map("schedule_slots")
 }

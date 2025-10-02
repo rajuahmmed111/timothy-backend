@@ -9,7 +9,7 @@ import { IAttractionFilter, ISlot } from "./attraction.interface";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 
-// create attraction
+// create attraction without schedules
 const createAttraction = async (req: Request) => {
   const partnerId = req.user?.id;
 
@@ -20,29 +20,31 @@ const createAttraction = async (req: Request) => {
   if (!partnerExists)
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
 
+  // service check
+  if (
+    partnerExists.isHotel ||
+    partnerExists.isSecurity ||
+    partnerExists.isCar
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You can only provide one type of service. You already provide another service."
+    );
+  }
+
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-  const attractionBusinessLogoFile = files?.attractionBusinessLogo?.[0];
-  const attractionImageFiles = files?.attractionImages || [];
+  const attractionBusinessLogoFile = files?.businessLogo?.[0];
   const attractionDocsFiles = files?.attractionDocs || [];
 
   // Upload logo
-  let attractionBusinessLogo = "https://i.ibb.co/zWxSgQL8/download.png";
+  let businessLogo = "https://i.ibb.co/zWxSgQL8/download.png";
   if (attractionBusinessLogoFile) {
     const logoResult = await uploadFile.uploadToCloudinary(
       attractionBusinessLogoFile
     );
-    attractionBusinessLogo = logoResult?.secure_url || attractionBusinessLogo;
+    businessLogo = logoResult?.secure_url || businessLogo;
   }
-
-  // Upload images
-  const attractionImages = attractionImageFiles.length
-    ? (
-        await Promise.all(
-          attractionImageFiles.map((f) => uploadFile.uploadToCloudinary(f))
-        )
-      ).map((img) => img?.secure_url || "")
-    : [];
 
   // Upload docs
   const attractionDocs = attractionDocsFiles.length
@@ -59,25 +61,93 @@ const createAttraction = async (req: Request) => {
     attractionBusinessType,
     attractionRegNum,
     attractionRegDate,
+    attractionPhone,
+    attractionEmail,
     attractionBusinessTagline,
     attractionBusinessDescription,
     attractionBookingCondition,
     attractionCancelationPolicy,
-    attractionServicesOffered,
-    attractionRating,
+  } = req.body;
+
+  const attraction = await prisma.attraction.create({
+    data: {
+      attractionBusinessName,
+      attractionName,
+      attractionBusinessType,
+      attractionRegNum,
+      attractionRegDate,
+      attractionPhone,
+      attractionEmail,
+      businessLogo,
+      attractionBusinessTagline,
+      attractionBusinessDescription,
+      attractionBookingCondition,
+      attractionCancelationPolicy,
+      attractionDocs,
+      partnerId: partnerExists.id,
+    },
+  });
+
+  // update partner attraction count
+  await prisma.user.update({
+    where: { id: partnerExists.id },
+    data: { isAttraction: true },
+  });
+};
+
+// create attraction appeal
+const createAttractionAppeal = async (req: Request) => {
+  const partnerId = req.user?.id;
+  const attractionId = req.params.attractionId;
+
+  // partner check
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+
+  // check if attraction exists
+  const attractionExists = await prisma.attraction.findUnique({
+    where: { id: attractionId },
+  });
+  if (!attractionExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  const attractionImageFiles = files?.attractionImages || [];
+
+  // Upload images
+  const attractionImages = attractionImageFiles.length
+    ? (
+        await Promise.all(
+          attractionImageFiles.map((f) => uploadFile.uploadToCloudinary(f))
+        )
+      ).map((img) => img?.secure_url || "")
+    : [];
+
+  const {
     attractionDestinationType,
-    attractionAdultPrice,
-    attractionChildPrice,
     attractionDescription,
-    attractionPhone,
-    attractionEmail,
     attractionAddress,
     attractionCity,
     attractionPostalCode,
     attractionDistrict,
     attractionCountry,
+    attractionFreeWifi,
+    attractionFreeParking,
+    attractionKitchen,
+    attractionTv,
+    attractionAirConditioning,
+    attractionPool,
+    attractionServicesOffered,
+    attractionRating,
+    attractionAdultPrice,
+    attractionChildPrice,
     category,
     discount,
+    vat,
     attractionReviewCount,
     schedules, // [{ date: "2025-08-12", slots: [{ from, to }] }]
   } = req.body;
@@ -108,122 +178,103 @@ const createAttraction = async (req: Request) => {
   //   }
   // }
 
-  // transaction: Attraction + Schedule + Slots
-  const { attractionId } = await prisma.$transaction(
-    async (tx) => {
-      // create Attraction
-      const attraction = await tx.attraction.create({
+  // appeal + schedule + slots
+
+  const appeal = await prisma.appeal.create({
+    data: {
+      attractionDestinationType,
+      attractionDescription,
+      attractionAddress,
+      attractionCity,
+      attractionPostalCode,
+      attractionDistrict,
+      attractionCountry,
+      attractionImages,
+      attractionServicesOffered: Array.isArray(attractionServicesOffered)
+        ? attractionServicesOffered
+        : attractionServicesOffered?.split(","),
+      attractionFreeWifi,
+      attractionFreeParking,
+      attractionKitchen,
+      attractionTv,
+      attractionAirConditioning,
+      attractionPool,
+      attractionRating: attractionRating?.toString(),
+      attractionAdultPrice,
+      attractionChildPrice,
+      category,
+      discount,
+      vat,
+      attractionReviewCount,
+      partnerId,
+      attractionId: attractionExists.id,
+    },
+  });
+
+  //  create schedules + slots
+  if (!schedules || schedules.length === 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "At least one schedule with slots is required"
+    );
+  }
+
+  const scheduleData = JSON.parse(schedules);
+
+  for (const schedule of scheduleData) {
+    // date as string
+    const attractionSchedule = await prisma.attractionSchedule.create({
+      data: {
+        appealId: appeal.id,
+        day: schedule.day,
+      },
+    });
+
+    // remove duplicate slots for same date
+    const uniqueSlots = Array.from(
+      new Map(schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])).values()
+    ) as ISlot[];
+
+    for (const slot of uniqueSlots) {
+      await prisma.scheduleSlot.create({
         data: {
-          attractionBusinessName,
-          attractionName,
-          attractionBusinessType,
-          attractionRegNum,
-          attractionRegDate,
-          attractionBusinessTagline,
-          attractionBusinessDescription,
-          attractionBusinessLogo,
-          attractionBookingCondition,
-          attractionCancelationPolicy,
-          attractionDocs,
-          attractionServicesOffered: Array.isArray(attractionServicesOffered)
-            ? attractionServicesOffered
-            : attractionServicesOffered?.split(","),
-          attractionRating: attractionRating?.toString(),
-          attractionDestinationType,
-          attractionAdultPrice: parseInt(attractionAdultPrice),
-          attractionChildPrice: parseInt(attractionChildPrice),
-          attractionDescription,
-          attractionPhone,
-          attractionEmail,
-          attractionAddress,
-          attractionCity,
-          attractionPostalCode,
-          attractionDistrict,
-          attractionCountry,
-          attractionImages,
-          category: category || undefined,
-          discount: discount ? parseFloat(discount) : 0,
-          attractionReviewCount: attractionReviewCount
-            ? parseInt(attractionReviewCount)
-            : 0,
-          partnerId,
+          appealId: appeal.id,
+          attractionScheduleId: attractionSchedule.id,
+          from: slot.from,
+          to: slot.to,
         },
       });
-
-      //  create Schedules + Slots
-      if (!schedules || schedules.length === 0) {
-        throw new ApiError(
-          httpStatus.BAD_REQUEST,
-          "At least one schedule with slots is required"
-        );
-      }
-
-      const scheduleData = JSON.parse(schedules);
-
-      for (const schedule of scheduleData) {
-        // date as string
-        const attractionSchedule = await tx.attractionSchedule.create({
-          data: {
-            attractionId: attraction.id,
-            // date: schedule.date,
-            day: schedule.day,
-          },
-        });
-
-        // remove duplicate slots for same date
-        const uniqueSlots = Array.from(
-          new Map(
-            schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
-          ).values()
-        ) as ISlot[];
-
-        for (const slot of uniqueSlots) {
-          await tx.scheduleSlot.create({
-            data: {
-              attractionId: attraction.id,
-              attractionScheduleId: attractionSchedule.id,
-              from: slot.from,
-              to: slot.to,
-            },
-          });
-        }
-      }
-
-      // for (const schedule of schedules) {
-      //   // date as string
-      //   const attractionSchedule = await tx.attractionSchedule.create({
-      //     data: {
-      //       attractionId: attraction.id,
-      //       // date: schedule.date,
-      //       day: schedule.day,
-      //     },
-      //   });
-
-      //   // remove duplicate slots for same date
-      //   const uniqueSlots = Array.from(
-      //     new Map(
-      //       schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
-      //     ).values()
-      //   ) as ISlot[];
-
-      //   for (const slot of uniqueSlots) {
-      //     await tx.scheduleSlot.create({
-      //       data: {
-      //         attractionId: attraction.id,
-      //         attractionScheduleId: attractionSchedule.id,
-      //         from: slot.from,
-      //         to: slot.to,
-      //       },
-      //     });
-      //   }
-      // }
-
-      return { attractionId: attraction.id };
-    },
-    {
-      timeout: 40000, // 40 seconds
     }
-  );
+  }
+
+  // for (const schedule of schedules) {
+  //   // date as string
+  //   const attractionSchedule = await tx.attractionSchedule.create({
+  //     data: {
+  //       attractionId: attraction.id,
+  //       // date: schedule.date,
+  //       day: schedule.day,
+  //     },
+  //   });
+
+  //   // remove duplicate slots for same date
+  //   const uniqueSlots = Array.from(
+  //     new Map(
+  //       schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
+  //     ).values()
+  //   ) as ISlot[];
+
+  //   for (const slot of uniqueSlots) {
+  //     await tx.scheduleSlot.create({
+  //       data: {
+  //         attractionId: attraction.id,
+  //         attractionScheduleId: attractionSchedule.id,
+  //         from: slot.from,
+  //         to: slot.to,
+  //       },
+  //     });
+  //   }
+  // }
 
   // update partner attraction count
   await prisma.user.update({
@@ -231,7 +282,7 @@ const createAttraction = async (req: Request) => {
     data: { isAttraction: true },
   });
 
-  return await prisma.attraction.findUnique({
+  return await prisma.appeal.findUnique({
     where: { id: attractionId },
     include: {
       attractionSchedule: {
@@ -617,6 +668,7 @@ const updateAttraction = async (req: Request) => {
 
 export const AttractionService = {
   createAttraction,
+  createAttractionAppeal,
   getAllAttractions,
   getAllAttractionsForPartner,
   getSingleAttraction,
