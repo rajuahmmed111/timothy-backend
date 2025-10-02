@@ -120,7 +120,7 @@ const createAttractionAppeal = async (req: Request) => {
 
   const attractionImageFiles = files?.attractionImages || [];
 
-  // Upload images
+  // upload attractionImages
   const attractionImages = attractionImageFiles.length
     ? (
         await Promise.all(
@@ -154,7 +154,6 @@ const createAttractionAppeal = async (req: Request) => {
     schedules, // [{ day, slots:[{from,to}] }]
   } = req.body;
 
-  // check same schedule exists
   if (!schedules || schedules.length === 0) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -162,125 +161,81 @@ const createAttractionAppeal = async (req: Request) => {
     );
   }
 
-  // for (const schedule of schedules) {
-  //   const existingSchedule = await prisma.attractionSchedule.findFirst({
-  //     where: {
-  //       attraction: {
-  //         partnerId,
-  //       },
-  //       // date: schedule.date,
-  //       day: schedule.day,
-  //     },
-  //   });
-  //   if (existingSchedule) {
-  //     throw new ApiError(
-  //       httpStatus.BAD_REQUEST,
-  //       `Schedule already exists for ${schedule.date} (${schedule.day})`
-  //     );
-  //   }
-  // }
+  // convert schedules if string
+  const scheduleData =
+    typeof schedules === "string" ? JSON.parse(schedules) : schedules;
 
-  // appeal + schedule + slots
-
-  const appeal = await prisma.appeal.create({
-    data: {
-      attractionDestinationType,
-      attractionDescription,
-      attractionAddress,
-      attractionCity,
-      attractionPostalCode,
-      attractionDistrict,
-      attractionCountry,
-      attractionImages,
-      attractionServicesOffered: Array.isArray(attractionServicesOffered)
-        ? attractionServicesOffered
-        : attractionServicesOffered?.split(","),
-      attractionFreeWifi,
-      attractionFreeParking,
-      attractionKitchen,
-      attractionTv,
-      attractionAirConditioning,
-      attractionPool,
-      attractionRating,
-      attractionAdultPrice,
-      attractionChildPrice,
-      category,
-      discount,
-      vat,
-      attractionReviewCount,
-      partnerId,
-      attractionId: attractionExists.id,
-    },
-  });
-
-  //  create schedules + slots
-  if (!schedules || schedules.length === 0) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "At least one schedule with slots is required"
-    );
-  }
-
-const scheduleData =
-  typeof schedules === "string" ? JSON.parse(schedules) : schedules;
-
-for (const schedule of scheduleData) {
-  const attractionSchedule = await prisma.attractionSchedule.create({
-    data: {
-      appealId: appeal.id,
-      day: schedule.day,
-    },
-  });;
-
-    // remove duplicate slots for same date
-  const uniqueSlots = Array.from(
-    new Map(schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])).values()
-  ) as ISlot[];
-
-  for (const slot of uniqueSlots) {
-    await prisma.scheduleSlot.create({
+  // use transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // create appeal
+    const appeal = await tx.appeal.create({
       data: {
-        appealId: appeal.id,
-        attractionScheduleId: attractionSchedule.id,
-        from: slot.from,
-        to: slot.to,
+        attractionDestinationType,
+        attractionDescription,
+        attractionAddress,
+        attractionCity,
+        attractionPostalCode,
+        attractionDistrict,
+        attractionCountry,
+        attractionImages,
+        attractionServicesOffered: Array.isArray(attractionServicesOffered)
+          ? attractionServicesOffered
+          : attractionServicesOffered?.split(","),
+        attractionFreeWifi,
+        attractionFreeParking,
+        attractionKitchen,
+        attractionTv,
+        attractionAirConditioning,
+        attractionPool,
+        attractionRating,
+        attractionAdultPrice,
+        attractionChildPrice,
+        category,
+        discount,
+        vat,
+        attractionReviewCount,
+        partnerId,
+        attractionId: attractionExists.id,
       },
     });
-  }
-}
 
-  // for (const schedule of schedules) {
-  //   // date as string
-  //   const attractionSchedule = await tx.attractionSchedule.create({
-  //     data: {
-  //       attractionId: attraction.id,
-  //       // date: schedule.date,
-  //       day: schedule.day,
-  //     },
-  //   });
+    // create schedules & slots
+    for (const schedule of scheduleData) {
+      // create schedule
+      const attractionSchedule = await tx.attractionSchedule.create({
+        data: {
+          appealId: appeal.id,
+          day: schedule.day,
+        },
+      });
 
-  //   // remove duplicate slots for same date
-  //   const uniqueSlots = Array.from(
-  //     new Map(
-  //       schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
-  //     ).values()
-  //   ) as ISlot[];
+      // remove duplicate slots
+      const uniqueSlots = Array.from(
+        new Map(
+          schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
+        ).values()
+      ) as ISlot[];
 
-  //   for (const slot of uniqueSlots) {
-  //     await tx.scheduleSlot.create({
-  //       data: {
-  //         attractionId: attraction.id,
-  //         attractionScheduleId: attractionSchedule.id,
-  //         from: slot.from,
-  //         to: slot.to,
-  //       },
-  //     });
-  //   }
-  // }
+      // bulk insert slots
+      if (uniqueSlots.length > 0) {
+        await tx.scheduleSlot.createMany({
+          data: uniqueSlots.map((slot: ISlot) => ({
+            appealId: appeal.id,
+            attractionScheduleId: attractionSchedule.id,
+            from: slot.from,
+            to: slot.to,
+          })),
+        });
+      }
+    }
+
+    return appeal;
+  }, {maxWait: 15000, timeout: 30000});
 
   return await prisma.appeal.findUnique({
-    where: { id: attractionId },
+    where: { id: result.id },
     include: {
+      attraction: true,
       attractionSchedule: {
         include: { slots: true },
       },
