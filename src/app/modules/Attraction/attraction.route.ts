@@ -74,7 +74,7 @@ router.post(
   "/",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "attractionBusinessLogo", maxCount: 1 },
+    { name: "businessLogo", maxCount: 1 },
     { name: "attractionDocs", maxCount: 5 },
   ]),
   parseBodyData,

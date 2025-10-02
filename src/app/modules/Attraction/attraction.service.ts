@@ -93,6 +93,8 @@ const createAttraction = async (req: Request) => {
     where: { id: partnerExists.id },
     data: { isAttraction: true },
   });
+
+  return attraction;
 };
 
 // create attraction appeal with schedules
