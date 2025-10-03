@@ -206,7 +206,7 @@ const createCarReview = async (
 // create attraction review
 const createAttractionReview = async (
   userId: string,
-  attractionId: string,
+  appealId: string,
   rating: number,
   comment?: string
 ) => {
@@ -250,7 +250,7 @@ const createAttractionReview = async (
   const review = await prisma.review.create({
     data: {
       userId,
-      attractionId,
+      appealId,
       rating,
       comment,
       subRatings,
@@ -269,7 +269,7 @@ const createAttractionReview = async (
 
   const ratings = await prisma.review.findMany({
     where: {
-      attractionId,
+      appealId,
     },
     select: {
       rating: true,
@@ -279,8 +279,8 @@ const createAttractionReview = async (
   // average rating calculation
   const averageRating =
     ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
-  await prisma.attraction.update({
-    where: { id: attractionId },
+  await prisma.appeal.update({
+    where: { id: appealId },
     data: {
       attractionRating: averageRating.toFixed(1),
       attractionReviewCount: ratings.length,
