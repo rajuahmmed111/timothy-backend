@@ -102,7 +102,7 @@ router.patch(
   AttractionController.updateAttraction
 );
 
-// update attraction appeal
+// update attraction appeal by appealId
 router.patch(
   "/appeal/:appealId",
   auth(UserRole.BUSINESS_PARTNER),
