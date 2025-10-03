@@ -54,7 +54,7 @@ export const serviceConfig: Record<
   },
   ATTRACTION: {
     bookingModel: prisma.attraction_Booking,
-    serviceModel: prisma.attraction,
+    serviceModel: prisma.appeal,
     serviceTypeField: "attraction_bookingId",
     nameField: "attractionName",
     partnerIdField: "partnerId",

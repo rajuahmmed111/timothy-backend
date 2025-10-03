@@ -272,7 +272,7 @@ const createStripePaymentIntent = async (
           "Attraction booking not found"
         );
 
-      service = await prisma.attraction.findUnique({
+      service = await prisma.appeal.findUnique({
         where: { id: booking.attractionId },
       });
       if (!service)
@@ -509,10 +509,10 @@ const cancelStripeBooking = async (
   };
 
   const serviceModelMap: Record<string, any> = {
-    car: prisma.car_Rental,
+    car: prisma.car,
     hotel: prisma.room,
-    security: prisma.security_Protocol,
-    attraction: prisma.attraction,
+    security: prisma.security_Guard,
+    attraction: prisma.appeal,
   };
 
   const bookingModel = bookingModelMap[serviceType.toLowerCase()];
@@ -982,10 +982,10 @@ const cancelPayStackBooking = async (
   };
 
   const serviceModelMap: Record<string, any> = {
-    car: prisma.car_Rental,
+    car: prisma.car,
     hotel: prisma.hotel,
-    security: prisma.security_Protocol,
-    attraction: prisma.attraction,
+    security: prisma.security_Guard,
+    attraction: prisma.appeal,
   };
 
   const bookingModel = bookingModelMap[serviceType.toLowerCase()];
