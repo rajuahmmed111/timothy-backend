@@ -746,73 +746,76 @@ const updateAttractionAppeal = async (req: Request) => {
     typeof schedules === "string" ? JSON.parse(schedules) : schedules;
 
   // transaction for safety
-  const updatedAppeal = await prisma.$transaction(async (tx) => {
-    // update appeal info
-    const appeal = await tx.appeal.update({
-      where: { id: appealId },
-      data: {
-        attractionDestinationType,
-        attractionDescription,
-        attractionAddress,
-        attractionCity,
-        attractionPostalCode,
-        attractionDistrict,
-        attractionCountry,
-        attractionImages: newAttractionImages.length
-          ? newAttractionImages
-          : appealExists.attractionImages,
-        attractionServicesOffered: Array.isArray(attractionServicesOffered)
-          ? attractionServicesOffered
-          : attractionServicesOffered?.split(","),
-        attractionFreeWifi,
-        attractionFreeParking,
-        attractionKitchen,
-        attractionTv,
-        attractionAirConditioning,
-        attractionPool,
-        attractionRating,
-        attractionAdultPrice,
-        attractionChildPrice,
-        category,
-        discount,
-        vat,
-        attractionReviewCount,
-      },
-    });
-
-    // delete old schedules and slots
-    await tx.scheduleSlot.deleteMany({ where: { appealId } });
-    await tx.attractionSchedule.deleteMany({ where: { appealId } });
-
-    // re-insert schedules & slots
-    for (const schedule of scheduleData || []) {
-      const attractionSchedule = await tx.attractionSchedule.create({
+  const updatedAppeal = await prisma.$transaction(
+    async (tx) => {
+      // update appeal info
+      const appeal = await tx.appeal.update({
+        where: { id: appealId },
         data: {
-          appealId: appeal.id,
-          day: schedule.day,
+          attractionDestinationType,
+          attractionDescription,
+          attractionAddress,
+          attractionCity,
+          attractionPostalCode,
+          attractionDistrict,
+          attractionCountry,
+          attractionImages: newAttractionImages.length
+            ? newAttractionImages
+            : appealExists.attractionImages,
+          attractionServicesOffered: Array.isArray(attractionServicesOffered)
+            ? attractionServicesOffered
+            : attractionServicesOffered?.split(","),
+          attractionFreeWifi,
+          attractionFreeParking,
+          attractionKitchen,
+          attractionTv,
+          attractionAirConditioning,
+          attractionPool,
+          attractionRating,
+          attractionAdultPrice,
+          attractionChildPrice,
+          category,
+          discount,
+          vat,
+          attractionReviewCount,
         },
       });
 
-      const uniqueSlots = Array.from(
-        new Map(
-          schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
-        ).values()
-      ) as ISlot[];
+      // delete old schedules and slots
+      await tx.scheduleSlot.deleteMany({ where: { appealId } });
+      await tx.attractionSchedule.deleteMany({ where: { appealId } });
 
-      if (uniqueSlots.length > 0) {
-        await tx.scheduleSlot.createMany({
-          data: uniqueSlots.map((slot: ISlot) => ({
+      // re-insert schedules & slots
+      for (const schedule of scheduleData || []) {
+        const attractionSchedule = await tx.attractionSchedule.create({
+          data: {
             appealId: appeal.id,
-            attractionScheduleId: attractionSchedule.id,
-            from: slot.from,
-            to: slot.to,
-          })),
+            day: schedule.day,
+          },
         });
-      }
-    }
 
-    return appeal;
-  }, {maxWait: 15000, timeout: 30000});
+        const uniqueSlots = Array.from(
+          new Map(
+            schedule.slots.map((s: any) => [`${s.from}-${s.to}`, s])
+          ).values()
+        ) as ISlot[];
+
+        if (uniqueSlots.length > 0) {
+          await tx.scheduleSlot.createMany({
+            data: uniqueSlots.map((slot: ISlot) => ({
+              appealId: appeal.id,
+              attractionScheduleId: attractionSchedule.id,
+              from: slot.from,
+              to: slot.to,
+            })),
+          });
+        }
+      }
+
+      return appeal;
+    },
+    { maxWait: 15000, timeout: 30000 }
+  );
 
   return await prisma.appeal.findUnique({
     where: { id: updatedAppeal.id },
