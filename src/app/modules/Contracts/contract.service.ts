@@ -164,11 +164,16 @@ const getSingleContract = async (id: string, type: string) => {
       contract = await prisma.attraction_Booking.findUnique({
         where: { id },
         include: {
+          appeal: {
+            select: {
+              id: true,
+              attractionDescription: true,
+            },
+          },
           attraction: {
             select: {
               id: true,
               attractionName: true,
-              attractionDescription: true,
             },
           },
           user: {

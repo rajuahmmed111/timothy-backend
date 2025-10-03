@@ -532,10 +532,11 @@ model Attraction {
   updatedAt                     DateTime @updatedAt
 
   // relationships
-  user      User?    @relation(fields: [partnerId], references: [id])
-  partnerId String?  @db.ObjectId
-  review    Review[]
-  appeal    Appeal[]
+  user               User?                @relation(fields: [partnerId], references: [id])
+  partnerId          String?              @db.ObjectId
+  review             Review[]
+  appeal             Appeal[]
+  attraction_Booking Attraction_Booking[]
 
   @@map("attractions")
 }
@@ -623,12 +624,14 @@ model Attraction_Booking {
   updatedAt         DateTime      @updatedAt
 
   // relationships
-  partnerId String    @db.ObjectId
-  appealId  String?   @db.ObjectId
-  appeal    Appeal?   @relation(fields: [appealId], references: [id])
-  user      User?     @relation(fields: [userId], references: [id])
-  userId    String?   @db.ObjectId
-  payment   Payment[]
+  partnerId    String      @db.ObjectId
+  attractionId String?     @db.ObjectId
+  attraction   Attraction? @relation(fields: [attractionId], references: [id])
+  appealId     String?     @db.ObjectId
+  appeal       Appeal?     @relation(fields: [appealId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id])
+  userId       String?     @db.ObjectId
+  payment      Payment[]
 
   @@map("attraction_bookings")
 }
