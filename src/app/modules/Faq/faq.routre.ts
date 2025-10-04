@@ -19,9 +19,17 @@ router.get("/", FaqController.getAllFaq);
 router.get("/:id", FaqController.getSingleFaq);
 
 // update faq
-router.patch("/:id", FaqController.updateFaq);
+router.patch(
+  "/:id",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FaqController.updateFaq
+);
 
 // delete faq
-router.delete("/:id", FaqController.deleteFaq);
+router.delete(
+  "/:id",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FaqController.deleteFaq
+);
 
 export const faqRoutes = router;
