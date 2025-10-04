@@ -17,10 +17,10 @@ export interface ISignupRequest {
   fullName: string;
   email: string;
   password: string;
-  contactNumber?: string;
-  country?: string;
+  contactNumber: string;
+  country: string;
   fcmToken?: string;
-  role?: string;
+  role: string;
 }
 
 export interface ISignupResponse {
