@@ -1093,6 +1093,320 @@ const getMyTransactions = async (userId: string) => {
   return transactions;
 };
 
+// ------------------------------ website payment ------------------------------
+// checkout session on stripe
+const createStripePaymentIntentWebsite = async (
+  userId: string,
+  serviceType: string,
+  bookingId: string,
+  description: string,
+  country: string
+) => {
+  let booking: any;
+  let service: any;
+  let partner: any;
+  let serviceName: string;
+  let partnerId: string;
+  let totalPrice: number;
+
+  // find user
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+  // ensure user has an active Stripe account
+  // const stripeStatus = await ensureUserStripeAccount(userId);
+  // if (stripeStatus.status === "onboarding_required") {
+  //   return {
+  //     message: "Stripe account onboarding required",
+  //     onboardingLink: stripeStatus.onboardingLink,
+  //   };
+  // }
+
+  switch (serviceType) {
+    case "CAR":
+      booking = await prisma.car_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(httpStatus.NOT_FOUND, "Car booking not found");
+
+      service = await prisma.car_Rental.findUnique({
+        where: { id: booking.carId },
+      });
+      if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
+
+      partnerId = service.partnerId;
+      serviceName = service.carName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    case "HOTEL":
+      booking = await prisma.hotel_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(httpStatus.NOT_FOUND, "Hotel booking not found");
+
+      service = await prisma.hotel.findUnique({
+        where: { id: booking.hotelId },
+      });
+      if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+
+      partnerId = service.partnerId;
+      serviceName = service.hotelName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    case "SECURITY":
+      booking = await prisma.security_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(httpStatus.NOT_FOUND, "Security booking not found");
+
+      service = await prisma.security_Protocol.findUnique({
+        where: { id: booking.securityId },
+      });
+      if (!service)
+        throw new ApiError(httpStatus.NOT_FOUND, "Security service not found");
+
+      partnerId = service.partnerId;
+      serviceName = service.securityName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    case "ATTRACTION":
+      booking = await prisma.attraction_Booking.findUnique({
+        where: { id: bookingId, userId },
+      });
+      if (!booking)
+        throw new ApiError(
+          httpStatus.NOT_FOUND,
+          "Attraction booking not found"
+        );
+
+      service = await prisma.attraction.findUnique({
+        where: { id: booking.attractionId },
+      });
+      if (!service)
+        throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
+
+      partnerId = service.partnerId!;
+      serviceName = service.attractionName;
+      totalPrice = booking.totalPrice;
+      break;
+
+    default:
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
+  }
+
+  // find partner
+  partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  if (!partner || !partner.stripeAccountId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Provider not onboarded with Stripe"
+    );
+  }
+
+  // amount (convert USD → cents)
+  const amount = Math.round(totalPrice * 100);
+
+  // 20% admin commission
+  const adminFee = Math.round(amount * 0.2);
+
+  // service fee (partner earnings)
+  const serviceFee = amount - adminFee;
+
+  // create Stripe checkout session
+  const checkoutSession = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: serviceName,
+            description,
+          },
+          unit_amount: amount,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    success_url: `${config.stripe.checkout_success_url}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${config.stripe.checkout_cancel_url}`,
+    payment_intent_data: {
+      application_fee_amount: adminFee, // goes to Admin
+      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
+      description,
+    },
+    metadata: {
+      bookingId: booking.id,
+      userId,
+      serviceType,
+    },
+  });
+  // console.log("checkoutSession", checkoutSession);
+
+  // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
+
+  // update booking with checkoutSessionId
+  switch (serviceType) {
+    case "CAR":
+      await prisma.car_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+    case "HOTEL":
+      await prisma.hotel_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+    case "SECURITY":
+      await prisma.security_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+    case "ATTRACTION":
+      await prisma.attraction_Booking.update({
+        where: { id: booking.id },
+        data: { checkoutSessionId: checkoutSession.id },
+      });
+      break;
+  }
+
+  // save payment record
+  await prisma.payment.create({
+    data: {
+      amount,
+      description,
+      currency: checkoutSession.currency,
+      sessionId: checkoutSession.id,
+      paymentMethod: checkoutSession.payment_method_types.join(","),
+      status: PaymentStatus.UNPAID,
+      provider: "STRIPE",
+      payable_name: partner.fullName ?? "",
+      payable_email: partner.email,
+      country: partner.country ?? "",
+      admin_commission: adminFee,
+      service_fee: serviceFee,
+      serviceType,
+      partnerId,
+      userId,
+      car_bookingId: serviceType === "CAR" ? booking.id : undefined,
+      hotel_bookingId: serviceType === "HOTEL" ? booking.id : undefined,
+      security_bookingId: serviceType === "SECURITY" ? booking.id : undefined,
+      attraction_bookingId:
+        serviceType === "ATTRACTION" ? booking.id : undefined,
+    },
+  });
+
+  return {
+    checkoutUrl: checkoutSession.url,
+    checkoutSessionId: checkoutSession.id,
+  };
+};
+
+// create checkout session on pay-stack
+const createCheckoutSessionPayStackWebsite = async (
+  userId: string,
+  serviceType: string,
+  bookingId: string,
+  description: string,
+  country: string
+) => {
+  const serviceT = serviceConfig[serviceType as ServiceType];
+  if (!serviceT)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
+
+  // find booking
+  const booking = await serviceT.bookingModel.findUnique({
+    where: { id: bookingId, userId },
+  });
+  if (!booking)
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `${serviceType} booking not found`
+    );
+
+  // find user
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+  // find service
+  const service = await serviceT.serviceModel.findUnique({
+    where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
+  });
+  if (!service)
+    throw new ApiError(httpStatus.NOT_FOUND, `${serviceType} not found`);
+
+  // find partner
+  const partnerId = (service as any).partnerId;
+  const partner = await prisma.user.findUnique({ where: { id: partnerId } });
+  if (!partner)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Provider not found");
+
+  const amount = Math.round(booking.totalPrice * 100);
+  const adminFee = Math.round(amount * 0.2); // 20% for app
+  const providerAmount = amount - adminFee; // 80% for provider
+
+  // --- Initialize Paystack transaction ---
+  const response = await axios.post(
+    `${payStackBaseUrl}/transaction/initialize`,
+    {
+      email: user.email,
+      amount,
+      subaccount: partner.payStackSubAccountId,
+      metadata: {
+        bookingId,
+        serviceType,
+        userId,
+        partnerId,
+        description,
+        adminFee,
+        providerAmount,
+      },
+      callback_url: `${config.frontend_url}/payment/success`,
+    },
+    {
+      headers,
+    }
+  );
+
+  const data = response.data.data;
+
+  // --- Save payment record in DB ---
+  await prisma.payment.create({
+    data: {
+      amount,
+      description,
+      currency: "NGN",
+      sessionId: data.reference,
+      paymentMethod: "card",
+      status: PaymentStatus.UNPAID,
+      provider: "PAYSTACK",
+      payable_name: partner.fullName ?? "",
+      payable_email: partner.email,
+      country: partner.country ?? "",
+      admin_commission: adminFee,
+      serviceType,
+      partnerId,
+      userId,
+      [serviceT.serviceTypeField]: booking.id,
+    },
+  });
+
+  return {
+    checkoutUrl: data.authorization_url,
+    reference: data.reference,
+  };
+};
+
 export const PaymentService = {
   stripeAccountOnboarding,
   createStripePaymentIntent,
@@ -1107,4 +1421,6 @@ export const PaymentService = {
   payStackHandleWebhook,
   cancelPayStackBooking,
   getMyTransactions,
+  createStripePaymentIntentWebsite,
+  createCheckoutSessionPayStackWebsite,
 };

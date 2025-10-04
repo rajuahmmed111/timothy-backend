@@ -199,9 +199,7 @@ const createCheckoutSessionPayStack = catchAsync(
 const chargeCardPayStack = catchAsync(async (req: Request, res: Response) => {
   // const { reference, card, amount } = req.body;
   console.log(req.body, "req.body");
-  const result = await PaymentService.chargeCardPayStack(
-   req.body
-  );
+  const result = await PaymentService.chargeCardPayStack(req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -255,6 +253,65 @@ const getMyTransactions = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// ------------------------------ website payment ------------------------------
+// checkout session on stripe
+const createStripePaymentIntentWebsite = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const { serviceType, bookingId } = req.params;
+    const { description, country } = req.body;
+
+    const normalizedServiceType = serviceType.toUpperCase() as
+      | "CAR"
+      | "HOTEL"
+      | "SECURITY"
+      | "ATTRACTION";
+
+    const result = await PaymentService.createStripePaymentIntentWebsite(
+      userId,
+      normalizedServiceType,
+      bookingId,
+      description,
+      country
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Checkout session created successfully",
+      data: result,
+    });
+  }
+);
+
+// create checkout session on pay-stack
+const createCheckoutSessionPayStackWebsite = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const { serviceType, bookingId } = req.params;
+    const { description, country } = req.body;
+    const normalizedServiceType = serviceType.toUpperCase() as
+      | "CAR"
+      | "HOTEL"
+      | "SECURITY"
+      | "ATTRACTION";
+
+    const result = await PaymentService.createCheckoutSessionPayStackWebsite(
+      userId,
+      normalizedServiceType,
+      bookingId,
+      description,
+      country
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Checkout session created successfully",
+      data: result,
+    });
+  }
+);
+
 export const PaymentController = {
   stripeAccountOnboarding,
   createStripePaymentIntent,
@@ -269,4 +326,6 @@ export const PaymentController = {
   payStackHandleWebhook,
   cancelPayStackBooking,
   getMyTransactions,
+  createStripePaymentIntentWebsite,
+  createCheckoutSessionPayStackWebsite,
 };

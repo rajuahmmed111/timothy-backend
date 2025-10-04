@@ -89,4 +89,20 @@ router.post(
   PaymentController.cancelPayStackBooking
 );
 
+//
+// ------------------------------ website payment -----------------------------
+// checkout session on stripe
+router.post(
+  "/create-payment-intent-website/:serviceType/:bookingId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.createStripePaymentIntentWebsite
+);
+
+// create checkout session on pay-stack
+router.post(
+  "/create-checkout-session-paystack-website/:serviceType/:bookingId",
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
+  PaymentController.createCheckoutSessionPayStackWebsite
+);
+
 export const paymentRoutes = router;
