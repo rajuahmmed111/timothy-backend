@@ -21,7 +21,7 @@ const getSingleFaq = async (id: string) => {
 // update faq
 const updateFaq = async (id: string, payload: any) => {
   const { question, answer } = payload;
-  const faq = await prisma.faq.update({
+  await prisma.faq.update({
     where: { id },
     data: {
       question,
@@ -32,8 +32,7 @@ const updateFaq = async (id: string, payload: any) => {
 
 // delete faq
 const deleteFaq = async (id: string) => {
-  const faq = await prisma.faq.delete({ where: { id } });
-  return faq;
+  await prisma.faq.delete({ where: { id } });
 };
 
 export const FaqService = {
