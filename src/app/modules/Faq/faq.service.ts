@@ -20,7 +20,7 @@ const getSingleFaq = async (id: string) => {
 
 // update faq
 const updateFaq = async (id: string, payload: any) => {
-  const { category, question, answer } = payload;
+  const { question, answer } = payload;
   const faq = await prisma.faq.update({
     where: { id },
     data: {
