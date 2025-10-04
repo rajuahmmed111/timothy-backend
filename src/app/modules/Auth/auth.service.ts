@@ -212,6 +212,7 @@ const loginWebsite = async (payload: ISignupRequest) => {
       id: newUser.id,
       email: newUser.email,
       role: newUser.role,
+      // isHotel: newUser.isHotel,
     },
     config.jwt.refresh_token_secret as Secret,
     config.jwt.refresh_token_expires_in as string
