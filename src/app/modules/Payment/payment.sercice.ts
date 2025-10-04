@@ -1093,7 +1093,7 @@ const getMyTransactions = async (userId: string) => {
   return transactions;
 };
 
-// ------------------------------ website payment ------------------------------
+// ---------------------------P--- website payment ------------------------------
 // checkout session on stripe
 const createStripePaymentIntentWebsite = async (
   userId: string,
