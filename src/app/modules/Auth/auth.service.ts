@@ -179,10 +179,10 @@ const loginWebsite = async (payload: ISignupRequest) => {
     );
   }
 
-  // Hash password
+  // hash password
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // Create user
+  // create user
   const newUser = await prisma.user.create({
     data: {
       fullName,
