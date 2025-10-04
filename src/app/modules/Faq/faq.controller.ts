@@ -9,7 +9,7 @@ const createFaq = catchAsync(async (req: Request, res: Response) => {
   const result = await FaqService.createFaq(req.body);
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: httpStatus.CREATED,
     success: true,
     message: "Faq created successfully !",
     data: result,

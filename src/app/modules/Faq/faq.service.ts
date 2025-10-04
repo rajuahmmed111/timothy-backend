@@ -14,7 +14,14 @@ const getAllFaq = async () => {
 
 // get single faq
 const getSingleFaq = async (id: string) => {
-  const faq = await prisma.faq.findUnique({ where: { id } });
+  const faq = await prisma.faq.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      question: true,
+      answer: true,
+    },
+  });
   return faq;
 };
 

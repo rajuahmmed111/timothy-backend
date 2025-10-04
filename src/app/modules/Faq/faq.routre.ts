@@ -1,10 +1,16 @@
 import express from "express";
 import { FaqController } from "./faq.controller";
+import auth from "../../middlewares/auth";
+import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
 // create faq
-router.post("/", FaqController.createFaq);
+router.post(
+  "/",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  FaqController.createFaq
+);
 
 // get all faq
 router.get("/", FaqController.getAllFaq);
