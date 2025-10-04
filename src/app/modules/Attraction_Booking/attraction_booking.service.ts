@@ -52,11 +52,10 @@ const createAttractionBooking = async (
   const day = format(bookingDate, "EEEE").toUpperCase(); // MONDAY, TUESDAY...
 
   // get attraction with schedules & slots (match by day)
-  const attraction = await prisma.attraction.findUnique({
+  const attraction = await prisma.appeal.findUnique({
     where: { id: attractionId },
     select: {
       id: true,
-      attractionName: true,
       partnerId: true,
       attractionAdultPrice: true,
       attractionChildPrice: true,
@@ -66,6 +65,11 @@ const createAttractionBooking = async (
       attractionSchedule: {
         where: { day },
         include: { slots: true },
+      },
+      attraction: {
+        select: {
+          attractionName: true,
+        },
       },
     },
   });
@@ -158,15 +162,19 @@ const getAttractionBookingById = async (bookingId: string, userId: string) => {
   const result = await prisma.attraction_Booking.findUnique({
     where: { id: bookingId, userId },
     include: {
-      attraction: {
+      appeal: {
         select: {
           id: true,
-          attractionName: true,
           attractionAdultPrice: true,
           attractionChildPrice: true,
           discount: true,
           category: true,
           partnerId: true,
+        },
+      },
+      attraction: {
+        select: {
+          attractionName: true,
         },
       },
     },
@@ -184,15 +192,21 @@ const getAllMyAttractionBookings = async (userId: string) => {
   const result = await prisma.attraction_Booking.findMany({
     where: { userId: findUser.id, bookingStatus: BookingStatus.CONFIRMED },
     include: {
-      attraction: {
+      appeal: {
         select: {
           id: true,
-          attractionName: true,
           attractionAdultPrice: true,
           attractionImages: true,
           attractionAddress: true,
           discount: true,
           category: true,
+          partnerId: true,
+        },
+      },
+      attraction: {
+        select: {
+          id: true,
+          attractionName: true,
           partnerId: true,
         },
       },
