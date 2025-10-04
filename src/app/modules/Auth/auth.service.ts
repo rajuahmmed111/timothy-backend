@@ -20,6 +20,9 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
 
   const userData = await prisma.user.findFirst({
     where: { email: email, status: UserStatus.ACTIVE, role: role as UserRole },
+    select: {
+      
+    }
   });
 
   if (!userData) {
@@ -50,7 +53,6 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
       });
     } catch (error) {
       console.error("Failed to update FCM token:", error);
-      // Don't throw error here, login should still work
     }
   }
 
