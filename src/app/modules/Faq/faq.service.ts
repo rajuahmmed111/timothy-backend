@@ -24,7 +24,6 @@ const updateFaq = async (id: string, payload: any) => {
   const faq = await prisma.faq.update({
     where: { id },
     data: {
-      category,
       question,
       answer,
     },
