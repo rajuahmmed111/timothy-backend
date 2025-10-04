@@ -7,7 +7,12 @@ import ApiError from "../../../errors/ApiErrors";
 import emailSender from "../../../helpars/emailSender";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
 import prisma from "../../../shared/prisma";
-import { ILoginRequest, ILoginResponse } from "./auth.interface";
+import {
+  ILoginRequest,
+  ILoginResponse,
+  ISignupRequest,
+  ISignupResponse,
+} from "./auth.interface";
 
 // login user
 const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
@@ -147,6 +152,87 @@ const socialLogin = async (payload: any) => {
     refreshToken,
     user,
   };
+};
+
+// website login after booking
+const loginWebsite = async (payload: ISignupRequest) => {
+  const { fullName, email, password, contactNumber, country, fcmToken, role } =
+    payload;
+
+  // check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      "User already exists with this email"
+    );
+  }
+
+  // validate password
+  if (!password || password.length < 6) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Password must be at least 6 characters long"
+    );
+  }
+
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 12);
+
+  // Create user
+  const newUser = await prisma.user.create({
+    data: {
+      fullName,
+      email,
+      password: hashedPassword,
+      contactNumber: contactNumber || null,
+      country: country || null,
+      role: (role as UserRole) || UserRole.USER,
+      status: UserStatus.ACTIVE,
+      fcmToken: fcmToken || "",
+    },
+  });
+
+  // generate token
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  const refreshToken = jwtHelpers.generateToken(
+    {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    },
+    config.jwt.refresh_token_secret as Secret,
+    config.jwt.refresh_token_expires_in as string
+  );
+
+  const result: ISignupResponse = {
+    accessToken,
+    refreshToken,
+    user: {
+      id: newUser.id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      profileImage: newUser.profileImage,
+      contactNumber: newUser.contactNumber,
+      country: newUser.country,
+      role: newUser.role,
+      fcmToken: newUser.fcmToken,
+    },
+  };
+
+  return result;
 };
 
 // refresh token
@@ -470,6 +556,7 @@ const resetPassword = async (
 export const AuthServices = {
   loginUser,
   socialLogin,
+  loginWebsite,
   refreshToken,
   changePassword,
   forgotPassword,

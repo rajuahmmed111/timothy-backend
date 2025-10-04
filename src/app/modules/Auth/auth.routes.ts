@@ -13,6 +13,10 @@ router.post("/login", AuthController.loginUser);
 // create user and login facebook and google
 router.post("/social-login", AuthController.socialLogin);
 
+// website login after booking
+router.post("/login-website", AuthController.loginWebsite);
+
+
 // refresh token
 router.post("/refresh-token", AuthController.refreshToken);
 

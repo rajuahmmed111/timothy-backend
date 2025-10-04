@@ -43,6 +43,25 @@ const socialLogin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// website login after booking
+const loginWebsite = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.loginWebsite(req.body);
+
+  res.cookie("token", result.accessToken, {
+    secure: config.env === "production",
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "User registered and logged in successfully",
+    data: result,
+  });
+});
+
 // refresh token
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies;
@@ -152,6 +171,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 export const AuthController = {
   loginUser,
   socialLogin,
+  loginWebsite,
   refreshToken,
   logoutUser,
   changePassword,
