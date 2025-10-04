@@ -19,6 +19,8 @@ import { uploadFile } from "../../../helpars/fileUploader";
 // create hotel
 const createHotel = async (req: Request) => {
   const partnerId = req.user?.id;
+  console.log(partnerId, "partnerId");
+  console.log(req.body, "req.body");
 
   const partnerExists = await prisma.user.findUnique({
     where: { id: partnerId },
@@ -98,6 +100,7 @@ const createHotel = async (req: Request) => {
       partnerId: partnerId,
     },
   });
+  console.log(result, "result");
 
   // update partner hotel count
   await prisma.user.update({
