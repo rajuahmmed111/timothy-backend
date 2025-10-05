@@ -81,11 +81,11 @@ const getAllHotelsForPartner = catchAsync(
 // get all my hotel rooms for partner
 const getAllHotelRoomsForPartner = catchAsync(
   async (req: Request, res: Response) => {
-    const partnerId = req.user?.id;
+    const hotelId = req.params.hotelId;
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result = await HotelService.getAllHotelRoomsForPartner(
-      partnerId,
+      hotelId,
       filter,
       options
     );

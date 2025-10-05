@@ -41,7 +41,7 @@ router.get(
 
 // get all my hotel rooms for partner
 router.get(
-  "/partner-rooms",
+  "/partner-rooms/:hotelId",
   auth(UserRole.BUSINESS_PARTNER),
   HotelController.getAllHotelRoomsForPartner
 );

@@ -552,7 +552,7 @@ const getAllHotelsForPartner = async (
 
 // get all my hotel rooms for partner
 const getAllHotelRoomsForPartner = async (
-  partnerId: string,
+  hotelId: string,
   params: IHotelFilterRequest,
   options: IPaginationOptions
 ) => {
@@ -563,7 +563,7 @@ const getAllHotelRoomsForPartner = async (
   const filters: Prisma.RoomWhereInput[] = [];
 
   filters.push({
-    partnerId,
+    hotelId,
   });
 
   // text search
