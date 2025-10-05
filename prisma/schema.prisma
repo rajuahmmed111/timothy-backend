@@ -723,12 +723,12 @@ model CustomerContact {
 
 model Newsroom {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tagline     String
   title       String
-  slug        String   @unique
-  summary     String?
-  content     String
-  category    String?
-  image       String?
+  summary     String
+  category    String
+  country     String
+  image       String[]
   publishedAt DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
