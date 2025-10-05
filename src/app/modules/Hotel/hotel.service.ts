@@ -13,7 +13,11 @@ import {
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { IHotelFilterRequest } from "./hotel.interface";
-import { numericFields, searchableFields } from "./hotel.constant";
+import {
+  numericFields,
+  searchableFields,
+  searchableFieldsHotel,
+} from "./hotel.constant";
 import { uploadFile } from "../../../helpars/fileUploader";
 
 // create hotel
@@ -483,26 +487,26 @@ const getAllHotelsForPartner = async (
   options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-
   const { searchTerm, ...filterData } = params;
 
   const filters: Prisma.HotelWhereInput[] = [];
 
-  filters.push({
-    partnerId,
-  });
+  // Partner filter
+  filters.push({ partnerId });
 
-  // text search
-  filters.push({
-    OR: searchableFields.map((field) => ({
-      [field]: {
-        contains: params.searchTerm,
-        mode: "insensitive",
-      },
-    })),
-  });
+  // Text search
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
 
-  // Exact search filter
+  // Exact match filters
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
@@ -522,9 +526,7 @@ const getAllHotelsForPartner = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
-        : {
-            createdAt: "desc",
-          },
+        : { createdAt: "desc" },
     include: {
       user: {
         select: {

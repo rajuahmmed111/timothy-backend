@@ -53,3 +53,16 @@ export const numericFields = [
   "hotelNumChildren",
   "hotelRoomPriceNight",
 ];
+
+export const searchableFieldsHotel = [
+  "hotelBusinessName",
+  "hotelName",
+  "hotelBusinessType",
+  "hotelPhone",
+  "hotelEmail",
+  "businessTagline",
+  "businessDescription",
+  "hotelBookingCondition",
+  "hotelCancelationPolicy",
+];
+
