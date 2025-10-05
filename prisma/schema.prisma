@@ -721,6 +721,21 @@ model CustomerContact {
   @@map("customer_contacts")
 }
 
+model Newsroom {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String   @unique
+  summary     String?
+  content     String
+  category    String?
+  image       String?
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      String?
+  isPublished Boolean  @default(true)
+}
+
 model Human_Rights {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   description String
