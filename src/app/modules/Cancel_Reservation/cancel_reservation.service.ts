@@ -3,7 +3,6 @@ import prisma from "../../../shared/prisma";
 // create or update cancel reservation
 const createOrUpdateCancelReservation = async (description: string) => {
   const existing = await prisma.cancel_Reservation.findFirst();
-  console.log(existing);
 
   let result;
 
