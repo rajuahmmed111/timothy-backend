@@ -25,6 +25,7 @@ import { financeRoutes } from "../modules/Finances/finance.route";
 import { statisticsRoutes } from "../modules/Statistics/statistics.route";
 import { supportRoutes } from "../modules/Support/support.route";
 import { faqRoutes } from "../modules/Faq/faq.routre";
+import { humanRightRoute } from "../modules/Human_Rights/humanRight.route";
 
 const router = express.Router();
 
@@ -89,6 +90,10 @@ const moduleRoutes = [
   {
     path: "/faqs",
     route: faqRoutes,
+  },
+  {
+    path: "/human-rights",
+    route: humanRightRoute,
   },
   {
     path: "/terms-conditions",
