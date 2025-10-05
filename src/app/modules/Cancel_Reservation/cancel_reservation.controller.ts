@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
-import { HumanRightService } from "./cancel_reservation.service";
+import { CancelReservationService } from "./cancel_reservation.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 
@@ -8,9 +8,10 @@ import httpStatus from "http-status";
 const createOrUpdateCancelReservation = catchAsync(
   async (req: Request, res: Response) => {
     const { description } = req.body;
-    const result = await HumanRightService.createOrUpdateCancelReservation(
-      description
-    );
+    const result =
+      await CancelReservationService.createOrUpdateCancelReservation(
+        description
+      );
 
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -24,7 +25,7 @@ const createOrUpdateCancelReservation = catchAsync(
 // get all cancel reservation
 const getAllCancelReservation = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await HumanRightService.getAllCancelReservation();
+    const result = await CancelReservationService.getAllCancelReservation();
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -34,7 +35,7 @@ const getAllCancelReservation = catchAsync(
   }
 );
 
-export const HumanRightController = {
+export const CancelReservationController = {
   createOrUpdateCancelReservation,
   getAllCancelReservation,
 };

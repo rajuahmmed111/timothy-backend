@@ -28,7 +28,7 @@ const getAllCancelReservation = async () => {
   return result;
 };
 
-export const HumanRightService = {
+export const CancelReservationService = {
   createOrUpdateCancelReservation,
   getAllCancelReservation,
 };
