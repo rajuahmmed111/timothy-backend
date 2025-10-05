@@ -26,6 +26,7 @@ import { statisticsRoutes } from "../modules/Statistics/statistics.route";
 import { supportRoutes } from "../modules/Support/support.route";
 import { faqRoutes } from "../modules/Faq/faq.routre";
 import { humanRightRoute } from "../modules/Human_Rights/humanRight.route";
+import { cancelReservationRoute } from "../modules/Cancel_Reservation/cancel_reservation.route";
 
 const router = express.Router();
 
@@ -94,6 +95,10 @@ const moduleRoutes = [
   {
     path: "/human-rights",
     route: humanRightRoute,
+  },
+  {
+    path: "/cancel-reservations",
+    route: cancelReservationRoute,
   },
   {
     path: "/terms-conditions",

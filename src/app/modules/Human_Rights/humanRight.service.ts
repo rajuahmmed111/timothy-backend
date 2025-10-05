@@ -3,7 +3,6 @@ import prisma from "../../../shared/prisma";
 // create or update human rights
 const createOrUpdateHumanRights = async (description: string) => {
   const existing = await prisma.human_Rights.findFirst();
-  console.log(existing);
 
   let result;
 
@@ -21,7 +20,7 @@ const createOrUpdateHumanRights = async (description: string) => {
   }
 
   return result;
-};;
+};
 
 // get all human rights
 const getAllHumanRights = async () => {
