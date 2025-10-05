@@ -519,7 +519,7 @@ const getAllHotelsForPartner = async (
 
   const where: Prisma.HotelWhereInput = { AND: filters };
 
-  const result = await prisma.hotel.findMany({
+  const hotels = await prisma.hotel.findMany({
     where,
     skip,
     take: limit,
@@ -540,13 +540,31 @@ const getAllHotelsForPartner = async (
 
   const total = await prisma.hotel.count({ where });
 
+  // total rooms in each hotel
+  const roomCounts = await prisma.room.groupBy({
+    by: ["hotelId"],
+    _count: { hotelId: true },
+    where: {
+      hotelId: { in: hotels.map((h) => h.id) },
+    },
+  });
+
+  // merge room count into hotel result
+  const hotelsWithRoomCount = hotels.map((hotel) => {
+    const countObj = roomCounts.find((r) => r.hotelId === hotel.id);
+    return {
+      ...hotel,
+      totalRooms: countObj?._count.hotelId || 0,
+    };
+  });
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: hotelsWithRoomCount,
   };
 };
 
