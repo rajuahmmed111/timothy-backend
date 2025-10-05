@@ -32,11 +32,18 @@ router.get(
   HotelController.getAllHotelRooms
 );
 
-// get all my created hotels for partner
+// get all my hotels for partner
 router.get(
-  "/partner",
+  "/partner-hotels",
   auth(UserRole.BUSINESS_PARTNER),
   HotelController.getAllHotelsForPartner
+);
+
+// get all my hotel rooms for partner
+router.get(
+  "/partner-rooms",
+  auth(UserRole.BUSINESS_PARTNER),
+  HotelController.getAllHotelRoomsForPartner
 );
 
 // get my favorites
@@ -138,6 +145,5 @@ router.patch(
   parseBodyData,
   HotelController.updateHotelRoom
 );
-
 
 export const hotelRoute = router;

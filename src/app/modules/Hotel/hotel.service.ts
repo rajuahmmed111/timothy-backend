@@ -486,6 +486,78 @@ const getAllHotelsForPartner = async (
 
   const { searchTerm, ...filterData } = params;
 
+  const filters: Prisma.HotelWhereInput[] = [];
+
+  filters.push({
+    partnerId,
+  });
+
+  // text search
+  filters.push({
+    OR: searchableFields.map((field) => ({
+      [field]: {
+        contains: params.searchTerm,
+        mode: "insensitive",
+      },
+    })),
+  });
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const where: Prisma.HotelWhereInput = { AND: filters };
+
+  const result = await prisma.hotel.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+    },
+  });
+
+  const total = await prisma.hotel.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
+// get all my hotel rooms for partner
+const getAllHotelRoomsForPartner = async (
+  partnerId: string,
+  params: IHotelFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
   const filters: Prisma.RoomWhereInput[] = [];
 
   filters.push({
@@ -970,6 +1042,7 @@ export const HotelService = {
   getAllHotels,
   getAllHotelRooms,
   getAllHotelsForPartner,
+  getAllHotelRoomsForPartner,
   getSingleHotel,
   getSingleHotelRoom,
   getPopularHotels,
