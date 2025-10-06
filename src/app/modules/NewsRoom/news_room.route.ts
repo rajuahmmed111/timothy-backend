@@ -7,6 +7,12 @@ import { parseBodyData } from "../../middlewares/parseNestedJson";
 
 const router = express.Router();
 
+// get all news rooms
+router.get("/", NewsRoomController.getAllNewsRooms);
+
+// get single news room
+router.get("/:newsroomId", NewsRoomController.getSingleNewsRoom);
+
 // create news room
 router.post(
   "/",
@@ -14,6 +20,22 @@ router.post(
   uploadFile.upload.fields([{ name: "image", maxCount: 5 }]),
   parseBodyData,
   NewsRoomController.createNewsRoom
+);
+
+// update news room
+router.patch(
+  "/:newsroomId",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  uploadFile.upload.fields([{ name: "image", maxCount: 5 }]),
+  parseBodyData,
+  NewsRoomController.updateNewsRoom
+);
+
+// delete news room
+router.delete(
+  "/:newsroomId",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  NewsRoomController.deleteNewsRoom
 );
 
 export const newsRoomRoute = router;

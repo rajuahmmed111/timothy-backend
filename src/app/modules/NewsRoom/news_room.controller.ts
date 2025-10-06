@@ -15,6 +15,59 @@ const createNewsRoom = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all news rooms
+const getAllNewsRooms = catchAsync(async (req: Request, res: Response) => {
+  const result = await NewsRoomService.getAllNewsRooms();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "News Rooms retrieved successfully",
+    data: result,
+  });
+});
+
+// get single news room
+const getSingleNewsRoom = catchAsync(async (req: Request, res: Response) => {
+  const newsroomId = req.params.newsroomId;
+  const result = await NewsRoomService.getSingleNewsRoom(newsroomId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "News Room fetched successfully",
+    data: result,
+  });
+});
+
+// update news room
+const updateNewsRoom = catchAsync(async (req: Request, res: Response) => {
+  const result = await NewsRoomService.updateNewsRoom(req);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "News Room updated successfully",
+    data: result,
+  });
+});
+
+// delete news room
+const deleteNewsRoom = catchAsync(async (req: Request, res: Response) => {
+  const newsroomId = req.params.newsroomId;
+  const result = await NewsRoomService.deleteNewsRoom(newsroomId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "News Room deleted successfully",
+    data: result,
+  });
+});
+
 export const NewsRoomController = {
   createNewsRoom,
+  getAllNewsRooms,
+  getSingleNewsRoom,
+  updateNewsRoom,
+  deleteNewsRoom,
 };
