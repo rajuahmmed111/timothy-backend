@@ -24,7 +24,6 @@ import {
 // create security protocol
 const createSecurityProtocol = async (req: Request) => {
   const partnerId = req.user?.id;
-  console.log(req.body, "req.body");
 
   const findPartner = await prisma.user.findUnique({
     where: { id: partnerId },
