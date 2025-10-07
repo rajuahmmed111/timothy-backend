@@ -320,7 +320,7 @@ const createStripePaymentIntent = async (
 
   // create Stripe payment intent
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount,
+    amount: totalWithVAT,
     currency: "usd",
     payment_method_types: ["card"],
     application_fee_amount: adminFee, // goes to Admin
@@ -368,7 +368,7 @@ const createStripePaymentIntent = async (
   // save payment record
   await prisma.payment.create({
     data: {
-      amount,
+      amount: totalWithVAT,
       description,
       currency: paymentIntent.currency,
       sessionId: paymentIntent.id,
@@ -378,8 +378,9 @@ const createStripePaymentIntent = async (
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
-      admin_commission: adminFee,
-      service_fee: serviceFee,
+      admin_commission: adminFee, // 15%
+      service_fee: serviceFee, // partner earning
+      vat_amount: vatAmount, // 5% transaction admin account
       serviceType,
       partnerId,
       userId,
@@ -761,9 +762,27 @@ const createCheckoutSessionPayStack = async (
   if (!partner)
     throw new ApiError(httpStatus.BAD_REQUEST, "Provider not found");
 
+  // amount (convert USD → cents)
   const amount = Math.round(booking.totalPrice * 100);
-  const adminFee = Math.round(amount * 0.2); // 20% for app
-  const providerAmount = amount - adminFee; // 80% for provider
+
+  // add 5% vat
+  const vatPercentage = 5;
+  const vatAmount = Math.round(amount * (vatPercentage / 100));
+
+  // total amount with 5% vat
+  const totalWithVAT = amount + vatAmount;
+
+  // 15% admin commission
+  const adminCommissionPercentage = 15;
+  const adminCommission = Math.round(
+    amount * (adminCommissionPercentage / 100)
+  );
+
+  // total admin earnings
+  const adminFee = adminCommission + vatAmount;
+
+  // service fee (partner earnings)
+  const serviceFee = totalWithVAT - adminFee;
 
   // --- Initialize Pay-stack transaction ---
   const response = await axios.post(
@@ -779,7 +798,7 @@ const createCheckoutSessionPayStack = async (
         partnerId,
         description,
         adminFee,
-        providerAmount,
+        serviceFee,
       },
       callback_url: `${callback_url}/payment/success`,
     },
@@ -794,7 +813,7 @@ const createCheckoutSessionPayStack = async (
   // --- Save payment record in DB ---
   await prisma.payment.create({
     data: {
-      amount,
+      amount: totalWithVAT,
       description,
       currency: "NGN",
       sessionId: data.reference,
@@ -804,7 +823,9 @@ const createCheckoutSessionPayStack = async (
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
-      admin_commission: adminFee,
+      admin_commission: adminCommission, // 15%
+      vat_amount: vatAmount, // 5%
+      service_fee: serviceFee, // partner earning
       serviceType,
       partnerId,
       userId,
@@ -1225,11 +1246,24 @@ const createStripePaymentIntentWebsite = async (
   // amount (convert USD → cents)
   const amount = Math.round(totalPrice * 100);
 
-  // 20% admin commission
-  const adminFee = Math.round(amount * 0.2);
+  // add 5% vat
+  const vatPercentage = 5;
+  const vatAmount = Math.round(amount * (vatPercentage / 100));
+
+  // total amount with 5% vat
+  const totalWithVAT = amount + vatAmount;
+
+  // 15% admin commission
+  const adminCommissionPercentage = 15;
+  const adminCommission = Math.round(
+    amount * (adminCommissionPercentage / 100)
+  );
+
+  // total admin earnings
+  const adminFee = adminCommission + vatAmount;
 
   // service fee (partner earnings)
-  const serviceFee = amount - adminFee;
+  const serviceFee = totalWithVAT - adminFee;
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -1242,7 +1276,7 @@ const createStripePaymentIntentWebsite = async (
             name: serviceName,
             description,
           },
-          unit_amount: amount,
+          unit_amount: totalWithVAT,
         },
         quantity: 1,
       },
@@ -1261,7 +1295,6 @@ const createStripePaymentIntentWebsite = async (
       serviceType,
     },
   });
-  // console.log("checkoutSession", checkoutSession);
 
   // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
 
@@ -1296,7 +1329,7 @@ const createStripePaymentIntentWebsite = async (
   // save payment record
   await prisma.payment.create({
     data: {
-      amount,
+      amount: totalWithVAT,
       description,
       currency: checkoutSession.currency,
       sessionId: checkoutSession.id,
@@ -1306,8 +1339,9 @@ const createStripePaymentIntentWebsite = async (
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
-      admin_commission: adminFee,
-      service_fee: serviceFee,
+      admin_commission: adminFee, // 15%
+      service_fee: serviceFee, // partner earning
+      vat_amount: vatAmount, // 5% transaction admin account
       serviceType,
       partnerId,
       userId,
