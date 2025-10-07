@@ -299,11 +299,24 @@ const createStripePaymentIntent = async (
   // amount (convert USD → cents)
   const amount = Math.round(totalPrice * 100);
 
-  // 20% admin commission
-  const adminFee = Math.round(amount * 0.2);
+  // add 5% vat
+  const vatPercentage = 5;
+  const vatAmount = Math.round(amount * (vatPercentage / 100));
+
+  // total amount with 5% vat
+  const totalWithVAT = amount + vatAmount;
+
+  // 15% admin commission
+  const adminCommissionPercentage = 15;
+  const adminCommission = Math.round(
+    amount * (adminCommissionPercentage / 100)
+  );
+
+  // total admin earnings
+  const adminFee = adminCommission + vatAmount;
 
   // service fee (partner earnings)
-  const serviceFee = amount - adminFee;
+  const serviceFee = totalWithVAT - adminFee;
 
   // create Stripe payment intent
   const paymentIntent = await stripe.paymentIntents.create({

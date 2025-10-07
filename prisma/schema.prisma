@@ -710,7 +710,7 @@ model Faq {
 }
 
 model CustomerContact {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
   email       String
   phone       String
   description String?
@@ -864,6 +864,7 @@ model Payment {
   admin_commission Float?
   service_fee      Float?
   paystack_fee     Float?
+  vat_amount       Float? // 5% only for admin
   transactionId    String?
   serviceType      String // HOTEL | SECURITY | CAR | ATTRACTION
   partnerId        String          @db.ObjectId
