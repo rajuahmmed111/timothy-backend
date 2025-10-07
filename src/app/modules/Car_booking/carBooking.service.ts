@@ -125,9 +125,9 @@ const createCarBooking = async (
   }
 
   // VAT calculation
-  if (car.vat && car.vat > 0) {
-    basePrice += (basePrice * car.vat) / 100;
-  }
+  // if (car.vat && car.vat > 0) {
+  //   basePrice += (basePrice * car.vat) / 100;
+  // }
 
   const totalPrice = basePrice;
 

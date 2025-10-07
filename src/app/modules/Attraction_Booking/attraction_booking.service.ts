@@ -105,7 +105,7 @@ const createAttractionBooking = async (
     adults * (attraction.attractionAdultPrice || 0) +
     children * (attraction.attractionChildPrice || 0);
 
-  if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
+  // if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
   if (attraction.discount)
     totalPrice -= (totalPrice * attraction.discount) / 100;
 

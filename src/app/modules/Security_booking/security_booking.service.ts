@@ -102,9 +102,9 @@ const createSecurityBooking = async (
     totalPrice -= (totalPrice * security.discount) / 100;
   }
 
-  if (security.vat && security.vat > 0) {
-    totalPrice += (totalPrice * security.vat) / 100;
-  }
+  // if (security.vat && security.vat > 0) {
+  //   totalPrice += (totalPrice * security.vat) / 100;
+  // }
 
   // create booking
   const result = await prisma.security_Booking.create({
