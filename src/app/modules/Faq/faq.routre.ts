@@ -18,7 +18,7 @@ router.get("/", FaqController.getAllFaq);
 // get single faq
 router.get("/:id", FaqController.getSingleFaq);
 
-// update faq
+// update only faq
 router.patch(
   "/:id",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
