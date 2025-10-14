@@ -711,9 +711,9 @@ model Faq {
 
 model CustomerContact {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  fullName    String?
+  fullName    String
   email       String
-  phone       String
+  phone       String?
   description String?
 
   createdAt DateTime @default(now())

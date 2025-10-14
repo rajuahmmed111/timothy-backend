@@ -40,21 +40,9 @@ const getAbout = async () => {
 
 // create or update customer contact info
 const createOrUpdateCustomerContactInfo = async (payload: any) => {
-  // check if already exists
-  const existing = await prisma.customerContact.findFirst();
 
-  if (existing) {
-    // Update
-    return prisma.customerContact.update({
-      where: { id: existing.id },
-      data: payload,
-    });
-  } else {
-    // Create
-    return prisma.customerContact.create({
-      data: payload,
-    });
-  }
+
+
 };
 
 const getCustomerContactInfo = async () => {
