@@ -711,6 +711,7 @@ model Faq {
 
 model CustomerContact {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  fullName    String?
   email       String
   phone       String
   description String?
@@ -896,7 +897,7 @@ model Support {
   contactNumber String?
   subject       String
   description   String
-  supportType   SupportType
+  supportType   SupportType @default(High)
   status        SupportStatus @default(Pending)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
