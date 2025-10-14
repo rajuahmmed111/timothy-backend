@@ -38,8 +38,8 @@ const getAbout = async () => {
   return result;
 };
 
-// create or update customer contact info
-const createOrUpdateCustomerContactInfo = async (payload: any) => {
+// create customer contact info
+const createCustomerContactInfo = async (payload: any) => {
 
 
 
@@ -92,7 +92,7 @@ export const SettingService = {
   verifyEmailAndPhoneNumber,
   createOrUpdateAbout,
   getAbout,
-  createOrUpdateCustomerContactInfo,
+  createCustomerContactInfo,
   getCustomerContactInfo,
   updateNotificationSettings,
 };

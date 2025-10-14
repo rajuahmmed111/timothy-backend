@@ -49,8 +49,8 @@ router.post(
 router.post(
   "/customer-contact",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
-  validateRequest(settingValidation.customerContactInfo),
-  SettingController.createOrUpdateCustomerContactInfo
+  // validateRequest(settingValidation.customerContactInfo),
+  SettingController.createCustomerContactInfo
 );
 
 // updateNotificationSettings only for admin

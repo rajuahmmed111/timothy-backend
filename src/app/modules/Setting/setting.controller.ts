@@ -42,10 +42,10 @@ const getAbout = catchAsync(async (req: Request, res: Response) => {
 });
 
 // create or update customer contact info
-const createOrUpdateCustomerContactInfo = catchAsync(
+const createCustomerContactInfo = catchAsync(
   async (req: Request, res: Response) => {
     const data = req.body;
-    const result = await SettingService.createOrUpdateCustomerContactInfo(data);
+    const result = await SettingService.createCustomerContactInfo(data);
 
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -86,7 +86,7 @@ export const SettingController = {
   verifyEmailAndPhoneNumber,
   createOrUpdateAbout,
   getAbout,
-  createOrUpdateCustomerContactInfo,
+  createCustomerContactInfo,
   getCustomerContactInfo,
   updateNotificationSettings
 };
