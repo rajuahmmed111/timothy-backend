@@ -228,9 +228,8 @@ model Hotel {
 }
 
 model Room {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  hotelRoomType String
-
+  id                   String             @id @default(auto()) @map("_id") @db.ObjectId
+  hotelRoomType        String
   hotelRoomDescription String
   hotelAddress         String
   hotelCity            String
