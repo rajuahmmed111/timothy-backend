@@ -158,7 +158,6 @@ const createSecurityProtocolGuardType = async (req: Request) => {
     discount,
     securityReviewCount,
     hiredCount,
-    vat, //percentage
     securityBookingAbleDays,
   } = req.body;
 
@@ -189,7 +188,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
       languages: language,
       certification,
       securityRating,
-      securityPriceDay,
+      securityPriceDay: parseFloat(securityPriceDay),
       securityImages: securityImageUrls,
       category: category || undefined,
       discount: discount ? parseFloat(discount) : undefined,
@@ -197,7 +196,6 @@ const createSecurityProtocolGuardType = async (req: Request) => {
         ? parseInt(securityReviewCount)
         : undefined,
       hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
-      vat: vat ? parseFloat(vat) : undefined,
       securityBookingAbleDays: securityBookingAbleDay,
       securityId: findSecurityProtocol.id,
       partnerId: findSecurityProtocol.partnerId,
