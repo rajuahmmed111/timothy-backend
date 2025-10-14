@@ -3,6 +3,10 @@ export type ILoginResponse = {
   refreshToken: string;
   user?: {
     fcmToken?: string | null;
+    isHotel?: boolean | null;
+    isSecurity?: boolean | null;
+    isCar?: boolean | null;
+    isAttraction?: boolean | null;
   };
 };
 
@@ -35,5 +39,9 @@ export interface ISignupResponse {
     country: string | null;
     role: string;
     fcmToken?: string | null;
+    isHotel?: boolean | null;
+    isSecurity?: boolean | null;
+    isCar?: boolean | null;
+    isAttraction?: boolean | null;
   };
 }
