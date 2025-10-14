@@ -190,43 +190,15 @@ model Hotel {
   hotelDocs              String[]
   hotelLate              Float?
   hotelLong              Float?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
 
-  // relationships
-  user           User            @relation(fields: [partnerId], references: [id])
-  partnerId      String          @db.ObjectId
-  hotel_bookings Hotel_Booking[]
-  favorite       Favorite[]
-  room           Room[]
-
-  @@map("hotels")
-}
-
-model Room {
-  id                            String             @id @default(auto()) @map("_id") @db.ObjectId
-  hotelRoomType                 String
   hotelAC                       Boolean
   hotelParking                  Boolean
   hoitelWifi                    Boolean
   hotelBreakfast                Boolean
   hotelPool                     Boolean
-  hotelRating                   String
   hotelSmoking                  Boolean
   hotelTv                       Boolean
   hotelWashing                  Boolean
-  hotelRoomDescription          String
-  hotelAddress                  String
-  hotelCity                     String
-  hotelPostalCode               String
-  hotelDistrict                 String
-  hotelCountry                  String
-  hotelImages                   String[] // 5 image
-  hotelRoomImages               String[] // 5 image
-  hotelRoomCapacity             String
-  hotelNumberOfRooms            Int
-  hotelNumAdults                Int
-  hotelNumChildren              Int
   hotelAccommodationType        String
   hotelKitchen                  Boolean
   hotelRestaurant               Boolean
@@ -242,14 +214,44 @@ model Room {
   hotelLocationFeatureWaterView Boolean
   hotelLocationFeatureIsland    Boolean
   hotelCoffeeBar                Boolean
-  category                      String
-  hotelRoomPriceNight           Float
-  discount                      Float              @default(0)
-  isBooked                      EveryServiceStatus @default(AVAILABLE)
-  isFavorite                    Boolean            @default(false)
-  hotelReviewCount              Int                @default(0)
-  createdAt                     DateTime           @default(now())
-  updatedAt                     DateTime           @updatedAt
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+
+  // relationships
+  user           User            @relation(fields: [partnerId], references: [id])
+  partnerId      String          @db.ObjectId
+  hotel_bookings Hotel_Booking[]
+  favorite       Favorite[]
+  room           Room[]
+
+  @@map("hotels")
+}
+
+model Room {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  hotelRoomType String
+
+  hotelRoomDescription String
+  hotelAddress         String
+  hotelCity            String
+  hotelPostalCode      String
+  hotelDistrict        String
+  hotelCountry         String
+  hotelImages          String[] // 5 image
+  hotelRoomImages      String[] // 5 image
+  hotelRoomCapacity    String
+  hotelNumberOfRooms   Int
+  hotelNumAdults       Int
+  hotelNumChildren     Int
+  category             String
+  hotelRating          String
+  hotelRoomPriceNight  Float
+  discount             Float              @default(0)
+  isBooked             EveryServiceStatus @default(AVAILABLE)
+  isFavorite           Boolean            @default(false)
+  hotelReviewCount     Int                @default(0)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
   // relationships
   hotelId        String?         @db.ObjectId
@@ -897,7 +899,7 @@ model Support {
   contactNumber String?
   subject       String
   description   String
-  supportType   SupportType @default(High)
+  supportType   SupportType   @default(High)
   status        SupportStatus @default(Pending)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
