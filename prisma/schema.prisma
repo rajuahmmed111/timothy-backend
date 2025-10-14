@@ -714,7 +714,7 @@ model CustomerContact {
   fullName    String
   email       String
   phone       String?
-  description String?
+  description String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -48,7 +48,7 @@ router.post(
 // create customer contact info
 router.post(
   "/customer-contact",
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  // auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   // validateRequest(settingValidation.customerContactInfo),
   SettingController.createCustomerContactInfo
 );
