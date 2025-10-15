@@ -183,7 +183,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
       securityCountry,
       securityGuardDescription,
       securityServicesOffered: parsedServices,
-      experience,
+      experience: parseInt(experience),
       availability,
       languages: language,
       certification,
@@ -191,11 +191,11 @@ const createSecurityProtocolGuardType = async (req: Request) => {
       securityPriceDay: parseFloat(securityPriceDay),
       securityImages: securityImageUrls,
       category: category || undefined,
-      discount: discount ? parseFloat(discount) : undefined,
+      discount: discount ? parseFloat(discount) : 0,
       securityReviewCount: securityReviewCount
         ? parseInt(securityReviewCount)
-        : undefined,
-      hiredCount: hiredCount ? parseInt(hiredCount) : undefined,
+        : 0,
+      hiredCount: hiredCount ? parseInt(hiredCount) : 0,
       securityBookingAbleDays: securityBookingAbleDay,
       securityId: findSecurityProtocol.id,
       partnerId: findSecurityProtocol.partnerId,
