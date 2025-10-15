@@ -192,13 +192,12 @@ const createCar = async (req: Request) => {
       fuelType,
       gearType,
       carRating,
-      carPriceDay,
+      carPriceDay: carPriceDay ? parseFloat(carPriceDay) : 0,
       carBookingAbleDays: Array.isArray(carBookingAbleDays)
         ? carBookingAbleDays
         : carBookingAbleDays?.split(",") || [],
       category: category || undefined,
       discount: discount ? parseFloat(discount) : 0,
-      vat: vat ? parseFloat(vat) : 0,
       carReviewCount: carReviewCount ? parseInt(carReviewCount) : 0,
       partnerId: carRentalExists.partnerId,
       car_RentalId: carRentalExists.id,
@@ -593,7 +592,7 @@ const updateCarRental = async (req: Request) => {
 // update Car
 const updateCar = async (req: Request) => {
   const partnerId = req.user?.id;
-  const carId = req.params.carId; // ✅ correct param
+  const carId = req.params.carId;
 
   // check partner exists
   const partnerExists = await prisma.user.findUnique({
@@ -653,7 +652,7 @@ const updateCar = async (req: Request) => {
   } = req.body;
 
   return await prisma.car.update({
-    where: { id: carId }, // ✅ now correct
+    where: { id: carId },
     data: {
       carAddress,
       carPostalCode,
@@ -679,14 +678,13 @@ const updateCar = async (req: Request) => {
       fuelType,
       gearType,
       carRating,
-      carPriceDay: carPriceDay ? parseFloat(carPriceDay) : undefined,
+      carPriceDay: carPriceDay ? parseFloat(carPriceDay) : 0,
       carBookingAbleDays: Array.isArray(carBookingAbleDays)
         ? carBookingAbleDays
         : carBookingAbleDays?.split(",") || [],
       category,
-      discount: discount ? parseFloat(discount) : undefined,
-      vat: vat ? parseFloat(vat) : undefined,
-      carReviewCount: carReviewCount ? parseInt(carReviewCount) : undefined,
+      discount: discount ? parseFloat(discount) : 0,
+      carReviewCount: carReviewCount ? parseInt(carReviewCount) : 0,
     },
   });
 };
