@@ -205,7 +205,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
   return securityProtocol;
 };
 
-// get all security protocols for partner
+// get all my security protocols for partner
 const getAllSecurityProtocolsForPartner = async (
   partnerId: string,
   params: ISecurityFilterRequest,
@@ -274,13 +274,36 @@ const getAllSecurityProtocolsForPartner = async (
     where: whereConditions,
   });
 
+  // total security protocols guards type in security protocols
+  const totalGuardsSpecificSecurity = await prisma.security_Guard.groupBy({
+    by: ["securityId"],
+    _count: {
+      securityId: true,
+    },
+    where: {
+      securityId: {
+        in: result.map((securityProtocol) => securityProtocol.id),
+      },
+    },
+  });
+
+  // merge guards into security protocols result
+  const mergedSecurityProtocols = result.map((security) => {
+    const countObj = totalGuardsSpecificSecurity.find((r) => r.securityId === security.id);
+    return {
+      ...security,
+      totalGuards: countObj?._count.securityId || 0,
+    };
+  });
+
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: mergedSecurityProtocols,
   };
 };
 

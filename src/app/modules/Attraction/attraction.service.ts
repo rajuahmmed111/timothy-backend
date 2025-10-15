@@ -470,13 +470,31 @@ const getAllAttractionsForPartner = async (
   });
   const total = await prisma.attraction.count({ where });
 
+  // total appeals in each attraction
+  const appealCounts = await prisma.appeal.groupBy({
+    by: ["attractionId"],
+    _count: { attractionId: true },
+    where: {
+      attractionId: { in: result.map((h) => h.id) },
+    },
+  });
+
+  // merge appeal count into attraction result
+  const attractionWithAppealCount = result.map((attraction) => {
+    const countObj = appealCounts.find((r) => r.attractionId === attraction.id);
+    return {
+      ...attraction,
+      totalAppeals: countObj?._count.attractionId || 0,
+    };
+  });
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: attractionWithAppealCount,
   };
 };
 

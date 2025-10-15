@@ -411,13 +411,37 @@ const getAllCarRentalsForPartner = async (
 
   const total = await prisma.car_Rental.count({ where });
 
+  // total car into each carRental
+  const totalCarRentals = await prisma.car.groupBy({
+    by: ["car_RentalId"],
+    _count: {
+      car_RentalId: true,
+    },
+    where: {
+      car_RentalId: {
+        in: result.map((car) => car.id),
+      },
+    },
+  });
+
+  // merge carRental with total car
+  const CarRentalWithCarCount = result.map((carRental) => {
+    const countObj = totalCarRentals.find(
+      (r) => r.car_RentalId === carRental.id
+    );
+    return {
+      ...carRental,
+      totalCar: countObj?._count.car_RentalId || 0,
+    };
+  });
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: CarRentalWithCarCount,
   };
 };
 
