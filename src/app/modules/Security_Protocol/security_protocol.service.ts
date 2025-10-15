@@ -1045,7 +1045,6 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
         ? parseInt(securityReviewCount)
         : existingGuard.securityReviewCount,
       hiredCount: hiredCount ? parseInt(hiredCount) : existingGuard.hiredCount,
-      vat: vat ? parseFloat(vat) : existingGuard.vat,
       securityBookingAbleDays:
         securityBookingAbleDay || existingGuard.securityBookingAbleDays,
       securityImages: securityImageUrls,
