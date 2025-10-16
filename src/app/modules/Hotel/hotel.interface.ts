@@ -11,6 +11,7 @@ export type IHotelFilterRequest = {
   fromDate?: string | undefined;
   toDate?: string | undefined;
   hotelBreakfast?: boolean | undefined;
+  hotelAccommodationType?: string | undefined;
   hotelKitchen?: boolean | undefined;
   hoitelWifi?: boolean | undefined;
   hotelParking?: boolean | undefined;

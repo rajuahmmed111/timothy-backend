@@ -14,6 +14,7 @@ export const filterField: string[] = [
   "fromDate",
   "toDate",
   "hotelBreakfast",
+  "hotelAccommodationType",
   "hotelKitchen",
   "hoitelWifi",
   "hotelParking",
@@ -64,4 +65,3 @@ export const searchableFieldsHotel = [
   "hotelBookingCondition",
   "hotelCancelationPolicy",
 ];
-
