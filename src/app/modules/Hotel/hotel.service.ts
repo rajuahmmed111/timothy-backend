@@ -254,7 +254,6 @@ const createHotelRoom = async (req: Request) => {
 };
 
 // get all hotels with search filtering and pagination
-
 const getAllHotels = async (
   params: IHotelFilterRequest,
   options: IPaginationOptions
@@ -266,38 +265,24 @@ const getAllHotels = async (
 
   const filters: Prisma.HotelWhereInput[] = [];
 
-  // 🔍 Text search (Hotel fields + Room.hotelCountry)
+  // text search
   if (params?.searchTerm) {
     filters.push({
-      OR: [
-        // Normal searchable fields
-        ...searchableFields.map((field) => ({
-          [field]: {
-            contains: params.searchTerm,
-            mode: "insensitive",
-          },
-        })),
-        // ✅ Room relation search by hotelCountry
-        {
-          room: {
-            some: {
-              hotelCountry: {
-                contains: params.searchTerm,
-                mode: "insensitive",
-              },
-            },
-          },
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
         },
-      ],
+      })),
     });
   }
 
-  // 🔢 Numeric exact match (except hotelRoomPriceNight)
+  // numeric match
   const exactNumericFields = numericFields.filter(
     (f) => f !== "hotelRoomPriceNight"
   );
 
-  // Exact search filter (non-numeric)
+  // Exact search filter
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
@@ -308,7 +293,7 @@ const getAllHotels = async (
     });
   }
 
-  // Numeric match filters
+  // numeric match
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: exactNumericFields.map((field) => ({
@@ -319,17 +304,15 @@ const getAllHotels = async (
     });
   }
 
-  // Combine all filters
-  const whereConditions: Prisma.HotelWhereInput = {
+  const where: Prisma.HotelWhereInput = {
     AND: filters,
   };
 
-  // Fetch data
   const result = await prisma.hotel.findMany({
-    where: whereConditions,
-    include: {
-      room: true, // ✅ include rooms for country data
-    },
+    where,
+    // include: {
+    //   user: true,
+    // },
     skip,
     take: limit,
     orderBy:
@@ -343,7 +326,7 @@ const getAllHotels = async (
   });
 
   const total = await prisma.hotel.count({
-    where: whereConditions,
+    where,
   });
 
   return {
