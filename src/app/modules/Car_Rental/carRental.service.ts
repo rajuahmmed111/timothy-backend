@@ -101,7 +101,7 @@ const createCarRental = async (req: Request) => {
 // create Car
 const createCar = async (req: Request) => {
   const partnerId = req.user?.id;
-  const carRentalId = req.params.carRentalId;
+  const carRentalId = req.params.car_RentalId;
 
   const partnerExists = await prisma.user.findUnique({
     where: { id: partnerId },

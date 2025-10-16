@@ -254,6 +254,7 @@ const createHotelRoom = async (req: Request) => {
 };
 
 // get all hotels with search filtering and pagination
+
 const getAllHotels = async (
   params: IHotelFilterRequest,
   options: IPaginationOptions
@@ -265,24 +266,38 @@ const getAllHotels = async (
 
   const filters: Prisma.HotelWhereInput[] = [];
 
-  // text search
+  // 🔍 Text search (Hotel fields + Room.hotelCountry)
   if (params?.searchTerm) {
     filters.push({
-      OR: searchableFields.map((field) => ({
-        [field]: {
-          contains: params.searchTerm,
-          mode: "insensitive",
+      OR: [
+        // Normal searchable fields
+        ...searchableFields.map((field) => ({
+          [field]: {
+            contains: params.searchTerm,
+            mode: "insensitive",
+          },
+        })),
+        // ✅ Room relation search by hotelCountry
+        {
+          room: {
+            some: {
+              hotelCountry: {
+                contains: params.searchTerm,
+                mode: "insensitive",
+              },
+            },
+          },
         },
-      })),
+      ],
     });
   }
 
-  // numeric match
+  // 🔢 Numeric exact match (except hotelRoomPriceNight)
   const exactNumericFields = numericFields.filter(
     (f) => f !== "hotelRoomPriceNight"
   );
 
-  // Exact search filter
+  // Exact search filter (non-numeric)
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
@@ -293,7 +308,7 @@ const getAllHotels = async (
     });
   }
 
-  // numeric match
+  // Numeric match filters
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: exactNumericFields.map((field) => ({
@@ -304,15 +319,17 @@ const getAllHotels = async (
     });
   }
 
+  // Combine all filters
   const whereConditions: Prisma.HotelWhereInput = {
     AND: filters,
   };
 
+  // Fetch data
   const result = await prisma.hotel.findMany({
     where: whereConditions,
-    // include: {
-    //   user: true,
-    // },
+    include: {
+      room: true, // ✅ include rooms for country data
+    },
     skip,
     take: limit,
     orderBy:
