@@ -40,8 +40,8 @@ export const filterField: string[] = [
 ];
 
 export const searchableFields: string[] = [
-  "hotelName",
-  "hotelRating",
+  // "hotelName",
+  // "hotelRating",
   "hotelCity",
   "hotelCountry",
   "category",

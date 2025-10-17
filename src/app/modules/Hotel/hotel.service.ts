@@ -278,9 +278,9 @@ const getAllHotels = async (
   }
 
   // numeric match
-  const exactNumericFields = numericFields.filter(
-    (f) => f !== "hotelRoomPriceNight"
-  );
+  // const exactNumericFields = numericFields.filter(
+  //   (f) => f !== "hotelRoomPriceNight"
+  // );
 
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
@@ -294,15 +294,15 @@ const getAllHotels = async (
   }
 
   // numeric match
-  if (Object.keys(filterData).length > 0) {
-    filters.push({
-      AND: exactNumericFields.map((field) => ({
-        [field]: {
-          equals: (filterData as any)[field],
-        },
-      })),
-    });
-  }
+  // if (Object.keys(filterData).length > 0) {
+  //   filters.push({
+  //     AND: exactNumericFields.map((field) => ({
+  //       [field]: {
+  //         equals: (filterData as any)[field],
+  //       },
+  //     })),
+  //   });
+  // }
 
   const where: Prisma.HotelWhereInput = {
     AND: filters,
@@ -323,6 +323,9 @@ const getAllHotels = async (
         : {
             createdAt: "desc",
           },
+          include: {
+            room: true
+          }
   });
 
   const total = await prisma.hotel.count({
