@@ -1111,6 +1111,54 @@ const updateHotelRoom = async (req: Request) => {
   return updatedRoom;
 };
 
+// delete hotel
+const deleteHotel = async (hotelId: string, partnerId: string) => {
+  // find hotel
+  const hotelExists = await prisma.hotel.findUnique({
+    where: { id: hotelId },
+  });
+  if (!hotelExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
+  }
+
+  // find partner
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const result = await prisma.hotel.delete({
+    where: { id: hotelId, partnerId },
+  });
+  return result;
+};
+
+// delete hotel room
+const deleteHotelRoom = async (roomId: string, partnerId: string) => {
+  // find room
+  const roomExists = await prisma.room.findUnique({
+    where: { id: roomId },
+  });
+  if (!roomExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
+  }
+
+  // find partner
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  const result = await prisma.room.delete({
+    where: { id: roomId, partnerId },
+  });
+  return result;
+};
+
 export const HotelService = {
   createHotel,
   createHotelRoom,
@@ -1125,4 +1173,6 @@ export const HotelService = {
   getAllFavoriteHotels,
   updateHotel,
   updateHotelRoom,
+  deleteHotel,
+  deleteHotelRoom,
 };

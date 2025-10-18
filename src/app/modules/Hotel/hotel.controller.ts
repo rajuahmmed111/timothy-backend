@@ -195,6 +195,32 @@ const updateHotelRoom = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete hotel
+const deleteHotel = catchAsync(async (req: Request, res: Response) => {
+  const hotelId = req.params.hotelId;
+  const partnerId = req.user?.id;
+  const result = await HotelService.deleteHotel(hotelId, partnerId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel deleted successfully",
+    data: result,
+  });
+});
+
+// delete hotel room
+const deleteHotelRoom = catchAsync(async (req: Request, res: Response) => {
+  const roomId = req.params.roomId;
+  const partnerId = req.user?.id;
+  const result = await HotelService.deleteHotelRoom(roomId, partnerId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel room deleted successfully",
+    data: result,
+  });
+});
+
 export const HotelController = {
   createHotel,
   createHotelRoom,
@@ -209,4 +235,6 @@ export const HotelController = {
   getAllFavoriteHotels,
   updateHotel,
   updateHotelRoom,
+  deleteHotel,
+  deleteHotelRoom,
 };

@@ -146,4 +146,18 @@ router.patch(
   HotelController.updateHotelRoom
 );
 
+// delete hotel
+router.delete(
+  "/:hotelId",
+  auth(UserRole.BUSINESS_PARTNER),
+  HotelController.deleteHotel
+);
+
+// delete hotel room
+router.delete(
+  "/room/:roomId",
+  auth(UserRole.BUSINESS_PARTNER),
+  HotelController.deleteHotelRoom
+);
+
 export const hotelRoute = router;
