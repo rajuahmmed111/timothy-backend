@@ -1129,10 +1129,9 @@ const deleteHotel = async (hotelId: string, partnerId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  const result = await prisma.hotel.delete({
+  return await prisma.hotel.delete({
     where: { id: hotelId, partnerId },
   });
-  return result;
 };
 
 // delete hotel room
@@ -1153,10 +1152,9 @@ const deleteHotelRoom = async (roomId: string, partnerId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
-  const result = await prisma.room.delete({
+  return await prisma.room.delete({
     where: { id: roomId, partnerId },
   });
-  return result;
 };
 
 export const HotelService = {

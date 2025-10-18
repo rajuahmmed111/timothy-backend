@@ -1,4 +1,4 @@
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import { AttractionService } from "./attraction.service";
 import sendResponse from "../../../shared/sendResponse";
@@ -152,6 +152,40 @@ const updateAttractionAppeal = catchAsync(
   }
 );
 
+// delete attraction
+const deleteAttraction = catchAsync(async (req: Request, res: Response) => {
+  const partnerId = req.user?.id;
+  const attractionId = req.params.attractionId;
+  const result = await AttractionService.deleteAttraction(
+    attractionId,
+    partnerId
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Attraction deleted successfully !",
+    data: result,
+  });
+});
+
+// delete appeal
+const deleteAttractionAppeal = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const appealId = req.params.appealId;
+    const result = await AttractionService.deleteAttractionAppeal(
+      appealId,
+      partnerId
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Appeal deleted successfully !",
+      data: result,
+    });
+  }
+);
+
 export const AttractionController = {
   createAttraction,
   createAttractionAppeal,
@@ -163,4 +197,6 @@ export const AttractionController = {
   getSingleAttractionAppeal,
   updateAttraction,
   updateAttractionAppeal,
+  deleteAttraction,
+  deleteAttractionAppeal,
 };

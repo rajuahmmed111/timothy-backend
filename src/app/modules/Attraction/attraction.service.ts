@@ -838,6 +838,50 @@ const updateAttractionAppeal = async (req: Request) => {
   });
 };
 
+// delete attraction
+const deleteAttraction = async (attractionId: string, partnerId: string) => {
+  // check if attraction exists
+  const attractionExists = await prisma.attraction.findUnique({
+    where: { id: attractionId },
+  });
+  if (!attractionExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
+
+  // partner check
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+
+  // delete attraction
+  return await prisma.attraction.delete({
+    where: { id: attractionId, partnerId },
+  });
+};
+
+// delete appeal
+const deleteAttractionAppeal = async (appealId: string, partnerId: string) => {
+  // check if appeal exists
+  const appealExists = await prisma.appeal.findUnique({
+    where: { id: appealId },
+  });
+  if (!appealExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Appeal not found");
+
+  // partner check
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists)
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+
+  // delete appeal
+  return await prisma.appeal.delete({
+    where: { id: appealId, partnerId },
+  });
+};
+
 export const AttractionService = {
   createAttraction,
   createAttractionAppeal,
@@ -849,4 +893,6 @@ export const AttractionService = {
   getSingleAttractionAppeal,
   updateAttraction,
   updateAttractionAppeal,
+  deleteAttraction,
+  deleteAttractionAppeal,
 };

@@ -111,4 +111,18 @@ router.patch(
   AttractionController.updateAttractionAppeal
 );
 
+// delete attraction
+router.delete(
+  "/:attractionId",
+  auth(UserRole.BUSINESS_PARTNER),
+  AttractionController.deleteAttraction
+);
+
+// delete attraction appeal by appealId
+router.delete(
+  "/appeal/:appealId",
+  auth(UserRole.BUSINESS_PARTNER),
+  AttractionController.deleteAttractionAppeal
+);
+
 export const attractionRoute = router;
