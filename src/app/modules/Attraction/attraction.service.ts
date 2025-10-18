@@ -618,7 +618,6 @@ const getSingleAttractionAppeal = async (appealId: string) => {
 
 // update attraction
 const updateAttraction = async (req: Request) => {
-  console.log(req.body, "services");
   const partnerId = req.user?.id;
   const attractionId = req.params.attractionId;
 
