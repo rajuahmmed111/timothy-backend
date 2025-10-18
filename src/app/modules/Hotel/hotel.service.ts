@@ -271,8 +271,17 @@ const getAllHotels = async (
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, minPrice, maxPrice, fromDate, toDate, ...filterData } =
-    params;
+  const {
+    searchTerm,
+    minPrice,
+    maxPrice,
+    fromDate,
+    toDate,
+    hotelNumberOfRooms,
+    hotelNumAdults,
+    hotelNumChildren,
+    ...filterData
+  } = params;
 
   const filters: Prisma.HotelWhereInput[] = [];
 
@@ -288,11 +297,6 @@ const getAllHotels = async (
     });
   }
 
-  // numeric match
-  // const exactNumericFields = numericFields.filter(
-  //   (f) => f !== "hotelRoomPriceNight"
-  // );
-
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
     filters.push({
@@ -304,38 +308,55 @@ const getAllHotels = async (
     });
   }
 
-  // numeric match
-  // if (Object.keys(filterData).length > 0) {
-  //   filters.push({
-  //     AND: exactNumericFields.map((field) => ({
-  //       [field]: {
-  //         equals: (filterData as any)[field],
-  //       },
-  //     })),
-  //   });
-  // }
-
   const where: Prisma.HotelWhereInput = {
     AND: filters,
   };
 
+  // room-level filters
+  const roomWhere: Prisma.RoomWhereInput = {
+    NOT: {
+      hotel_bookings:
+        fromDate && toDate
+          ? {
+              some: {
+                OR: [
+                  {
+                    bookedFromDate: { lte: toDate },
+                    bookedToDate: { gte: fromDate },
+                  },
+                ],
+              },
+            }
+          : undefined,
+    },
+    ...(hotelNumberOfRooms
+      ? { hotelNumberOfRooms: Number(hotelNumberOfRooms) }
+      : {}),
+    ...(hotelNumAdults ? { hotelNumAdults: Number(hotelNumAdults) } : {}),
+    ...(hotelNumChildren ? { hotelNumChildren: Number(hotelNumChildren) } : {}),
+    ...(minPrice ? { hotelRoomPriceNight: { gte: Number(minPrice) } } : {}),
+    ...(maxPrice
+      ? {
+          hotelRoomPriceNight: {
+            ...(minPrice ? { gte: Number(minPrice) } : {}),
+            lte: Number(maxPrice),
+          },
+        }
+      : {}),
+  };
+
   const result = await prisma.hotel.findMany({
     where,
-    // include: {
-    //   user: true,
-    // },
     skip,
     take: limit,
     orderBy:
       options.sortBy && options.sortOrder
-        ? {
-            [options.sortBy]: options.sortOrder,
-          }
-        : {
-            createdAt: "desc",
-          },
+        ? { [options.sortBy]: options.sortOrder }
+        : { createdAt: "desc" },
     include: {
-      room: true,
+      room: {
+        where: roomWhere,
+      },
     },
   });
 

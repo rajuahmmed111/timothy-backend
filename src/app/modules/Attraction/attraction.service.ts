@@ -149,7 +149,6 @@ const createAttractionAppeal = async (req: Request) => {
     attractionChildPrice,
     category,
     discount,
-    attractionReviewCount,
     schedules, // [{ day, slots:[{from,to}] }]
   } = req.body;
 
@@ -192,7 +191,6 @@ const createAttractionAppeal = async (req: Request) => {
           attractionChildPrice: parseFloat(attractionChildPrice),
           category,
           discount: parseFloat(discount),
-          attractionReviewCount: parseInt(attractionReviewCount),
           partnerId,
           attractionId: attractionExists.id,
         },
