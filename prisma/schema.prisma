@@ -190,6 +190,11 @@ model Hotel {
   hotelDocs              String[]
   hotelLate              Float?
   hotelLong              Float?
+  hotelAddress           String
+  hotelCity              String
+  hotelPostalCode        String
+  hotelDistrict          String
+  hotelCountry           String
 
   hotelAC                       Boolean
   hotelParking                  Boolean
@@ -231,11 +236,6 @@ model Room {
   id                   String             @id @default(auto()) @map("_id") @db.ObjectId
   hotelRoomType        String
   hotelRoomDescription String
-  hotelAddress         String
-  hotelCity            String
-  hotelPostalCode      String
-  hotelDistrict        String
-  hotelCountry         String
   hotelImages          String[] // 5 image
   hotelRoomImages      String[] // 5 image
   hotelRoomCapacity    String
