@@ -297,13 +297,20 @@ const getAllHotels = async (
     });
   }
 
+  // convert string booleans to actual boolean
+  const normalizedFilterData: any = {};
+  Object.keys(filterData).forEach((key) => {
+    const value = (filterData as any)[key];
+    if (value === "true") normalizedFilterData[key] = true;
+    else if (value === "false") normalizedFilterData[key] = false;
+    else normalizedFilterData[key] = value;
+  });
+
   // Exact search filter
-  if (Object.keys(filterData).length > 0) {
+  if (Object.keys(normalizedFilterData).length > 0) {
     filters.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
+      AND: Object.keys(normalizedFilterData).map((key) => ({
+        [key]: { equals: normalizedFilterData[key] },
       })),
     });
   }
