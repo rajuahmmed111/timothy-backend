@@ -190,7 +190,7 @@ const getAllMyHotelBookings = async (userId: string) => {
           id: true,
           hotelRoomPriceNight: true,
           hotelRoomImages: true,
-          hotelAddress: true,
+          // hotelAddress: true,
           discount: true,
           category: true,
           partnerId: true,

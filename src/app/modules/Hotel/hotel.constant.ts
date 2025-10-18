@@ -5,7 +5,7 @@ export const filterField: string[] = [
   "hotelCity",
   "hotelCountry",
   "hotelRating",
-  "category",
+  // "category",
   "hotelNumberOfRooms",
   "hotelNumAdults",
   "hotelNumChildren",
