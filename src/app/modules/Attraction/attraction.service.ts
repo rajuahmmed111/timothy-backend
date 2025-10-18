@@ -750,8 +750,6 @@ const updateAttractionAppeal = async (req: Request) => {
     attractionChildPrice,
     category,
     discount,
-    vat,
-    attractionReviewCount,
     schedules, // [{ day, slots:[{from,to}] }]
   } = req.body;
 
@@ -790,7 +788,6 @@ const updateAttractionAppeal = async (req: Request) => {
           attractionChildPrice: parseFloat(attractionChildPrice),
           category,
           discount: parseFloat(discount),
-          attractionReviewCount: parseInt(attractionReviewCount),
         },
       });
 
