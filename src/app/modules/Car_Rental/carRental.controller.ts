@@ -145,6 +145,32 @@ const updateCar = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete Car Rental
+const deleteCarRental = catchAsync(async (req: Request, res: Response) => {
+  const partnerId = req.user?.id;
+  const carRentalId = req.params.car_RentalId;
+  const result = await CarRentalService.deleteCarRental(carRentalId, partnerId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Car rental deleted successfully",
+    data: result,
+  });
+});
+
+// delete Car
+const deleteCar = catchAsync(async (req: Request, res: Response) => {
+  const partnerId = req.user?.id;
+  const carId = req.params.carId;
+  const result = await CarRentalService.deleteCar(carId, partnerId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Car deleted successfully",
+    data: result,
+  });
+});
+
 export const CarRentalController = {
   createCarRental,
   createCar,
@@ -156,4 +182,6 @@ export const CarRentalController = {
   getSingleCar,
   updateCarRental,
   updateCar,
+  deleteCarRental,
+  deleteCar,
 };

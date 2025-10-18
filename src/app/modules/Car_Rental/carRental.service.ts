@@ -713,6 +713,54 @@ const updateCar = async (req: Request) => {
   });
 };
 
+// delete Car Rental
+const deleteCarRental = async (carRentalId: string, partnerId: string) => {
+  // check if car rental exists
+  const carRentalExists = await prisma.car_Rental.findUnique({
+    where: { id: carRentalId },
+  });
+  if (!carRentalExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Car rental not found");
+  }
+
+  // check partner exists
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // delete car rental
+  return await prisma.car_Rental.delete({
+    where: { id: carRentalId },
+  });
+};
+
+// delete Car
+const deleteCar = async (carId: string, partnerId: string) => {
+  // check if car exists
+  const carExists = await prisma.car.findUnique({
+    where: { id: carId },
+  });
+  if (!carExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
+  }
+
+  // check partner exists
+  const partnerExists = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!partnerExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // delete car
+  return await prisma.car.delete({
+    where: { id: carId },
+  });
+};
+
 export const CarRentalService = {
   createCarRental,
   createCar,
@@ -724,4 +772,6 @@ export const CarRentalService = {
   getSingleCar,
   updateCarRental,
   updateCar,
+  deleteCarRental,
+  deleteCar,
 };

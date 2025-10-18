@@ -111,4 +111,18 @@ router.patch(
   CarRentalController.updateCar
 );
 
+// delete car rental
+router.delete(
+  "/:car_RentalId",
+  auth(UserRole.BUSINESS_PARTNER),
+  CarRentalController.deleteCarRental
+);
+
+// delete car
+router.delete(
+  "/car/:carId",
+  auth(UserRole.BUSINESS_PARTNER),
+  CarRentalController.deleteCar
+);
+
 export const carRentalRoutes = router;
