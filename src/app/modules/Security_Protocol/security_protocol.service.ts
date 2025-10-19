@@ -289,13 +289,14 @@ const getAllSecurityProtocolsForPartner = async (
 
   // merge guards into security protocols result
   const mergedSecurityProtocols = result.map((security) => {
-    const countObj = totalGuardsSpecificSecurity.find((r) => r.securityId === security.id);
+    const countObj = totalGuardsSpecificSecurity.find(
+      (r) => r.securityId === security.id
+    );
     return {
       ...security,
       totalGuards: countObj?._count.securityId || 0,
     };
   });
-
 
   return {
     meta: {
@@ -1077,6 +1078,60 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
   return updatedGuard;
 };
 
+// delete security protocol
+const deleteSecurityProtocol = async (
+  securityId: string,
+  partnerId: string
+) => {
+  // check security protocol exists
+  const findSecurityProtocol = await prisma.security_Protocol.findUnique({
+    where: { id: securityId },
+  });
+  if (!findSecurityProtocol) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Security protocol not found");
+  }
+
+  // check partner
+  const findPartner = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!findPartner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // delete security protocol
+  return await prisma.security_Protocol.delete({
+    where: { id: securityId, partnerId },
+  });
+};
+
+// delete security protocol guard
+const deleteSecurityProtocolGuard = async (
+  guardId: string,
+  partnerId: string
+) => {
+  // check guard exists
+  const findGuard = await prisma.security_Guard.findUnique({
+    where: { id: guardId },
+  });
+  if (!findGuard) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Guard not found");
+  }
+
+  // check partner
+  const findPartner = await prisma.user.findUnique({
+    where: { id: partnerId },
+  });
+  if (!findPartner) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
+  }
+
+  // delete security protocol guard type
+  return await prisma.security_Guard.delete({
+    where: { id: guardId },
+  });
+};
+
 export const Security_ProtocolService = {
   createSecurityProtocol,
   createSecurityProtocolGuardType,
@@ -1091,4 +1146,6 @@ export const Security_ProtocolService = {
   getSingleSecurityProtocolGuard,
   updateSecurityProtocol,
   updateSecurityProtocolGuardType,
+  deleteSecurityProtocol,
+  deleteSecurityProtocolGuard,
 };

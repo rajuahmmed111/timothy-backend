@@ -149,4 +149,18 @@ router.patch(
   Security_ProtocolController.updateSecurityProtocolGuardType
 );
 
+// delete security protocol
+router.delete(
+  "/:securityId",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.deleteSecurityProtocol
+);
+
+// delete security guard
+router.delete(
+  "/security-guard/:guardId",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.deleteSecurityProtocolGuard
+);
+
 export const securityProtocolRoute = router;

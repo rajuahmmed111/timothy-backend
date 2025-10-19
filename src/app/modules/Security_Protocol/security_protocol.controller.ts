@@ -227,6 +227,42 @@ const updateSecurityProtocolGuardType = catchAsync(
   }
 );
 
+// delete security protocol
+const deleteSecurityProtocol = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const securityId = req.params.securityId;
+    const result = await Security_ProtocolService.deleteSecurityProtocol(
+      securityId,
+      partnerId
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security Protocol deleted successfully",
+      data: result,
+    });
+  }
+);
+
+// delete security protocol guard
+const deleteSecurityProtocolGuard = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const guardId = req.params.guardId;
+    const result = await Security_ProtocolService.deleteSecurityProtocolGuard(
+      partnerId,
+      guardId
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security Guard deleted successfully",
+      data: result,
+    });
+  }
+);
+
 export const Security_ProtocolController = {
   createSecurityProtocol,
   createSecurityProtocolGuardType,
@@ -241,4 +277,6 @@ export const Security_ProtocolController = {
   getSingleSecurityProtocolGuard,
   updateSecurityProtocol,
   updateSecurityProtocolGuardType,
+  deleteSecurityProtocol,
+  deleteSecurityProtocolGuard,
 };
