@@ -74,6 +74,27 @@ const getAllSecurityProtocolsGuards = catchAsync(
   }
 );
 
+// get all security protocols security guard by security protocol id
+const getAllSecurityProtocolsGuardsBySecurityProtocolId = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const securityId = req.params.securityId;
+    const result = await Security_ProtocolService.getAllSecurityProtocolsGuardsBySecurityProtocolId(
+      filter,
+      options,
+      securityId
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security protocols fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get all security protocols security guard app
 const getAllSecurityProtocolsGuardsApp = catchAsync(
   async (req: Request, res: Response) => {
@@ -269,6 +290,7 @@ export const Security_ProtocolController = {
   getAllSecurityProtocols,
   getAllSecurityProtocolsGuardsApp,
   getAllSecurityProtocolsGuards,
+  getAllSecurityProtocolsGuardsBySecurityProtocolId,
   getAllSecurityProtocolsForPartner,
   getAllSecurityProtocolsForPartnerSecurityGuards,
   getPopularSecurityProtocols,

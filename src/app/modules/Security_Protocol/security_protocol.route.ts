@@ -31,6 +31,18 @@ router.get(
   Security_ProtocolController.getAllSecurityProtocolsGuards
 );
 
+// get all security protocols security guard by security protocol id
+router.get(
+  "/security-guard/:securityId",
+  auth(
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.USER
+  ),
+  Security_ProtocolController.getAllSecurityProtocolsGuardsBySecurityProtocolId 
+);
+
 // get all security protocols security guard app
 router.get(
   "/security-guard-app",

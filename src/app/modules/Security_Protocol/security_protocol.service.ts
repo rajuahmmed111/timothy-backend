@@ -308,7 +308,7 @@ const getAllSecurityProtocolsForPartner = async (
   };
 };
 
-// get all security protocols for partner security guards
+// get all security protocols security guards for partner
 const getAllSecurityProtocolsForPartnerSecurityGuards = async (
   securityId: string,
   params: ISecurityFilterRequest,
@@ -621,6 +621,96 @@ const getAllSecurityProtocolsGuards = async (
     params;
 
   const filters: Prisma.Security_GuardWhereInput[] = [];
+
+  // Text search
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: { contains: searchTerm, mode: "insensitive" },
+      })),
+    });
+  }
+
+  // Protocol type filter
+  if (securityProtocolType) {
+    filters.push({
+      security: { securityProtocolType: { equals: securityProtocolType } },
+    });
+  }
+
+  // Date availability filter
+  if (fromDate && toDate) {
+    filters.push({
+      security_Booking: {
+        none: {
+          AND: [
+            { securityBookedFromDate: { lte: toDate } },
+            { securityBookedToDate: { gte: fromDate } },
+            { bookingStatus: { not: BookingStatus.COMPLETED } },
+          ],
+        },
+      },
+    });
+  }
+
+  // Exact filters
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: { equals: (filterData as any)[key] },
+      })),
+    });
+  }
+
+  const where: Prisma.Security_GuardWhereInput = { AND: filters };
+
+  // Single query with pagination
+  const [guards, total] = await Promise.all([
+    prisma.security_Guard.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy:
+        options.sortBy && options.sortOrder
+          ? { [options.sortBy]: options.sortOrder }
+          : { securityRating: "desc" },
+      include: {
+        user: {
+          select: { id: true, fullName: true, profileImage: true },
+        },
+        security: {
+          select: {
+            id: true,
+            securityName: true,
+            securityProtocolType: true,
+          },
+        },
+      },
+    }),
+    prisma.security_Guard.count({ where }),
+  ]);
+
+  return {
+    meta: { total, page, limit },
+    data: guards,
+  };
+};
+
+// get all security protocols guards by security protocol id
+const getAllSecurityProtocolsGuardsBySecurityProtocolId = async (
+  params: ISecurityFilterRequest,
+  options: IPaginationOptions,
+  securityId: string
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+  const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } =
+    params;
+
+  const filters: Prisma.Security_GuardWhereInput[] = [];
+
+  filters.push({
+    securityId,
+  });
 
   // Text search
   if (searchTerm) {
@@ -1221,6 +1311,7 @@ export const Security_ProtocolService = {
   getAllSecurityProtocols,
   getAllSecurityProtocolsGuardsApp,
   getAllSecurityProtocolsGuards,
+  getAllSecurityProtocolsGuardsBySecurityProtocolId,
   getAllSecurityProtocolsForPartner,
   getAllSecurityProtocolsForPartnerSecurityGuards,
   getPopularSecurityProtocols,
