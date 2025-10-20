@@ -403,6 +403,99 @@ const getAllAttractionsAppeals = async (
   };
 };
 
+// get all attractions appeals by attraction id
+const getAllAttractionsAppealsByAttractionId = async (
+  params: IAttractionFilter,
+  options: IPaginationOptions,
+  attractionId: string
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, ...filterData } = params;
+
+  const filters: Prisma.AppealWhereInput[] = [];
+
+  // filter by attraction id
+  filters.push({
+    attractionId,
+  });
+
+  // text search
+  if (params?.searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // get only isBooked  AVAILABLE hotels
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
+
+  const where: Prisma.AppealWhereInput = { AND: filters };
+
+  const result = await prisma.appeal.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+      attractionSchedule: {
+        include: { slots: true },
+      },
+    },
+  });
+
+  const total = await prisma.appeal.count({ where });
+
+  // Step 2: Group by attractionCountry
+  const grouped = result.reduce((acc, attraction) => {
+    const country = attraction.attractionCountry || "Unknown";
+    if (!acc[country]) {
+      acc[country] = [];
+    }
+    acc[country].push(attraction);
+    return acc;
+  }, {} as Record<string, typeof result>);
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: grouped,
+  };
+};
+
 // get all attractions for partner
 const getAllAttractionsForPartner = async (
   partnerId: string,
@@ -887,6 +980,7 @@ export const AttractionService = {
   createAttractionAppeal,
   getAllAttractions,
   getAllAttractionsAppeals,
+  getAllAttractionsAppealsByAttractionId,
   getAllAttractionsForPartner,
   getAllAttractionsAppealsForPartner,
   getSingleAttraction,

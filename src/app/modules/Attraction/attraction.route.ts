@@ -31,6 +31,18 @@ router.get(
   AttractionController.getAllAttractionsAppeals
 );
 
+// get all attractions appeals by attractionId
+router.get(
+  "/appeals/:attractionId",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  AttractionController.getAllAttractionsAppealsByAttractionId
+);
+
 // get all my attractions for partner
 router.get(
   "/partner",

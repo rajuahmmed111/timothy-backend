@@ -62,6 +62,26 @@ const getAllAttractionsAppeals = catchAsync(
   }
 );
 
+// get all attractions appeals by attraction id
+const getAllAttractionsAppealsByAttractionId = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const attractionId = req.params.attractionId;
+    const result = await AttractionService.getAllAttractionsAppealsByAttractionId(
+      filter,
+      options,
+      attractionId
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Attractions fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get all attractions for partner
 const getAllAttractionsForPartner = catchAsync(
   async (req: Request, res: Response) => {
@@ -191,6 +211,7 @@ export const AttractionController = {
   createAttractionAppeal,
   getAllAttractions,
   getAllAttractionsAppeals,
+  getAllAttractionsAppealsByAttractionId,
   getAllAttractionsForPartner,
   getAllAttractionsAppealsForPartner,
   getSingleAttraction,
