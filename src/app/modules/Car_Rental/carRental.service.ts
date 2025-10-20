@@ -191,7 +191,7 @@ const createCar = async (req: Request) => {
       carColor,
       fuelType,
       gearType,
-      carRating,
+      carRating: carRating ? carRating : "0",
       carPriceDay: carPriceDay ? parseFloat(carPriceDay) : 0,
       carBookingAbleDays: Array.isArray(carBookingAbleDays)
         ? carBookingAbleDays

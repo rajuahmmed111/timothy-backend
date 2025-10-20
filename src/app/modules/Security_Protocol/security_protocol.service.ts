@@ -187,7 +187,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
       availability,
       languages: language,
       certification,
-      securityRating,
+      securityRating: securityRating ? securityRating : "0",
       securityPriceDay: parseFloat(securityPriceDay),
       securityImages: securityImageUrls,
       category: category || undefined,
@@ -617,7 +617,8 @@ const getAllSecurityProtocolsGuards = async (
   options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-  const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } = params;
+  const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } =
+    params;
 
   const filters: Prisma.Security_GuardWhereInput[] = [];
 
@@ -633,7 +634,7 @@ const getAllSecurityProtocolsGuards = async (
   // Protocol type filter
   if (securityProtocolType) {
     filters.push({
-      security: { securityProtocolType: { equals: securityProtocolType } }
+      security: { securityProtocolType: { equals: securityProtocolType } },
     });
   }
 
@@ -669,9 +670,10 @@ const getAllSecurityProtocolsGuards = async (
       where,
       skip,
       take: limit,
-      orderBy: options.sortBy && options.sortOrder
-        ? { [options.sortBy]: options.sortOrder }
-        : { securityRating: "desc" },
+      orderBy:
+        options.sortBy && options.sortOrder
+          ? { [options.sortBy]: options.sortOrder }
+          : { securityRating: "desc" },
       include: {
         user: {
           select: { id: true, fullName: true, profileImage: true },

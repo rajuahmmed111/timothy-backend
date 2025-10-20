@@ -186,7 +186,7 @@ const createAttractionAppeal = async (req: Request) => {
           attractionTv: Boolean(attractionTv),
           attractionAirConditioning: Boolean(attractionAirConditioning),
           attractionPool: Boolean(attractionPool),
-          attractionRating,
+          attractionRating: attractionRating ? attractionRating : "0",
           attractionAdultPrice: parseFloat(attractionAdultPrice),
           attractionChildPrice: parseFloat(attractionChildPrice),
           category,
