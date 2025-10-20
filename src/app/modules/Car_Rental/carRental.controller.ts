@@ -57,6 +57,20 @@ const getAllCarRentalsCars = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all car rentals cars by carRental carRentalId
+const getAllCarRentalsCarsByCarRentalId = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const carRentalId = req.params.carRentalId;
+  const result = await CarRentalService.getAllCarRentalsCarsByCarRentalId(filter, options, carRentalId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Car fetched successfully",
+    data: result,
+  });
+});
+
 // get all my created car rentals for partner
 const getAllCarRentalsForPartner = catchAsync(
   async (req: Request, res: Response) => {
@@ -176,6 +190,7 @@ export const CarRentalController = {
   createCar,
   getAllCarRentals,
   getAllCarRentalsCars,
+  getAllCarRentalsCarsByCarRentalId,
   getAllCarRentalsForPartner,
   getAllCarRentalsCarsForPartner,
   getSingleCarRental,

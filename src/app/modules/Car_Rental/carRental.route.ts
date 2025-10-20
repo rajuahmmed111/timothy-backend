@@ -31,6 +31,18 @@ router.get(
   CarRentalController.getAllCarRentalsCars
 );
 
+// get all car rentals cars by carRental carRentalId
+router.get(
+  "/cars",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  CarRentalController.getAllCarRentalsCarsByCarRentalId
+);
+
 // get all my created car rentals for partner
 router.get(
   "/partner",

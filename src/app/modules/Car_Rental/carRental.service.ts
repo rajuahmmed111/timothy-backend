@@ -353,6 +353,93 @@ const getAllCarRentalsCars = async (
   };
 };
 
+// get all car rentals cars by carRental id
+const getAllCarRentalsCarsByCarRentalId = async (
+  params: ICarRentalFilter,
+  options: IPaginationOptions,
+  carRentalId: string
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, fromDate, toDate, ...filterData } = params;
+
+  const filters: Prisma.CarWhereInput[] = [];
+
+  filters.push({
+    car_RentalId: carRentalId,
+  });
+
+  // text search
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  // Availability filter
+  if (fromDate && toDate) {
+    filters.push({
+      car_Booking: {
+        none: {
+          bookingStatus: BookingStatus.CONFIRMED,
+          AND: [
+            {
+              carBookedFromDate: { lte: toDate },
+            },
+            {
+              carBookedToDate: { gte: fromDate },
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  const where: Prisma.CarWhereInput = { AND: filters };
+
+  const result = await prisma.car.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            carRating: "desc",
+          },
+    include: {
+      car_Rental: true,
+    },
+  });
+
+  const total = await prisma.car.count({ where });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get all car rentals for partner
 const getAllCarRentalsForPartner = async (
   partnerId: string,
@@ -766,6 +853,7 @@ export const CarRentalService = {
   createCar,
   getAllCarRentals,
   getAllCarRentalsCars,
+  getAllCarRentalsCarsByCarRentalId,
   getAllCarRentalsForPartner,
   getAllCarRentalsCarsForPartner,
   getSingleCarRental,
