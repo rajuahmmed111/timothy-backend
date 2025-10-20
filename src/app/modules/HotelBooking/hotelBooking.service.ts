@@ -157,13 +157,6 @@ const getAllHotelBookings = async (partnerId: string) => {
           partnerId: true,
         },
       },
-      hotel: {
-        select: {
-          id: true,
-          hotelName: true,
-          partnerId: true,
-        },
-      },
     },
   });
 
