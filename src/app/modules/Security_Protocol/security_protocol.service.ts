@@ -501,116 +501,197 @@ const getAllSecurityProtocols = async (
 };
 
 // get all security protocols with guards
+// const getAllSecurityProtocolsGuards = async (
+//   params: ISecurityFilterRequest,
+//   options: IPaginationOptions
+// ) => {
+//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+//   const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } =
+//     params;
+
+//   // exact search filter
+//   const protocols = await prisma.security_Protocol.findMany({
+//     where: securityProtocolType
+//       ? { securityProtocolType: { equals: securityProtocolType } }
+//       : {},
+
+//     select: {
+//       id: true,
+//       securityName: true,
+//       securityProtocolType: true,
+//     },
+//   });
+
+//   //  get all security protocols
+//   const data = await Promise.all(
+//     protocols.map(async (protocol) => {
+//       const filters: Prisma.Security_GuardWhereInput[] = [];
+
+//       // text search
+//       if (searchTerm) {
+//         filters.push({
+//           OR: [
+//             ...searchableFields.map((field) => ({
+//               [field]: {
+//                 contains: searchTerm,
+//                 mode: "insensitive",
+//               },
+//             })),
+//           ],
+//         });
+//       }
+
+//       // Exact filters (for guard fields)
+//       if (Object.keys(filterData).length > 0) {
+//         filters.push({
+//           AND: Object.keys(filterData).map((key) => ({
+//             [key]: { equals: (filterData as any)[key] },
+//           })),
+//         });
+//       }
+
+//       // fromDate - toDate booking exclude
+//       if (fromDate && toDate) {
+//         filters.push({
+//           security_Booking: {
+//             none: {
+//               AND: [
+//                 { securityBookedFromDate: { lte: toDate } },
+//                 { securityBookedToDate: { gte: fromDate } },
+//                 { bookingStatus: { not: BookingStatus.COMPLETED } },
+//               ],
+//             },
+//           },
+//         });
+//       }
+
+//       // get only isBooked  AVAILABLE hotels
+//       filters.push({
+//         securityId: protocol.id,
+//       });
+
+//       const where: Prisma.Security_GuardWhereInput = { AND: filters };
+
+//       const guards = await prisma.security_Guard.findMany({
+//         where,
+//         skip,
+//         take: limit,
+//         orderBy:
+//           options.sortBy && options.sortOrder
+//             ? { [options.sortBy]: options.sortOrder }
+//             : { securityRating: "desc" },
+//         include: {
+//           user: {
+//             select: { id: true, fullName: true, profileImage: true },
+//           },
+//           security: {
+//             select: {
+//               id: true,
+//               securityName: true,
+//               securityProtocolType: true,
+//             },
+//           },
+//         },
+//       });
+
+//       const totalGuards = await prisma.security_Guard.count({ where });
+
+//       return {
+//         protocolId: protocol.id,
+//         protocolName: protocol.securityName,
+//         protocolType: protocol.securityProtocolType,
+//         meta: {
+//           total: totalGuards,
+//           page,
+//           limit,
+//         },
+//         guards,
+//       };
+//     })
+//   );
+
+//   return data;
+// };
 const getAllSecurityProtocolsGuards = async (
   params: ISecurityFilterRequest,
   options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-  const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } =
-    params;
+  const { searchTerm, fromDate, toDate, securityProtocolType, ...filterData } = params;
 
-  // exact search filter
-  const protocols = await prisma.security_Protocol.findMany({
-    where: securityProtocolType
-      ? { securityProtocolType: { equals: securityProtocolType } }
-      : {},
+  const filters: Prisma.Security_GuardWhereInput[] = [];
 
-    select: {
-      id: true,
-      securityName: true,
-      securityProtocolType: true,
-    },
-  });
+  // Text search
+  if (searchTerm) {
+    filters.push({
+      OR: searchableFields.map((field) => ({
+        [field]: { contains: searchTerm, mode: "insensitive" },
+      })),
+    });
+  }
 
-  //  get all security protocols
-  const data = await Promise.all(
-    protocols.map(async (protocol) => {
-      const filters: Prisma.Security_GuardWhereInput[] = [];
+  // Protocol type filter
+  if (securityProtocolType) {
+    filters.push({
+      security: { securityProtocolType: { equals: securityProtocolType } }
+    });
+  }
 
-      // text search
-      if (searchTerm) {
-        filters.push({
-          OR: [
-            ...searchableFields.map((field) => ({
-              [field]: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
-            })),
+  // Date availability filter
+  if (fromDate && toDate) {
+    filters.push({
+      security_Booking: {
+        none: {
+          AND: [
+            { securityBookedFromDate: { lte: toDate } },
+            { securityBookedToDate: { gte: fromDate } },
+            { bookingStatus: { not: BookingStatus.COMPLETED } },
           ],
-        });
-      }
+        },
+      },
+    });
+  }
 
-      // Exact filters (for guard fields)
-      if (Object.keys(filterData).length > 0) {
-        filters.push({
-          AND: Object.keys(filterData).map((key) => ({
-            [key]: { equals: (filterData as any)[key] },
-          })),
-        });
-      }
+  // Exact filters
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: { equals: (filterData as any)[key] },
+      })),
+    });
+  }
 
-      // fromDate - toDate booking exclude
-      if (fromDate && toDate) {
-        filters.push({
-          security_Booking: {
-            none: {
-              AND: [
-                { securityBookedFromDate: { lte: toDate } },
-                { securityBookedToDate: { gte: fromDate } },
-                { bookingStatus: { not: BookingStatus.COMPLETED } },
-              ],
-            },
-          },
-        });
-      }
+  const where: Prisma.Security_GuardWhereInput = { AND: filters };
 
-      // get only isBooked  AVAILABLE hotels
-      filters.push({
-        securityId: protocol.id,
-      });
-
-      const where: Prisma.Security_GuardWhereInput = { AND: filters };
-
-      const guards = await prisma.security_Guard.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy:
-          options.sortBy && options.sortOrder
-            ? { [options.sortBy]: options.sortOrder }
-            : { securityRating: "desc" },
-        include: {
-          user: {
-            select: { id: true, fullName: true, profileImage: true },
-          },
-          security: {
-            select: {
-              id: true,
-              securityName: true,
-              securityProtocolType: true,
-            },
+  // Single query with pagination
+  const [guards, total] = await Promise.all([
+    prisma.security_Guard.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : { securityRating: "desc" },
+      include: {
+        user: {
+          select: { id: true, fullName: true, profileImage: true },
+        },
+        security: {
+          select: {
+            id: true,
+            securityName: true,
+            securityProtocolType: true,
           },
         },
-      });
+      },
+    }),
+    prisma.security_Guard.count({ where }),
+  ]);
 
-      const totalGuards = await prisma.security_Guard.count({ where });
-
-      return {
-        protocolId: protocol.id,
-        protocolName: protocol.securityName,
-        protocolType: protocol.securityProtocolType,
-        meta: {
-          total: totalGuards,
-          page,
-          limit,
-        },
-        guards,
-      };
-    })
-  );
-
-  return data;
+  return {
+    meta: { total, page, limit },
+    data: guards,
+  };
 };
 
 // get all security protocols security guard app
