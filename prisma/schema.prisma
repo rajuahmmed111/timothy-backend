@@ -736,6 +736,8 @@ model Newsroom {
   updatedAt   DateTime @updatedAt
   author      String?
   isPublished Boolean  @default(true)
+
+  @@map("newsrooms")
 }
 
 model Human_Rights {
@@ -743,6 +745,8 @@ model Human_Rights {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("human_rights")
 }
 
 model Cancel_Reservation {
@@ -750,6 +754,8 @@ model Cancel_Reservation {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("cancel_reservations")
 }
 
 model Refund_Policy {
@@ -757,6 +763,8 @@ model Refund_Policy {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("refund_policies")
 }
 
 model About_App {
