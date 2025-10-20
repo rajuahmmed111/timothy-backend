@@ -22,7 +22,7 @@ router.get(
 
 // get all hotel rooms
 router.get(
-  "/rooms",
+  "/rooms/",
   // auth(
   //   UserRole.ADMIN,
   //   UserRole.SUPER_ADMIN,
@@ -30,6 +30,18 @@ router.get(
   //   UserRole.USER
   // ),
   HotelController.getAllHotelRooms
+);
+
+// get all hotel rooms by hotel id
+router.get(
+  "/rooms/:hotelId",
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
+  HotelController.getAllHotelRoomsByHotelId
 );
 
 // get all my hotels for partner

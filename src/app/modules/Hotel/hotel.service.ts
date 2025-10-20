@@ -522,6 +522,151 @@ const getAllHotelRooms = async (
   };
 };
 
+// get all hotel rooms by hotel id with search filtering and pagination
+const getAllHotelRoomsByHotelId = async (
+  params: IHotelFilterRequest,
+  options: IPaginationOptions,
+  hotelId: string
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const { searchTerm, minPrice, maxPrice, fromDate, toDate, ...filterData } =
+    params;
+
+  const filters: Prisma.RoomWhereInput[] = [];
+
+  // hotelId filter
+  filters.push({ hotelId });
+
+  // text search
+  // filters.push({
+  //   OR: searchableFields.map((field) => {
+  //     if (field === "hotelName") {
+  //       // search inside related Hotel
+  //       return {
+  //         hotel: {
+  //           hotelName: {
+  //             contains: params.searchTerm,
+  //             mode: "insensitive",
+  //           },
+  //         },
+  //       };
+  //     }
+  //     return {
+  //       [field]: {
+  //         contains: params.searchTerm,
+  //         mode: "insensitive",
+  //       },
+  //     };
+  //   }),
+  // });
+
+  // numeric match
+  const exactNumericFields = numericFields.filter(
+    (f) => f !== "hotelRoomPriceNight"
+  );
+
+  // Exact search filter
+  if (Object.keys(filterData).length > 0) {
+    filters.push({
+      AND: Object.keys(filterData)
+        .filter(
+          (key) =>
+            exactNumericFields.includes(key) || !numericFields.includes(key)
+        )
+        .map((key) => {
+          let value: any = (filterData as any)[key];
+
+          if (exactNumericFields.includes(key)) value = Number(value);
+          if (["true", "false"].includes(value)) value = value === "true";
+
+          return {
+            [key]: { equals: value },
+          };
+        }),
+    });
+  }
+
+  // price range filter
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    const priceFilter: any = {};
+    if (minPrice !== undefined) priceFilter.gte = parseFloat(minPrice as any);
+    if (maxPrice !== undefined) priceFilter.lte = parseFloat(maxPrice as any);
+
+    filters.push({
+      hotelRoomPriceNight: priceFilter,
+    });
+  }
+
+  // Availability filter
+  if (fromDate && toDate) {
+    filters.push({
+      hotel_bookings: {
+        none: {
+          bookingStatus: BookingStatus.CONFIRMED,
+          OR: [
+            {
+              bookedFromDate: { lte: toDate },
+              bookedToDate: { gte: fromDate },
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // get only isBooked  AVAILABLE hotels
+  // filters.push({
+  //   isBooked: EveryServiceStatus.AVAILABLE,
+  // });
+
+  const where: Prisma.RoomWhereInput = { AND: filters };
+
+  const result = await prisma.room.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+      hotel_bookings: {
+        select: {
+          bookedFromDate: true,
+          bookedToDate: true,
+          bookingStatus: true,
+        },
+      },
+      hotel: true,
+    },
+  });
+
+  const total = await prisma.room.count({ where });
+
+  const sortedResult = result.sort(
+    (a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating)
+  );
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: sortedResult,
+  };
+};
+
 // get all my hotels for partner
 const getAllHotelsForPartner = async (
   partnerId: string,
@@ -1149,6 +1294,7 @@ export const HotelService = {
   createHotelRoom,
   getAllHotels,
   getAllHotelRooms,
+  getAllHotelRoomsByHotelId,
   getAllHotelsForPartner,
   getAllHotelRoomsForPartner,
   getSingleHotel,

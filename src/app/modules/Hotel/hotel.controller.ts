@@ -52,7 +52,22 @@ const getAllHotelRooms = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Hotels fetched successfully",
+    message: "Hotel rooms fetched successfully",
+    data: result,
+  });
+});
+
+// get all hotel rooms by hotel id
+const getAllHotelRoomsByHotelId = catchAsync(async (req: Request, res: Response) => {
+  const filter = pick(req.query, filterField);
+  const options = pick(req.query, paginationFields);
+  const hotelId = req.params.hotelId;
+  const result = await HotelService.getAllHotelRoomsByHotelId(filter, options, hotelId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Hotel rooms fetched successfully",
     data: result,
   });
 });
@@ -226,6 +241,7 @@ export const HotelController = {
   createHotelRoom,
   getAllHotels,
   getAllHotelRooms,
+  getAllHotelRoomsByHotelId,
   getAllHotelsForPartner,
   getAllHotelRoomsForPartner,
   getSingleHotel,
