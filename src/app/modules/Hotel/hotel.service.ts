@@ -627,27 +627,27 @@ const getAllHotelRoomsForPartner = async (
   });
 
   // text search
-  filters.push({
-    OR: searchableFields.map((field) => {
-      if (field === "hotelName") {
-        // search inside related Hotel
-        return {
-          hotel: {
-            hotelName: {
-              contains: params.searchTerm,
-              mode: "insensitive",
-            },
-          },
-        };
-      }
-      return {
-        [field]: {
-          contains: params.searchTerm,
-          mode: "insensitive",
-        },
-      };
-    }),
-  });
+  // filters.push({
+  //   OR: searchableFields.map((field) => {
+  //     if (field === "hotelName") {
+  //       // search inside related Hotel
+  //       return {
+  //         hotel: {
+  //           hotelName: {
+  //             contains: params.searchTerm,
+  //             mode: "insensitive",
+  //           },
+  //         },
+  //       };
+  //     }
+  //     return {
+  //       [field]: {
+  //         contains: params.searchTerm,
+  //         mode: "insensitive",
+  //       },
+  //     };
+  //   }),
+  // });
 
   // Exact search filter
   if (Object.keys(filterData).length > 0) {
