@@ -744,9 +744,9 @@ const getPopularHotels = async (
       room: {
         orderBy: { createdAt: "asc" },
         take: 1,
-        select: {
-          hotelRating: true,
-        },
+        // select: {
+        //   hotelRating: true,
+        // },
       },
     },
   });
