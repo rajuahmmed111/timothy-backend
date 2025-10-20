@@ -247,12 +247,14 @@ const createHotelRoom = async (req: Request) => {
       hotelNumAdults: parseInt(hotelNumAdults),
       hotelNumChildren: parseInt(hotelNumChildren),
       hotelRating: hotelRating ? hotelRating : "0",
-      hotelRoomPriceNight: parseFloat(hotelRoomPriceNight),
+      hotelRoomPriceNight: hotelRoomPriceNight
+        ? parseFloat(hotelRoomPriceNight)
+        : 0,
       category,
       discount: discount ? parseInt(discount) : undefined,
       hotelReviewCount: hotelReviewCount
         ? parseInt(hotelReviewCount)
-        : undefined,
+        : 0,
       isBooked: EveryServiceStatus.AVAILABLE,
       hotelRoomImages: roomImageUrls,
       hotelImages: hotelRoomUrls,
@@ -1228,10 +1230,10 @@ const updateHotelRoom = async (req: Request) => {
       hotelNumChildren: parseInt(hotelNumChildren),
       hotelRoomPriceNight: hotelRoomPriceNight
         ? parseFloat(hotelRoomPriceNight)
-        : undefined,
+        : 0,
       hotelRating,
       category,
-      discount: discount ? parseInt(discount) : undefined,
+      discount: discount ? parseInt(discount) : 0,
       hotelReviewCount: hotelReviewCount
         ? parseInt(hotelReviewCount)
         : undefined,
