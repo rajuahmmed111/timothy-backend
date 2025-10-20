@@ -74,7 +74,13 @@ const createHotelRoomBooking = async (
     );
   }
 
-  if (!rooms || !adults || !children || !bookedFromDate || !bookedToDate) {
+  if (
+    rooms == null ||
+    adults == null ||
+    children == null ||
+    !bookedFromDate ||
+    !bookedToDate
+  ) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
   }
 
