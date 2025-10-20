@@ -247,7 +247,7 @@ const createHotelRoom = async (req: Request) => {
       hotelNumAdults: parseInt(hotelNumAdults),
       hotelNumChildren: parseInt(hotelNumChildren),
       hotelRating: hotelRating ? hotelRating : "0",
-      hotelRoomPriceNight,
+      hotelRoomPriceNight: parseFloat(hotelRoomPriceNight),
       category,
       discount: discount ? parseInt(discount) : undefined,
       hotelReviewCount: hotelReviewCount
