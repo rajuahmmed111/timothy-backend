@@ -93,7 +93,7 @@ const getAllHotelRoomsForPartner = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Hotels fetched successfully",
+      message: "Hotel rooms fetched successfully",
       data: result,
     });
   }
