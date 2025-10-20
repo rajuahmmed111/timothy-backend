@@ -720,59 +720,46 @@ const getSingleHotelRoom = async (roomId: string) => {
 
   return result;
 };
+
 // get popular hotels
 const getPopularHotels = async (
   params: IHotelFilterRequest,
   options: IPaginationOptions
-): Promise<Room[]> => {
+): Promise<Hotel[]> => {
   const { searchTerm, ...filterData } = params;
-
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const filters: Prisma.RoomWhereInput[] = [];
-
-  // text search
-  if (searchTerm) {
-    filters.push({
-      OR: searchableFields.map((field) => ({
-        [field]: {
-          contains: searchTerm,
-          mode: "insensitive",
+  // all hotels
+  const hotels = await prisma.hotel.findMany({
+    where: {
+      ...(searchTerm && {
+        OR: [
+          { hotelName: { contains: searchTerm, mode: "insensitive" } },
+          { hotelCity: { contains: searchTerm, mode: "insensitive" } },
+          { hotelCountry: { contains: searchTerm, mode: "insensitive" } },
+        ],
+      }),
+    },
+    include: {
+      room: {
+        orderBy: { createdAt: "asc" },
+        take: 1,
+        select: {
+          hotelRating: true,
         },
-      })),
-    });
-  }
-
-  // exact field match filters
-  if (Object.keys(filterData).length > 0) {
-    filters.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
-    });
-  }
-
-  const where: Prisma.RoomWhereInput = {
-    AND: filters,
-    // hotelRating: {
-    //   not: null,
-    // },
-  };
-
-  const rooms = await prisma.room.findMany({
-    where,
-    skip,
-    take: limit,
+      },
+    },
   });
 
-  const sortedRooms = rooms.sort(
-    (a, b) => parseFloat(b.hotelRating) - parseFloat(a.hotelRating)
-  );
-  // .slice(0, 10);
+  const sortedHotels = hotels
+    .filter((hotel) => hotel.room.length > 0)
+    .sort(
+      (a, b) =>
+        parseFloat(b.room[0].hotelRating) - parseFloat(a.room[0].hotelRating)
+    )
+    .slice(0, 10);
 
-  return sortedRooms;
+  return sortedHotels;
 };
 
 // add favorite hotel
