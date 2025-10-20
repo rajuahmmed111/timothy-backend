@@ -239,11 +239,11 @@ model Room {
   hotelImages          String[] // 5 image
   hotelRoomImages      String[] // 5 image
   hotelRoomCapacity    String
-  hotelNumberOfRooms   Int
-  hotelNumAdults       Int
-  hotelNumChildren     Int
+  hotelNumberOfRooms   Int                @default(1)
+  hotelNumAdults       Int                @default(1)
+  hotelNumChildren     Int                @default(1)
   category             String
-  hotelRating          String @default("0")
+  hotelRating          String             @default("0")
   hotelRoomPriceNight  Float
   discount             Float              @default(0)
   isBooked             EveryServiceStatus @default(AVAILABLE)
@@ -338,7 +338,7 @@ model Security_Guard {
   availability             String
   languages                String[]
   certification            String
-  securityRating           String @default("0")
+  securityRating           String             @default("0")
   securityPriceDay         Float
   category                 String?
   discount                 Float?
@@ -439,7 +439,7 @@ model Car {
   carColor           String
   fuelType           String
   gearType           String
-  carRating          String @default("0")
+  carRating          String             @default("0")
   carPriceDay        Float
   category           String?
   discount           Float?
@@ -559,7 +559,7 @@ model Appeal {
   attractionTv              Boolean
   attractionAirConditioning Boolean
   attractionPool            Boolean
-  attractionRating          String @default("0")
+  attractionRating          String             @default("0")
   attractionAdultPrice      Float
   attractionChildPrice      Float
   category                  String?
