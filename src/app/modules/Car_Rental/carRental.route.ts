@@ -33,7 +33,7 @@ router.get(
 
 // get all car rentals cars by carRental carRentalId
 router.get(
-  "/cars",
+  "/cars/:carRentalId",
   // auth(
   //   UserRole.ADMIN,
   //   UserRole.SUPER_ADMIN,
