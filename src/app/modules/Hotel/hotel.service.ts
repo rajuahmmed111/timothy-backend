@@ -401,6 +401,31 @@ const getAllHotels = async (
     },
   });
 
+  // Calculate averages for each hotel
+  const resultWithAverages = result.map((hotel) => {
+    const rooms = hotel.room;
+    
+    if (rooms.length === 0) {
+      return {
+        ...hotel,
+        averagePrice: 0,
+        averageRating: 0,
+        averageReviewCount: 0,
+      };
+    }
+
+    const totalPrice = rooms.reduce((sum, room) => sum + (room.hotelRoomPriceNight || 0), 0);
+    const totalRating = rooms.reduce((sum, room) => sum + (parseFloat(room.hotelRating) || 0), 0);
+    const totalReviews = rooms.reduce((sum, room) => sum + (room.hotelReviewCount || 0), 0);
+
+    return {
+      ...hotel,
+      averagePrice: Number((totalPrice / rooms.length).toFixed(2)),
+      averageRating: Number((totalRating / rooms.length).toFixed(1)),
+      averageReviewCount: Math.round(totalReviews / rooms.length),
+    };
+  });
+
   const total = await prisma.hotel.count({
     where,
   });
@@ -411,7 +436,7 @@ const getAllHotels = async (
       page,
       limit,
     },
-    data: result,
+    data: resultWithAverages,
   };
 };
 
