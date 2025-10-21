@@ -7,39 +7,53 @@ import { uploadFile } from "../../../helpars/fileUploader";
 
 const router = express.Router();
 
+// get all security guards active listing by partnerId
+router.get(
+  "/security-guards-active-listing",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.getAllActiveListingSecurityGuardsByPartnerId
+);
+
+// get all security guards available by partnerId
+router.get(
+  "/security-guards-available",
+  auth(UserRole.BUSINESS_PARTNER),
+  Security_ProtocolController.getAllAvailableListingSecurityGuardsByPartnerId
+);
+
 // get all security protocols
 router.get(
   "/",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   Security_ProtocolController.getAllSecurityProtocols
 );
 
 // get all security protocols security guard
 router.get(
   "/security-guard",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   Security_ProtocolController.getAllSecurityProtocolsGuards
 );
 
 // get all security protocols security guard by security protocol id
 router.get(
   "/security-guard/:securityId",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.BUSINESS_PARTNER,
-    UserRole.USER
-  ),
+  // auth(
+  //   UserRole.ADMIN,
+  //   UserRole.SUPER_ADMIN,
+  //   UserRole.BUSINESS_PARTNER,
+  //   UserRole.USER
+  // ),
   Security_ProtocolController.getAllSecurityProtocolsGuardsBySecurityProtocolId 
 );
 

@@ -205,6 +205,72 @@ const createSecurityProtocolGuardType = async (req: Request) => {
   return securityProtocol;
 };
 
+// get all security guards active listing by partnerId
+const getAllActiveListingSecurityGuardsByPartnerId = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.security_Guard.findMany({
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.security_Guard.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
+// get all security guards available by partnerId
+const getAllAvailableListingSecurityGuardsByPartnerId = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.security_Guard.findMany({
+    where: {
+      partnerId,
+      isBooked: EveryServiceStatus.AVAILABLE,
+    },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.security_Guard.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get all my security protocols for partner
 const getAllSecurityProtocolsForPartner = async (
   partnerId: string,
@@ -1317,6 +1383,8 @@ const deleteSecurityProtocolGuard = async (
 export const Security_ProtocolService = {
   createSecurityProtocol,
   createSecurityProtocolGuardType,
+  getAllActiveListingSecurityGuardsByPartnerId,
+  getAllAvailableListingSecurityGuardsByPartnerId,
   getAllSecurityProtocols,
   getAllSecurityProtocolsGuardsApp,
   getAllSecurityProtocolsGuards,

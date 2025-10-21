@@ -36,6 +36,44 @@ const createSecurityProtocolGuardType = catchAsync(
   }
 );
 
+// get all security guards active listing by partnerId
+const getAllActiveListingSecurityGuardsByPartnerId = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const options = pick(req.query, paginationFields);
+    const result =
+      await Security_ProtocolService.getAllActiveListingSecurityGuardsByPartnerId(
+        partnerId,
+        options
+      );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security guards fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// get all security guards available by partnerId
+const getAllAvailableListingSecurityGuardsByPartnerId = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const options = pick(req.query, paginationFields);
+    const result =
+      await Security_ProtocolService.getAllAvailableListingSecurityGuardsByPartnerId(
+        partnerId,
+        options
+      );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Security guards fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get all security protocols
 const getAllSecurityProtocols = catchAsync(
   async (req: Request, res: Response) => {
@@ -80,11 +118,12 @@ const getAllSecurityProtocolsGuardsBySecurityProtocolId = catchAsync(
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const securityId = req.params.securityId;
-    const result = await Security_ProtocolService.getAllSecurityProtocolsGuardsBySecurityProtocolId(
-      filter,
-      options,
-      securityId
-    );
+    const result =
+      await Security_ProtocolService.getAllSecurityProtocolsGuardsBySecurityProtocolId(
+        filter,
+        options,
+        securityId
+      );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -287,6 +326,8 @@ const deleteSecurityProtocolGuard = catchAsync(
 export const Security_ProtocolController = {
   createSecurityProtocol,
   createSecurityProtocolGuardType,
+  getAllActiveListingSecurityGuardsByPartnerId,
+  getAllAvailableListingSecurityGuardsByPartnerId,
   getAllSecurityProtocols,
   getAllSecurityProtocolsGuardsApp,
   getAllSecurityProtocolsGuards,
