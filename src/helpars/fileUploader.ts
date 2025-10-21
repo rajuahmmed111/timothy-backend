@@ -15,6 +15,7 @@ if (!fs.existsSync(uploadsDir)) {
 const allowedTypes = [
   "image/jpeg",
   "image/png",
+  "image/avif",
   "image/webp",
   "application/pdf",
   "application/msword", // .doc
