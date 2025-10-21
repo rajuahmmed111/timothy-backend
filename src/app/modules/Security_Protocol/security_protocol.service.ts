@@ -213,6 +213,9 @@ const getAllActiveListingSecurityGuardsByPartnerId = async (
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
   const result = await prisma.security_Guard.findMany({
+    where: {
+      partnerId,
+    },
     skip,
     take: limit,
     orderBy: {

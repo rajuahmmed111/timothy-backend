@@ -250,6 +250,9 @@ const getAllActiveListingAppealsByPartnerId = async (
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
   const result = await prisma.appeal.findMany({
+    where: {
+      partnerId,
+    },
     skip,
     take: limit,
     orderBy: {

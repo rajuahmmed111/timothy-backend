@@ -9,14 +9,14 @@ const router = express.Router();
 
 // get all car active listing by partnerId
 router.get(
-  "/appeals-active-listing",
+  "/car-active-listing",
   auth(UserRole.BUSINESS_PARTNER),
   CarRentalController.getAllCarActiveListingByPartnerId
 );
 
 // get all car available by partnerId
 router.get(
-  "/appeals-available",
+  "/car-available",
   auth(UserRole.BUSINESS_PARTNER),
   CarRentalController.getAllAvailableListingCarByPartnerId
 );

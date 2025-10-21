@@ -215,6 +215,9 @@ const getAllCarActiveListingByPartnerId = async (
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
   const result = await prisma.car.findMany({
+    where: {
+      partnerId,
+    },
     skip,
     take: limit,
     orderBy: {
