@@ -252,9 +252,7 @@ const createHotelRoom = async (req: Request) => {
         : 0,
       category,
       discount: discount ? parseInt(discount) : undefined,
-      hotelReviewCount: hotelReviewCount
-        ? parseInt(hotelReviewCount)
-        : 0,
+      hotelReviewCount: hotelReviewCount ? parseInt(hotelReviewCount) : 0,
       isBooked: EveryServiceStatus.AVAILABLE,
       hotelRoomImages: roomImageUrls,
       hotelImages: hotelRoomUrls,
@@ -264,6 +262,37 @@ const createHotelRoom = async (req: Request) => {
   });
 
   return result;
+};
+
+// get room active listing by partnerId
+const getRoomActiveListing = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.room.findMany({
+    where: {
+      partnerId,
+    },
+    skip,
+    take: limit,
+  });
+
+  const total = await prisma.room.count({
+    where: {
+      partnerId,
+    },
+  });
+
+    return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
 // get all hotels with search filtering and pagination
@@ -1294,6 +1323,7 @@ const deleteHotelRoom = async (roomId: string, partnerId: string) => {
 export const HotelService = {
   createHotel,
   createHotelRoom,
+  getRoomActiveListing,
   getAllHotels,
   getAllHotelRooms,
   getAllHotelRoomsByHotelId,
