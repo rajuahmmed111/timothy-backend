@@ -299,10 +299,25 @@ const getRoomActiveListing = async (
 };
 
 // get available rooms by partnerId
-const getAvailableRooms = async (partnerId: string) => {
+const getAvailableRooms = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
   const result = await prisma.room.findMany({
     where: {
-      isBooked: EveryServiceStatus.AVAILABLE,
+      partnerId,
+    },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.room.count({
+    where: {
       partnerId,
     },
   });
@@ -416,7 +431,7 @@ const getAllHotels = async (
   // Calculate averages for each hotel
   const resultWithAverages = result.map((hotel) => {
     const rooms = hotel.room;
-    
+
     if (rooms.length === 0) {
       return {
         ...hotel,
@@ -426,9 +441,18 @@ const getAllHotels = async (
       };
     }
 
-    const totalPrice = rooms.reduce((sum, room) => sum + (room.hotelRoomPriceNight || 0), 0);
-    const totalRating = rooms.reduce((sum, room) => sum + (parseFloat(room.hotelRating) || 0), 0);
-    const totalReviews = rooms.reduce((sum, room) => sum + (room.hotelReviewCount || 0), 0);
+    const totalPrice = rooms.reduce(
+      (sum, room) => sum + (room.hotelRoomPriceNight || 0),
+      0
+    );
+    const totalRating = rooms.reduce(
+      (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
+      0
+    );
+    const totalReviews = rooms.reduce(
+      (sum, room) => sum + (room.hotelReviewCount || 0),
+      0
+    );
 
     return {
       ...hotel,
@@ -966,10 +990,19 @@ const getPopularHotels = async (
     .filter((hotel) => hotel.room.length > 0)
     .map((hotel) => {
       const rooms = hotel.room;
-      
-      const totalPrice = rooms.reduce((sum, room) => sum + (room.hotelRoomPriceNight || 0), 0);
-      const totalRating = rooms.reduce((sum, room) => sum + (parseFloat(room.hotelRating) || 0), 0);
-      const totalReviews = rooms.reduce((sum, room) => sum + (room.hotelReviewCount || 0), 0);
+
+      const totalPrice = rooms.reduce(
+        (sum, room) => sum + (room.hotelRoomPriceNight || 0),
+        0
+      );
+      const totalRating = rooms.reduce(
+        (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
+        0
+      );
+      const totalReviews = rooms.reduce(
+        (sum, room) => sum + (room.hotelReviewCount || 0),
+        0
+      );
 
       return {
         ...hotel,

@@ -32,7 +32,7 @@ const createHotelRoom = catchAsync(async (req: Request, res: Response) => {
 // get room active listing by partnerId
 const getRoomActiveListing = catchAsync(async (req: Request, res: Response) => {
   const partnerId = req.user?.id;
-    const options = pick(req.query, paginationFields);
+  const options = pick(req.query, paginationFields);
   const result = await HotelService.getRoomActiveListing(partnerId, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -45,7 +45,8 @@ const getRoomActiveListing = catchAsync(async (req: Request, res: Response) => {
 // get available rooms by partnerId
 const getAvailableRooms = catchAsync(async (req: Request, res: Response) => {
   const partnerId = req.user?.id;
-  const result = await HotelService.getAvailableRooms(partnerId);
+  const options = pick(req.query, paginationFields);
+  const result = await HotelService.getAvailableRooms(partnerId, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
