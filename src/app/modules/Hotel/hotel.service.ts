@@ -323,7 +323,14 @@ const getAvailableRooms = async (
     },
   });
 
-  return result;
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
 // get all hotels with search filtering and pagination
