@@ -7,6 +7,20 @@ import { parseBodyData } from "../../middlewares/parseNestedJson";
 
 const router = express.Router();
 
+// get all car active listing by partnerId
+router.get(
+  "/appeals-active-listing",
+  auth(UserRole.BUSINESS_PARTNER),
+  CarRentalController.getAllCarActiveListingByPartnerId
+);
+
+// get all car available by partnerId
+router.get(
+  "/appeals-available",
+  auth(UserRole.BUSINESS_PARTNER),
+  CarRentalController.getAllAvailableListingCarByPartnerId
+);
+
 // get all car rentals
 router.get(
   "/",

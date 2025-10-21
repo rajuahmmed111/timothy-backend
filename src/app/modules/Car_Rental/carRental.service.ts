@@ -207,6 +207,72 @@ const createCar = async (req: Request) => {
   return result;
 };
 
+// get all car active listing by partnerId
+const getAllCarActiveListingByPartnerId = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.car.findMany({
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.car.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
+// get all car available by partnerId
+const getAllAvailableListingCarByPartnerId = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.car.findMany({
+    where: {
+      partnerId,
+      isBooked: EveryServiceStatus.AVAILABLE,
+    },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.car.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get all car rentals
 const getAllCarRentals = async (
   params: ICarRentalFilter,
@@ -851,6 +917,8 @@ const deleteCar = async (carId: string, partnerId: string) => {
 export const CarRentalService = {
   createCarRental,
   createCar,
+  getAllCarActiveListingByPartnerId,
+  getAllAvailableListingCarByPartnerId,
   getAllCarRentals,
   getAllCarRentalsCars,
   getAllCarRentalsCarsByCarRentalId,

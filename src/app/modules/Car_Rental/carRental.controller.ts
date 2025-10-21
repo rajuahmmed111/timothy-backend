@@ -31,6 +31,42 @@ const createCar = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get all car active listing by partnerId
+const getAllCarActiveListingByPartnerId = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const options = pick(req.query, paginationFields);
+    const result = await CarRentalService.getAllCarActiveListingByPartnerId(
+      partnerId,
+      options
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Car fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// get all car available by partnerId
+const getAllAvailableListingCarByPartnerId = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const options = pick(req.query, paginationFields);
+    const result = await CarRentalService.getAllAvailableListingCarByPartnerId(
+      partnerId,
+      options
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Car fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get all car rentals
 const getAllCarRentals = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -58,18 +94,24 @@ const getAllCarRentalsCars = catchAsync(async (req: Request, res: Response) => {
 });
 
 // get all car rentals cars by carRental carRentalId
-const getAllCarRentalsCarsByCarRentalId = catchAsync(async (req: Request, res: Response) => {
-  const filter = pick(req.query, filterField);
-  const options = pick(req.query, paginationFields);
-  const carRentalId = req.params.carRentalId;
-  const result = await CarRentalService.getAllCarRentalsCarsByCarRentalId(filter, options, carRentalId);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Car fetched successfully",
-    data: result,
-  });
-});
+const getAllCarRentalsCarsByCarRentalId = catchAsync(
+  async (req: Request, res: Response) => {
+    const filter = pick(req.query, filterField);
+    const options = pick(req.query, paginationFields);
+    const carRentalId = req.params.carRentalId;
+    const result = await CarRentalService.getAllCarRentalsCarsByCarRentalId(
+      filter,
+      options,
+      carRentalId
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Car fetched successfully",
+      data: result,
+    });
+  }
+);
 
 // get all my created car rentals for partner
 const getAllCarRentalsForPartner = catchAsync(
@@ -188,6 +230,8 @@ const deleteCar = catchAsync(async (req: Request, res: Response) => {
 export const CarRentalController = {
   createCarRental,
   createCar,
+  getAllCarActiveListingByPartnerId,
+  getAllAvailableListingCarByPartnerId,
   getAllCarRentals,
   getAllCarRentalsCars,
   getAllCarRentalsCarsByCarRentalId,
