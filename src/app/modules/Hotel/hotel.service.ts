@@ -285,7 +285,7 @@ const getRoomActiveListing = async (
     },
   });
 
-    return {
+  return {
     meta: {
       total,
       page,
@@ -661,7 +661,7 @@ const getAllHotelRoomsByHotelId = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : {
-            createdAt: "desc",
+            createdAt: "asc",
           },
     include: {
       user: {
