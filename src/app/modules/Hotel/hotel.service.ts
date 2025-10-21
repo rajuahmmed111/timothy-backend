@@ -957,22 +957,31 @@ const getPopularHotels = async (
       }),
     },
     include: {
-      room: {
-        orderBy: { createdAt: "asc" },
-        take: 1,
-        // select: {
-        //   hotelRating: true,
-        // },
-      },
+      room: true, // Get all rooms instead of just 1
     },
   });
 
-  const sortedHotels = hotels
+  // Calculate averages and add to each hotel
+  const hotelsWithAverages = hotels
     .filter((hotel) => hotel.room.length > 0)
-    .sort(
-      (a, b) =>
-        parseFloat(b.room[0].hotelRating) - parseFloat(a.room[0].hotelRating)
-    )
+    .map((hotel) => {
+      const rooms = hotel.room;
+      
+      const totalPrice = rooms.reduce((sum, room) => sum + (room.hotelRoomPriceNight || 0), 0);
+      const totalRating = rooms.reduce((sum, room) => sum + (parseFloat(room.hotelRating) || 0), 0);
+      const totalReviews = rooms.reduce((sum, room) => sum + (room.hotelReviewCount || 0), 0);
+
+      return {
+        ...hotel,
+        averagePrice: Number((totalPrice / rooms.length).toFixed(2)),
+        averageRating: Number((totalRating / rooms.length).toFixed(1)),
+        averageReviewCount: Math.round(totalReviews / rooms.length),
+      };
+    });
+
+  // Sort by average rating and take top 10
+  const sortedHotels = hotelsWithAverages
+    .sort((a, b) => b.averageRating - a.averageRating)
     .slice(0, 10);
 
   return sortedHotels;
