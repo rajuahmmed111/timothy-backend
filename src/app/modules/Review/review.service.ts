@@ -11,33 +11,12 @@ const createHotelReview = async (
   rating: number,
   comment?: string
 ): Promise<Review> => {
-  // const todayStart = startOfDay(new Date());
-  // const todayEnd = endOfDay(new Date());
-
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
-
-  // check if user has already rated this hotel
-  // const existingDailyRating = await prisma.review.findFirst({
-  //   where: {
-  //     userId: user.id,
-  //     roomId,
-  //     createdAt: {
-  //       gte: todayStart,
-  //       lte: todayEnd,
-  //     },
-  //   },
-  // });
-  // if (existingDailyRating) {
-  //   throw new ApiError(
-  //     httpStatus.CONFLICT,
-  //     "You have already rated this hotel today."
-  //   );
-  // }
 
   const review = await prisma.review.create({
     data: {
@@ -79,33 +58,12 @@ const createSecurityReview = async (
   rating: number,
   comment?: string
 ): Promise<Review> => {
-  // const todayStart = startOfDay(new Date());
-  // const todayEnd = endOfDay(new Date());
-
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
-
-  // check if user has already rated this security
-  // const existingDailyRating = await prisma.review.findFirst({
-  //   where: {
-  //     userId: user.id,
-  //     securityId,
-  //     createdAt: {
-  //       gte: todayStart,
-  //       lte: todayEnd,
-  //     },
-  //   },
-  // });
-  // if (existingDailyRating) {
-  //   throw new ApiError(
-  //     httpStatus.CONFLICT,
-  //     "You have already rated this security today."
-  //   );
-  // }
 
   const review = await prisma.review.create({
     data: {
@@ -147,32 +105,12 @@ const createCarReview = async (
   rating: number,
   comment?: string
 ) => {
-  // const todayStart = startOfDay(new Date());
-  // const todayEnd = endOfDay(new Date());
-
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
-  // check if user has already rated this security
-  // const existingDailyRating = await prisma.review.findFirst({
-  //   where: {
-  //     userId: user.id,
-  //     carId,
-  //     createdAt: {
-  //       gte: todayStart,
-  //       lte: todayEnd,
-  //     },
-  //   },
-  // });
-  // if (existingDailyRating) {
-  //   throw new ApiError(
-  //     httpStatus.CONFLICT,
-  //     "You have already rated this security today."
-  //   );
-  // }
 
   const review = await prisma.review.create({
     data: {
@@ -210,33 +148,12 @@ const createAttractionReview = async (
   rating: number,
   comment?: string
 ) => {
-  // const todayStart = startOfDay(new Date());
-  // const todayEnd = endOfDay(new Date());
-
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
-
-  // check if user has already rated this security
-  // const existingDailyRating = await prisma.review.findFirst({
-  //   where: {
-  //     userId: user.id,
-  //     attractionId,
-  //     createdAt: {
-  //       gte: todayStart,
-  //       lte: todayEnd,
-  //     },
-  //   },
-  // });
-  // if (existingDailyRating) {
-  //   throw new ApiError(
-  //     httpStatus.CONFLICT,
-  //     "You have already rated this security today."
-  //   );
-  // }
 
   // generate subRatings
   const subRatings = {
