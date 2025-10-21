@@ -219,7 +219,7 @@ model Hotel {
   hotelLocationFeatureWaterView Boolean
   hotelLocationFeatureIsland    Boolean
   hotelCoffeeBar                Boolean
-  isFavorite           Boolean            @default(false)
+  isFavorite                    Boolean  @default(false)
   createdAt                     DateTime @default(now())
   updatedAt                     DateTime @updatedAt
 
@@ -673,7 +673,6 @@ model Favorite {
   hotelId   String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 
   @@unique([userId, hotelId])
   @@map("favorites")
