@@ -42,6 +42,18 @@ const getRoomActiveListing = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get available rooms by partnerId
+const getAvailableRooms = catchAsync(async (req: Request, res: Response) => {
+  const partnerId = req.user?.id;
+  const result = await HotelService.getAvailableRooms(partnerId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Available rooms fetched successfully",
+    data: result,
+  });
+});
+
 // get all hotels
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -259,6 +271,7 @@ export const HotelController = {
   createHotel,
   createHotelRoom,
   getRoomActiveListing,
+  getAvailableRooms,
   getAllHotels,
   getAllHotelRooms,
   getAllHotelRoomsByHotelId,

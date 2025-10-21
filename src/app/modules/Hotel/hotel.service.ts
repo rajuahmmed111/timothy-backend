@@ -298,6 +298,18 @@ const getRoomActiveListing = async (
   };
 };
 
+// get available rooms by partnerId
+const getAvailableRooms = async (partnerId: string) => {
+  const result = await prisma.room.findMany({
+    where: {
+      isBooked: EveryServiceStatus.AVAILABLE,
+      partnerId,
+    },
+  });
+
+  return result;
+};
+
 // get all hotels with search filtering and pagination
 const getAllHotels = async (
   params: IHotelFilterRequest,
@@ -1352,6 +1364,7 @@ export const HotelService = {
   createHotel,
   createHotelRoom,
   getRoomActiveListing,
+  getAvailableRooms,
   getAllHotels,
   getAllHotelRooms,
   getAllHotelRoomsByHotelId,

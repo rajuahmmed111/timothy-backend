@@ -15,6 +15,13 @@ router.get(
   HotelController.getRoomActiveListing
 );
 
+// get available rooms by partnerId
+router.get(
+  "/available-rooms",
+  auth(UserRole.BUSINESS_PARTNER),
+  HotelController.getAvailableRooms
+);
+
 // get all hotels
 router.get(
   "/",
