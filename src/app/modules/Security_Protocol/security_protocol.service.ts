@@ -1012,6 +1012,15 @@ const getProtocolsGroupedByCategory = async (): Promise<GroupedProtocols> => {
   return grouped;
 };
 
+// get popular security guards by rating
+const getPopularSecurityGuards = async () => {
+  const result = await prisma.security_Guard.findMany({
+    orderBy: { securityRating: "desc" },
+    take: 10,
+  });
+  return result;
+};
+
 // get single security protocol
 const getSingleSecurityProtocol = async (id: string) => {
   const result = await prisma.security_Protocol.findUnique({
@@ -1316,6 +1325,7 @@ export const Security_ProtocolService = {
   getAllSecurityProtocolsForPartnerSecurityGuards,
   getPopularSecurityProtocols,
   getProtocolsGroupedByCategory,
+  getPopularSecurityGuards,
   getSingleSecurityProtocol,
   getSingleSecurityProtocolGuard,
   updateSecurityProtocol,
