@@ -117,7 +117,7 @@ router.get(
 
 // add favorite hotel room
 router.post(
-  "/favorite/:roomId",
+  "/favorite/:hotelId",
   auth(UserRole.USER),
   HotelController.toggleFavorite
 );

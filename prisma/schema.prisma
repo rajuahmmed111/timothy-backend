@@ -219,6 +219,7 @@ model Hotel {
   hotelLocationFeatureWaterView Boolean
   hotelLocationFeatureIsland    Boolean
   hotelCoffeeBar                Boolean
+  isFavorite           Boolean            @default(false)
   createdAt                     DateTime @default(now())
   updatedAt                     DateTime @updatedAt
 
@@ -247,7 +248,6 @@ model Room {
   hotelRoomPriceNight  Float
   discount             Float              @default(0)
   isBooked             EveryServiceStatus @default(AVAILABLE)
-  isFavorite           Boolean            @default(false)
   hotelReviewCount     Int                @default(0)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -259,7 +259,6 @@ model Room {
   partnerId      String?         @db.ObjectId
   hotel_bookings Hotel_Booking[]
   review         Review[]
-  favorite       Favorite[]
 
   @@map("rooms")
 }
@@ -674,10 +673,9 @@ model Favorite {
   hotelId   String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  room      Room?    @relation(fields: [roomId], references: [id])
-  roomId    String?  @db.ObjectId
 
-  @@unique([userId, roomId])
+
+  @@unique([userId, hotelId])
   @@map("favorites")
 }
 

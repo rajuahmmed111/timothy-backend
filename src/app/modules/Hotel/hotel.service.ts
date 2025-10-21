@@ -979,7 +979,7 @@ const getPopularHotels = async (
 };
 
 // add favorite hotel
-const toggleFavorite = async (userId: string, roomId: string) => {
+const toggleFavorite = async (userId: string, hotelId: string) => {
   // check if user exists
   const user = await prisma.user.findUnique({
     where: {
@@ -990,21 +990,21 @@ const toggleFavorite = async (userId: string, roomId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  // check if room exists
-  const room = await prisma.room.findUnique({
+  // check if hotel exists
+  const hotel = await prisma.hotel.findUnique({
     where: {
-      id: roomId,
+      id: hotelId,
     },
   });
-  if (!room?.hotelId) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
+  if (!hotel) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }
 
   const existing = await prisma.favorite.findUnique({
     where: {
-      userId_roomId: {
+      userId_hotelId: {
         userId: user.id,
-        roomId: room.id,
+        hotelId: hotel.id,
       },
     },
   });
@@ -1012,17 +1012,17 @@ const toggleFavorite = async (userId: string, roomId: string) => {
   if (existing) {
     await prisma.favorite.delete({
       where: {
-        userId_roomId: {
+        userId_hotelId: {
           userId,
-          roomId,
+          hotelId,
         },
       },
     });
 
     // update unfavorite
-    await prisma.room.update({
+    await prisma.hotel.update({
       where: {
-        id: room.id,
+        id: hotel.id,
       },
       data: {
         isFavorite: false,
@@ -1034,15 +1034,14 @@ const toggleFavorite = async (userId: string, roomId: string) => {
     await prisma.favorite.create({
       data: {
         userId,
-        roomId,
-        hotelId: room.hotelId,
+        hotelId,
       },
     });
 
     // update isFavorite
-    await prisma.room.update({
+    await prisma.hotel.update({
       where: {
-        id: room.id,
+        id: hotel.id,
       },
       data: {
         isFavorite: true,
@@ -1068,7 +1067,7 @@ const getAllFavoriteHotels = async (userId: string) => {
       userId: user.id,
     },
     include: {
-      room: true,
+      hotel: true,
     },
   });
 

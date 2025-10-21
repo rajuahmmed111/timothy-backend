@@ -186,9 +186,9 @@ const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
 // add favorite hotel
 const toggleFavorite = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const roomId = req.params.roomId;
+  const hotelId = req.params.hotelId;
 
-  const result = await HotelService.toggleFavorite(userId, roomId);
+  const result = await HotelService.toggleFavorite(userId, hotelId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
