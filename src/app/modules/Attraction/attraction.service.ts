@@ -242,6 +242,72 @@ const createAttractionAppeal = async (req: Request) => {
   });
 };
 
+// get all attraction appeals active listing by partnerId
+const getAllActiveListingAppealsByPartnerId = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.appeal.findMany({
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.appeal.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
+// get all attraction appeals available by partnerId
+const getAllAvailableListingAppealsByPartnerId = async (
+  partnerId: string,
+  options: IPaginationOptions
+) => {
+  const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+  const result = await prisma.appeal.findMany({
+    where: {
+      partnerId,
+      isBooked: EveryServiceStatus.AVAILABLE,
+    },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const total = await prisma.appeal.count({
+    where: {
+      partnerId,
+    },
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
+};
+
 // get all attractions
 const getAllAttractions = async (
   params: IAttractionFilter,
@@ -458,7 +524,7 @@ const getAllAttractionsAppealsByAttractionId = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : {
-            createdAt: "desc",
+            createdAt: "asc",
           },
     include: {
       user: {
@@ -978,6 +1044,8 @@ const deleteAttractionAppeal = async (appealId: string, partnerId: string) => {
 export const AttractionService = {
   createAttraction,
   createAttractionAppeal,
+  getAllActiveListingAppealsByPartnerId,
+  getAllAvailableListingAppealsByPartnerId,
   getAllAttractions,
   getAllAttractionsAppeals,
   getAllAttractionsAppealsByAttractionId,

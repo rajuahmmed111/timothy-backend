@@ -31,6 +31,44 @@ const createAttractionAppeal = catchAsync(
   }
 );
 
+// get all attraction appeals active listing by partnerId
+const getAllActiveListingAppealsByPartnerId = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const options = pick(req.query, paginationFields);
+    const result =
+      await AttractionService.getAllActiveListingAppealsByPartnerId(
+        partnerId,
+        options
+      );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Attractions fetched successfully",
+      data: result,
+    });
+  }
+);
+
+// get all attraction appeals available by partnerId
+const getAllAvailableListingAppealsByPartnerId = catchAsync(
+  async (req: Request, res: Response) => {
+    const partnerId = req.user?.id;
+    const options = pick(req.query, paginationFields);
+    const result =
+      await AttractionService.getAllAvailableListingAppealsByPartnerId(
+        partnerId,
+        options
+      );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Attractions fetched successfully",
+      data: result,
+    });
+  }
+);
+
 // get all attractions
 const getAllAttractions = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -68,11 +106,12 @@ const getAllAttractionsAppealsByAttractionId = catchAsync(
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const attractionId = req.params.attractionId;
-    const result = await AttractionService.getAllAttractionsAppealsByAttractionId(
-      filter,
-      options,
-      attractionId
-    );
+    const result =
+      await AttractionService.getAllAttractionsAppealsByAttractionId(
+        filter,
+        options,
+        attractionId
+      );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -209,6 +248,8 @@ const deleteAttractionAppeal = catchAsync(
 export const AttractionController = {
   createAttraction,
   createAttractionAppeal,
+  getAllActiveListingAppealsByPartnerId,
+  getAllAvailableListingAppealsByPartnerId,
   getAllAttractions,
   getAllAttractionsAppeals,
   getAllAttractionsAppealsByAttractionId,

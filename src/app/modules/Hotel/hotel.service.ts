@@ -308,6 +308,7 @@ const getAvailableRooms = async (
   const result = await prisma.room.findMany({
     where: {
       partnerId,
+      isBooked: EveryServiceStatus.AVAILABLE,
     },
     skip,
     take: limit,

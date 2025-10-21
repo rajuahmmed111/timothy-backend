@@ -7,6 +7,20 @@ import { uploadFile } from "../../../helpars/fileUploader";
 
 const router = express.Router();
 
+// get all attraction appeals active listing by partnerId
+router.get(
+  "/appeals-active-listing",
+  auth(UserRole.BUSINESS_PARTNER),
+  AttractionController.getAllActiveListingAppealsByPartnerId
+);
+
+// get all attraction appeals available by partnerId
+router.get(
+  "/appeals-available",
+  auth(UserRole.BUSINESS_PARTNER),
+  AttractionController.getAllAvailableListingAppealsByPartnerId
+);
+
 // get all attractions
 router.get(
   "/",
