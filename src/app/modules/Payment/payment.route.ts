@@ -13,7 +13,7 @@ router.post(
   PaymentController.stripeAccountOnboarding
 );
 
-// checkout session on stripe
+// create intent on stripe
 router.post(
   "/create-payment-intent/:serviceType/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
@@ -95,7 +95,7 @@ router.post(
 router.post(
   "/create-payment-intent-website/:serviceType/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
-  PaymentController.createStripePaymentIntentWebsite
+  PaymentController.createStripeCheckoutSessionWebsite
 );
 
 // create checkout session on pay-stack

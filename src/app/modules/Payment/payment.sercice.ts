@@ -190,7 +190,7 @@ const ensureUserStripeAccount = async (userId: string) => {
   return { status: "active", stripeAccountId: user.stripeAccountId, balance };
 };
 
-// checkout session on stripe
+// create intent on stripe
 const createStripePaymentIntent = async (
   userId: string,
   serviceType: string,
@@ -1129,7 +1129,7 @@ const getMyTransactions = async (userId: string) => {
 
 // ------------------------------ website payment ------------------------------
 // checkout session on stripe
-const createStripePaymentIntentWebsite = async (
+const createStripeCheckoutSessionWebsite = async (
   userId: string,
   serviceType: string,
   bookingId: string,
@@ -1468,6 +1468,6 @@ export const PaymentService = {
   payStackHandleWebhook,
   cancelPayStackBooking,
   getMyTransactions,
-  createStripePaymentIntentWebsite,
+  createStripeCheckoutSessionWebsite,
   createCheckoutSessionPayStackWebsite,
 };
