@@ -277,6 +277,9 @@ const getRoomActiveListing = async (
     },
     skip,
     take: limit,
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   const total = await prisma.room.count({
