@@ -311,8 +311,8 @@ const deleteSecurityProtocolGuard = catchAsync(
     const partnerId = req.user?.id;
     const guardId = req.params.guardId;
     const result = await Security_ProtocolService.deleteSecurityProtocolGuard(
+      guardId,
       partnerId,
-      guardId
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
