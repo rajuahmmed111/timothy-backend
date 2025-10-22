@@ -2,6 +2,7 @@ export const filterField: string[] = [
   "searchTerm",
   "hotelName",
   "hotelRoomType",
+  "hotelBusinessType",
   "hotelCity",
   "hotelCountry",
   "hotelRating",
