@@ -93,7 +93,7 @@ router.post(
 // ------------------------------ website payment -----------------------------
 // checkout session on stripe
 router.post(
-  "/create-payment-intent-website/:serviceType/:bookingId",
+  "/create-stripe-checkout-session-website/:serviceType/:bookingId",
   auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
   PaymentController.createStripeCheckoutSessionWebsite
 );

@@ -400,14 +400,336 @@ const createStripePaymentIntent = async (
 };
 
 // stripe webhook payment
+// const stripeHandleWebhook = async (event: Stripe.Event) => {
+//   switch (event.type) {
+//     case "payment_intent.succeeded": {
+//       const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+//       const paymentIntentId = paymentIntent.id;
+
+//       // find Payment
+//       const payment = await prisma.payment.findFirst({
+//         where: { sessionId: paymentIntentId },
+//       });
+//       if (!payment) {
+//         console.log(`No payment found for payment intent: ${paymentIntentId}`);
+//         break;
+//       }
+
+//       let providerReceived = 0;
+//       if (paymentIntent.transfer_data?.destination) {
+//         const amountReceived = paymentIntent.amount_received ?? 0;
+//         const applicationFee = paymentIntent.application_fee_amount ?? 0;
+//         providerReceived = amountReceived - applicationFee;
+//       }
+
+//       // update Payment to PAID
+//       await prisma.payment.update({
+//         where: { id: payment.id },
+//         data: {
+//           status:
+//             paymentIntent.status === "succeeded"
+//               ? PaymentStatus.PAID
+//               : PaymentStatus.UNPAID,
+//           payment_intent: paymentIntentId,
+//           service_fee: providerReceived,
+//         },
+//       });
+
+//       // update booking & service status
+//       const config = serviceConfig[payment.serviceType as ServiceType];
+//       if (!config) return;
+
+//       const bookingId = (payment as any)[config.serviceTypeField];
+//       const booking = await config.bookingModel.findUnique({
+//         where: { id: bookingId },
+//       });
+//       if (!booking) return;
+
+//       // update booking status → CONFIRMED
+//       await config.bookingModel.update({
+//         where: { id: booking.id },
+//         data: { bookingStatus: BookingStatus.CONFIRMED },
+//       });
+
+//       // update service status → BOOKED
+//       const serviceId = (booking as any)[
+//         `${payment.serviceType.toLowerCase()}Id`
+//       ];
+//       if (serviceId) {
+//         await config.serviceModel.update({
+//           where: { id: serviceId },
+//           data: { isBooked: EveryServiceStatus.BOOKED },
+//         });
+//       }
+
+//       // if booking service type SECURITY hoy tahole security protocol ar id dore hiredCount +1 hobe and payment status jodi paid hoy
+//       if (
+//         payment.serviceType === "SECURITY" &&
+//         payment.status === PaymentStatus.PAID
+//       ) {
+//         await config.serviceModel.update({
+//           where: { id: serviceId },
+//           data: { hiredCount: { increment: 1 } },
+//         });
+//       }
+
+//       // ---------- send notification ----------
+//       const service = await config.serviceModel.findUnique({
+//         where: { id: serviceId },
+//       });
+//       if (!service) return;
+
+//       const notificationData: IBookingNotificationData = {
+//         bookingId: booking.id,
+//         userId: booking.userId,
+//         partnerId: booking.partnerId,
+//         serviceTypes: payment.serviceType as ServiceTypes,
+//         serviceName: service[config.nameField],
+//         totalPrice: booking.totalPrice,
+//         // bookedFromDate:
+//         //   (booking as any).bookedFromDate || (booking as any).date,
+//         // bookedToDate: (booking as any).bookedToDate,
+//         // quantity:
+//         //   (booking as any).rooms ||
+//         //   (booking as any).adults ||
+//         //   (booking as any).number_of_security ||
+//         //   1,
+//       };
+
+//       await BookingNotificationService.sendBookingNotifications(
+//         notificationData
+//       );
+//       break;
+//     }
+
+//     default:
+//       // console.log(`Ignored Stripe event type: ${event.type}`);
+//       break;
+//   }
+// };
+
+// stripe webhook payment
+// const stripeHandleWebhook = async (event: Stripe.Event) => {
+//   switch (event.type) {
+//     case "checkout.session.completed": {
+//       const session = event.data.object as Stripe.Checkout.Session;
+//       const sessionId = session.id;
+//       const paymentIntentId = session.payment_intent as string;
+
+//       // retrieve paymentIntent
+//       const paymentIntent = await stripe.paymentIntents.retrieve(
+//         paymentIntentId
+//       );
+
+//       if (!paymentIntent.latest_charge) {
+//         throw new ApiError(
+//           httpStatus.BAD_REQUEST,
+//           "No charge found in PaymentIntent"
+//         );
+//       }
+
+//       // calculate provider received
+//       let providerReceived = 0;
+//       if (paymentIntent.transfer_data?.destination) {
+//         const amountReceived = paymentIntent.amount_received ?? 0;
+//         const applicationFee = paymentIntent.application_fee_amount ?? 0;
+//         providerReceived = amountReceived - applicationFee; // not USD
+//       }
+
+//       // find Payment
+//       const payment = await prisma.payment.findFirst({
+//         where: { sessionId },
+//       });
+
+//       if (!payment) {
+//         console.log(`No payment found for session: ${sessionId}`);
+//         break;
+//       }
+
+//       // update Payment to PAID
+//       await prisma.payment.update({
+//         where: { id: payment.id },
+//         data: {
+//           status: PaymentStatus.PAID,
+//           payment_intent: paymentIntentId,
+//           service_fee: providerReceived,
+//         },
+//       });
+
+//       // update booking & service status
+//       const config = serviceConfig[payment.serviceType as ServiceType];
+//       if (!config) return;
+
+//       const bookingId = (payment as any)[config.serviceTypeField];
+//       const booking = await config.bookingModel.findUnique({
+//         where: { id: bookingId },
+//       });
+//       if (!booking) return;
+
+//       // update booking status → CONFIRMED
+//       await config.bookingModel.update({
+//         where: { id: booking.id },
+//         data: { bookingStatus: BookingStatus.CONFIRMED },
+//       });
+
+//       // update service status → BOOKED
+//       const serviceId = (booking as any)[
+//         `${payment.serviceType.toLowerCase()}Id`
+//       ];
+//       if (serviceId) {
+//         await config.serviceModel.update({
+//           where: { id: serviceId },
+//           data: { isBooked: EveryServiceStatus.BOOKED },
+//         });
+//       }
+
+//       // ---------- send notification ----------
+//       const service = await config.serviceModel.findUnique({
+//         where: { id: serviceId },
+//       });
+//       if (!service) return;
+
+//       const notificationData: IBookingNotificationData = {
+//         bookingId: booking.id,
+//         userId: booking.userId,
+//         partnerId: booking.partnerId,
+//         serviceTypes: payment.serviceType as ServiceTypes,
+//         serviceName: service[config.nameField],
+//         totalPrice: booking.totalPrice,
+//         // bookedFromDate:
+//         //   (booking as any).bookedFromDate || (booking as any).date,
+//         // bookedToDate: (booking as any).bookedToDate,
+//         // quantity:
+//         //   (booking as any).rooms ||
+//         //   (booking as any).adults ||
+//         //   (booking as any).number_of_security ||
+//         //   1,
+//       };
+
+//       await BookingNotificationService.sendBookingNotifications(
+//         notificationData
+//       );
+//       break;
+//     }
+
+//     default:
+//       throw new ApiError(httpStatus.BAD_REQUEST, "Invalid event type");
+//   }
+// };
+
+// stripe webhook payment
 const stripeHandleWebhook = async (event: Stripe.Event) => {
   switch (event.type) {
+    // case 1: checkout session completed (Website)
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const sessionId = session.id;
+      const paymentIntentId = session.payment_intent as string;
+
+      // retrieve paymentIntent
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
+
+      if (!paymentIntent.latest_charge) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          "No charge found in PaymentIntent"
+        );
+      }
+
+      // calculate provider received
+      let providerReceived = 0;
+      if (paymentIntent.transfer_data?.destination) {
+        const amountReceived = paymentIntent.amount_received ?? 0;
+        const applicationFee = paymentIntent.application_fee_amount ?? 0;
+        providerReceived = amountReceived - applicationFee; // not USD
+      }
+
+      // find Payment
+      const payment = await prisma.payment.findFirst({
+        where: { sessionId },
+      });
+
+      if (!payment) {
+        console.log(`No payment found for session: ${sessionId}`);
+        break;
+      }
+
+      // update payment to PAID
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.PAID,
+          payment_intent: paymentIntentId,
+          service_fee: providerReceived,
+        },
+      });
+
+      // update booking & service status
+      const config = serviceConfig[payment.serviceType as ServiceType];
+      if (!config) return;
+
+      const bookingId = (payment as any)[config.serviceTypeField];
+      const booking = await config.bookingModel.findUnique({
+        where: { id: bookingId },
+      });
+      if (!booking) return;
+
+      // update booking status → CONFIRMED
+      await config.bookingModel.update({
+        where: { id: booking.id },
+        data: { bookingStatus: BookingStatus.CONFIRMED },
+      });
+
+      // update service status → BOOKED
+      const serviceId = (booking as any)[
+        `${payment.serviceType.toLowerCase()}Id`
+      ];
+      if (serviceId) {
+        await config.serviceModel.update({
+          where: { id: serviceId },
+          data: { isBooked: EveryServiceStatus.BOOKED },
+        });
+      }
+
+      // ---------- send notification ----------
+      const service = await config.serviceModel.findUnique({
+        where: { id: serviceId },
+      });
+      if (!service) return;
+
+      const notificationData: IBookingNotificationData = {
+        bookingId: booking.id,
+        userId: booking.userId,
+        partnerId: booking.partnerId,
+        serviceTypes: payment.serviceType as ServiceTypes,
+        serviceName: service[config.nameField],
+        totalPrice: booking.totalPrice,
+        // bookedFromDate:
+        //   (booking as any).bookedFromDate || (booking as any).date,
+        // bookedToDate: (booking as any).bookedToDate,
+        // quantity:
+        //   (booking as any).rooms ||
+        //   (booking as any).adults ||
+        //   (booking as any).number_of_security ||
+        //   1,
+      };
+
+      await BookingNotificationService.sendBookingNotifications(
+        notificationData
+      );
+      break;
+    }
+
+    // case 2: payment intent succeeded (App)
     case "payment_intent.succeeded": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
       const paymentIntentId = paymentIntent.id;
 
-      // find Payment
+      // find payment
       const payment = await prisma.payment.findFirst({
         where: { sessionId: paymentIntentId },
       });
@@ -423,7 +745,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         providerReceived = amountReceived - applicationFee;
       }
 
-      // update Payment to PAID
+      // update payment to PAID
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
@@ -504,7 +826,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
     }
 
     default:
-      // console.log(`Ignored Stripe event type: ${event.type}`);
+      // ignore other events
       break;
   }
 };
@@ -616,7 +938,6 @@ const cancelStripeBooking = async (
 };
 
 // --------------------------- pay-stack ---------------------------
-
 //
 // get banks
 const getPayStackBanks = async () => {
@@ -1282,7 +1603,7 @@ const createStripeCheckoutSessionWebsite = async (
       },
     ],
     mode: "payment",
-    success_url: `${config.stripe.checkout_success_url}?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${config.stripe.checkout_success_url}`,
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
       application_fee_amount: adminFee, // goes to Admin
