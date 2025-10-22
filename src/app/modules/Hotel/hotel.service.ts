@@ -277,9 +277,12 @@ const getRoomActiveListing = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
     include: {
       hotel: {
         select: {
@@ -320,9 +323,12 @@ const getAvailableRooms = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
     include: {
       hotel: {
         select: {
