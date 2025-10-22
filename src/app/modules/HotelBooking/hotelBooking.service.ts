@@ -187,9 +187,10 @@ const getAllMyHotelBookings = async (userId: string) => {
       room: {
         select: {
           id: true,
+          hotelRoomType: true,
+          hotelRoomCapacity: true,
           hotelRoomPriceNight: true,
           hotelRoomImages: true,
-          // hotelAddress: true,
           discount: true,
           category: true,
           partnerId: true,
@@ -200,6 +201,8 @@ const getAllMyHotelBookings = async (userId: string) => {
           id: true,
           hotelName: true,
           partnerId: true,
+          hotelCity: true,
+          hotelCountry: true,
         },
       },
       payment: {
