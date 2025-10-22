@@ -220,9 +220,14 @@ const getAllCarActiveListingByPartnerId = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
   });
 
   const total = await prisma.car.count({
@@ -255,9 +260,14 @@ const getAllAvailableListingCarByPartnerId = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
   });
 
   const total = await prisma.car.count({
