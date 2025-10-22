@@ -323,6 +323,14 @@ const getAvailableRooms = async (
     orderBy: {
       createdAt: "asc",
     },
+    include: {
+      hotel: {
+        select: {
+          hotelCity: true,
+          hotelCountry: true,
+        },
+      },
+    },
   });
 
   const total = await prisma.room.count({
