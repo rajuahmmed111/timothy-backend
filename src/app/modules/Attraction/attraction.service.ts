@@ -255,9 +255,14 @@ const getAllActiveListingAppealsByPartnerId = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
   });
 
   const total = await prisma.appeal.count({
@@ -290,9 +295,14 @@ const getAllAvailableListingAppealsByPartnerId = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
   });
 
   const total = await prisma.appeal.count({
