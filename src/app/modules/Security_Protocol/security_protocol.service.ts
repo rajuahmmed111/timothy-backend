@@ -218,9 +218,14 @@ const getAllActiveListingSecurityGuardsByPartnerId = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
   });
 
   const total = await prisma.security_Guard.count({
@@ -253,9 +258,14 @@ const getAllAvailableListingSecurityGuardsByPartnerId = async (
     },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
   });
 
   const total = await prisma.security_Guard.count({
