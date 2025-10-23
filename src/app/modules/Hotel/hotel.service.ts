@@ -999,9 +999,14 @@ const getPopularHotels = async (
         ],
       }),
     },
-    // take: 10,
     include: {
-      room: true, // Get all rooms instead of just 1
+      room: {
+        select: {
+          hotelRoomPriceNight: true,
+          hotelRating: true,
+          hotelReviewCount: true,
+        },
+      },
     },
   });
 
