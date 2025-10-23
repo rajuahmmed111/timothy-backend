@@ -48,7 +48,7 @@ export const serviceConfig: Record<
   SECURITY: {
     bookingModel: prisma.security_Booking,
     serviceModel: prisma.security_Guard,
-    serviceTypeField: "security_bookingId",
+    serviceTypeField: "security_GuardId",
     nameField: "securityName",
     partnerIdField: "partnerId",
   },

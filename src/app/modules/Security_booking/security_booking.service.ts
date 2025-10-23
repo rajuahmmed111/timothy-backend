@@ -109,16 +109,20 @@ const createSecurityBooking = async (
   // }
 
   // create booking
-  const result = await prisma.security_Booking.create({
+ const result = await prisma.security_Booking.create({
     data: {
-      ...data,
+      number_of_security,
+      securityBookedFromDate,
+      securityBookedToDate,
       totalPrice,
       bookingStatus: BookingStatus.PENDING,
+      category: security.category || "",
       partnerId: security.partnerId!,
-      userId,
-      security_GuardId,
-      securityId: security.securityId as string,
-      category: security.category as string,
+
+      // ✅ Proper relation connect syntax
+      user: { connect: { id: userId } },
+      security_Guard: { connect: { id: security_GuardId } },
+      security: { connect: { id: security.securityId! } },
     },
   });
 

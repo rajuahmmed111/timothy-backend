@@ -37,6 +37,7 @@ const createCarBooking = async (
       discount: true,
       vat: true,
       category: true,
+      car_RentalId: true,
       car_Rental: {
         select: {
           carName: true,
@@ -139,6 +140,7 @@ const createCarBooking = async (
       partnerId: car.partnerId!,
       userId,
       carId,
+      car_RentalId: car.car_RentalId,
       category: car.category as string,
       carBookedFromDate: data.carBookedFromDate,
       carBookedToDate: data.carBookedToDate,
