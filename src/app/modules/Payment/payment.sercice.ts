@@ -1074,6 +1074,13 @@ const createCheckoutSessionPayStack = async (
   const service = await serviceT.serviceModel.findUnique({
     where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
   });
+  console.log("booking:", booking);
+  console.log("serviceTypeField:", serviceT.serviceTypeField);
+  console.log(
+    "service id to search:",
+    (booking as any)[serviceT.serviceTypeField]
+  );
+
   if (!service)
     throw new ApiError(httpStatus.NOT_FOUND, `${serviceType} not found`);
 
@@ -1467,15 +1474,6 @@ const createStripeCheckoutSessionWebsite = async (
   // find user
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-
-  // ensure user has an active Stripe account
-  // const stripeStatus = await ensureUserStripeAccount(userId);
-  // if (stripeStatus.status === "onboarding_required") {
-  //   return {
-  //     message: "Stripe account onboarding required",
-  //     onboardingLink: stripeStatus.onboardingLink,
-  //   };
-  // }
 
   switch (serviceType) {
     case "CAR":

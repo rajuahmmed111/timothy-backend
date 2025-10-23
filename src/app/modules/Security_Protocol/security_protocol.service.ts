@@ -1371,7 +1371,6 @@ const deleteSecurityProtocolGuard = async (
   guardId: string,
   partnerId: string
 ) => {
-  console.log(guardId, "guardId");
   // check guard exists
   const findGuard = await prisma.security_Guard.findUnique({
     where: { id: guardId },
