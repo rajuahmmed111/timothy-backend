@@ -452,8 +452,12 @@ const getAllHotels = async (
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
     include: {
+      
       room: {
         where: roomWhere,
+        include: {
+          review: true,
+        }
       },
     },
   });

@@ -10,7 +10,7 @@ const createHotelReview = async (
   roomId: string,
   rating: number,
   comment?: string
-): Promise<Review> => {
+)=> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -18,13 +18,37 @@ const createHotelReview = async (
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
+    select: {
+      id: true,
+      hotelRating: true,
+      hotelReviewCount: true,
+      hotelId: true,
+    },
+  });
+  if (!room) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
+  }
+
   const review = await prisma.review.create({
     data: {
       userId: user.id,
       roomId,
+      hotelId: room.hotelId,
       rating,
       comment,
     },
+    select: {
+      id: true,
+      userId: true,
+      roomId: true,
+      hotelId: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      updatedAt: true,
+    }
   });
 
   const ratings = await prisma.review.findMany({
