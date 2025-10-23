@@ -380,6 +380,7 @@ const getAllAttractions = async (
           profileImage: true,
         },
       },
+      review: true,
     },
   });
 
@@ -454,6 +455,7 @@ const getAllAttractionsAppeals = async (
           profileImage: true,
         },
       },
+      review: true,
       attractionSchedule: {
         include: { slots: true },
       },

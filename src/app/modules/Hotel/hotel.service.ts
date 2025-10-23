@@ -455,9 +455,9 @@ const getAllHotels = async (
       
       room: {
         where: roomWhere,
-        include: {
-          review: true,
-        }
+        // include: {
+        //   review: true,
+        // }
       },
     },
   });

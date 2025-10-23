@@ -337,6 +337,9 @@ const getAllCarRentals = async (
         : {
             createdAt: "desc",
           },
+    include: {
+      review: true,
+    },
   });
   const total = await prisma.car_Rental.count({ where });
 
@@ -417,6 +420,7 @@ const getAllCarRentalsCars = async (
           },
     include: {
       car_Rental: true,
+      review: true,
     },
   });
 

@@ -562,6 +562,7 @@ const getAllSecurityProtocols = async (
         },
       },
       security_Guard: true,
+      review: true,
     },
   });
 
@@ -569,7 +570,7 @@ const getAllSecurityProtocols = async (
     where,
   });
 
-    // total security protocols guards type in security protocols
+  // total security protocols guards type in security protocols
   const totalGuardsSpecificSecurity = await prisma.security_Guard.groupBy({
     by: ["securityId"],
     _count: {
@@ -788,6 +789,7 @@ const getAllSecurityProtocolsGuards = async (
             securityProtocolType: true,
           },
         },
+        review: true,
       },
     }),
     prisma.security_Guard.count({ where }),
@@ -1007,6 +1009,7 @@ const getAllSecurityProtocolsGuardsApp = async (
           securityProtocolType: true,
         },
       },
+      review: true,
     },
   });
 
