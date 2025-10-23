@@ -381,6 +381,7 @@ const getAllAttractions = async (
         },
       },
       review: true,
+      appeal: true,
     },
   });
 

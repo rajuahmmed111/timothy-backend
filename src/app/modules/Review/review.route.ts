@@ -4,6 +4,11 @@ import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
+// get all reviews
+router.get("/", ReviewController.getAllReviews);
+
+// get hotel
+
 // create hotel review
 router.post("/hotel", auth(), ReviewController.createHotelReview);
 

@@ -82,9 +82,21 @@ const createAttractionReview = catchAsync(
   }
 );
 
+// get all reviews
+const getAllReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getAllReviews();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Reviews fetched successfully",
+    data: result,
+  });
+});
+
 export const ReviewController = {
   createHotelReview,
   createSecurityReview,
   createCarReview,
   createAttractionReview,
+  getAllReviews,
 };
