@@ -51,7 +51,7 @@ export const serviceConfig: Record<
   SECURITY: {
     bookingModel: prisma.security_Booking,
     serviceModel: prisma.security_Guard,
-    bookingToServiceField: "security_GuardId", // ✅ fixed
+    bookingToServiceField: "security_GuardId",
     serviceTypeField: "security_bookingId",
     nameField: "securityName",
     partnerIdField: "partnerId",

@@ -1356,9 +1356,20 @@ const cancelPayStackBooking = async (
       userId,
       bookingStatus: BookingStatus.CONFIRMED, // or any other status
     },
-    include: { payment: true, user: true },
+    include: {
+      payment: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          profileImage: true,
+          country: true,
+        },
+      },
+    },
   });
-
+  console.log(booking, "booking");
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
   // const payment = booking.payment
@@ -1371,6 +1382,9 @@ const cancelPayStackBooking = async (
         p.provider === "PAYSTACK" && p.status === "PAID" && p.transactionId
     )
     .pop();
+
+  console.log(payment, "payment");
+  if (payment) return;
 
   if (!payment || !payment.transactionId) {
     throw new ApiError(
