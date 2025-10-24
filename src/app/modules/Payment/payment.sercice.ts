@@ -653,7 +653,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       });
 
       if (!payment) {
-        console.log(`No payment found for session: ${sessionId}`);
+        // console.log(`No payment found for session: ${sessionId}`);
         break;
       }
 
@@ -1584,8 +1584,8 @@ const createStripeCheckoutSessionWebsite = async (
         price_data: {
           currency: "usd",
           product_data: {
-            name: serviceName,
-            description,
+            name: serviceName || "Service Booking",
+            description: description || "Service payment",
           },
           unit_amount: totalWithVAT,
         },

@@ -8,11 +8,11 @@ import { AttractionBookingService } from "./attraction_booking.service";
 const createAttractionBooking = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const attractionId = req.params.attractionId;
-    console.log(userId, attractionId, req.body, "controller");
+    const appealId = req.params.appealId;
+    // console.log(userId, appealId, req.body, "controller");
     const result = await AttractionBookingService.createAttractionBooking(
       userId,
-      attractionId,
+      appealId,
       req.body
     );
     sendResponse(res, {

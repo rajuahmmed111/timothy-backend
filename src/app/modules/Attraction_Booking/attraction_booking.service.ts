@@ -7,7 +7,7 @@ import { parse, startOfDay, isBefore, format } from "date-fns";
 // create attraction booking
 const createAttractionBooking = async (
   userId: string,
-  attractionId: string,
+  appealId: string,
   data: {
     adults: number;
     children: number;
@@ -53,7 +53,7 @@ const createAttractionBooking = async (
 
   // get attraction with schedules & slots (match by day)
   const attraction = await prisma.appeal.findUnique({
-    where: { id: attractionId },
+    where: { id: appealId },
     select: {
       id: true,
       partnerId: true,
@@ -62,8 +62,9 @@ const createAttractionBooking = async (
       vat: true,
       discount: true,
       category: true,
+      attractionId: true,
       attractionSchedule: {
-        where: { day },
+        where: { appealId },
         include: { slots: true },
       },
       attraction: {
@@ -73,6 +74,8 @@ const createAttractionBooking = async (
       },
     },
   });
+  // console.log(attraction, "attraction");
+  // console.log(JSON.stringify(attraction, null, 2));
 
   if (!attraction) {
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
@@ -90,6 +93,7 @@ const createAttractionBooking = async (
   }
 
   const schedule = attraction.attractionSchedule[0];
+  // console.log(schedule, "schedule");
 
   // find matching slot
   const slot = schedule.slots.find((s) => s.from === from);
@@ -113,7 +117,8 @@ const createAttractionBooking = async (
   const booking = await prisma.attraction_Booking.create({
     data: {
       userId,
-      attractionId,
+      appealId,
+      attractionId: attraction.attractionId!,
       partnerId: attraction.partnerId!,
       adults,
       children,
