@@ -9,7 +9,7 @@ export const filterField: string[] = [
 ];
 
 export const searchableFields: string[] = [
-  "attractionName",
+  // "attractionName",
   "attractionRating",
   "attractionCity",
   "attractionCountry",
