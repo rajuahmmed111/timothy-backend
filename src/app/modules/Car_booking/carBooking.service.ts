@@ -146,6 +146,19 @@ const createCarBooking = async (
       carBookedToDate: data.carBookedToDate,
       promo_code: data.promo_code as string,
     },
+    select: {
+      id: true,
+      totalPrice: true,
+      bookingStatus: true,
+      partnerId: true,
+      userId: true,
+      carId: true,
+      car_RentalId: true,
+      category: true,
+      carBookedFromDate: true,
+      carBookedToDate: true,
+      promo_code: true,
+    }
   });
 
   return booking;

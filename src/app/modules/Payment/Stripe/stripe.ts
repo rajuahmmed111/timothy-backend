@@ -24,9 +24,10 @@ export type ServiceType = "CAR" | "HOTEL" | "SECURITY" | "ATTRACTION";
 export const serviceConfig: Record<
   ServiceType,
   {
-    bookingModel: any; // use correct Prisma delegate type
+    bookingModel: any;
     serviceModel: any;
-    serviceTypeField: string;
+    bookingToServiceField: string; // 👈 Added new field
+    serviceTypeField: string; // for payment create
     nameField: string;
     partnerIdField: string;
   }
@@ -34,6 +35,7 @@ export const serviceConfig: Record<
   CAR: {
     bookingModel: prisma.car_Booking,
     serviceModel: prisma.car,
+    bookingToServiceField: "carId",
     serviceTypeField: "car_bookingId",
     nameField: "carName",
     partnerIdField: "partnerId",
@@ -41,6 +43,7 @@ export const serviceConfig: Record<
   HOTEL: {
     bookingModel: prisma.hotel_Booking,
     serviceModel: prisma.room,
+    bookingToServiceField: "roomId",
     serviceTypeField: "hotel_bookingId",
     nameField: "hotelName",
     partnerIdField: "partnerId",
@@ -48,13 +51,15 @@ export const serviceConfig: Record<
   SECURITY: {
     bookingModel: prisma.security_Booking,
     serviceModel: prisma.security_Guard,
-    serviceTypeField: "security_GuardId",
+    bookingToServiceField: "security_GuardId", // ✅ fixed
+    serviceTypeField: "security_bookingId",
     nameField: "securityName",
     partnerIdField: "partnerId",
   },
   ATTRACTION: {
     bookingModel: prisma.attraction_Booking,
     serviceModel: prisma.appeal,
+    bookingToServiceField: "appealId",
     serviceTypeField: "attraction_bookingId",
     nameField: "attractionName",
     partnerIdField: "partnerId",

@@ -1072,14 +1072,8 @@ const createCheckoutSessionPayStack = async (
 
   // find service
   const service = await serviceT.serviceModel.findUnique({
-    where: { id: (booking as any)[`${serviceType.toLowerCase()}Id`] },
+    where: { id: (booking as any)[serviceT.bookingToServiceField] },
   });
-  console.log("booking:", booking);
-  console.log("serviceTypeField:", serviceT.serviceTypeField);
-  console.log(
-    "service id to search:",
-    (booking as any)[serviceT.serviceTypeField]
-  );
 
   if (!service)
     throw new ApiError(httpStatus.NOT_FOUND, `${serviceType} not found`);
@@ -1284,9 +1278,7 @@ const payStackHandleWebhook = async (req: any) => {
     });
 
     // service → BOOKED
-    const serviceId = (booking as any)[
-      `${payment.serviceType.toLowerCase()}Id`
-    ];
+    const serviceId = (booking as any)[configs.bookingToServiceField];
     if (serviceId) {
       await configs.serviceModel.update({
         where: { id: serviceId },
@@ -1477,13 +1469,13 @@ const createStripeCheckoutSessionWebsite = async (
 
   switch (serviceType) {
     case "CAR":
-      booking = await prisma.car_Booking.findUnique({
+      booking = await prisma.car_Booking.findFirst({
         where: { id: bookingId, userId },
       });
       if (!booking)
         throw new ApiError(httpStatus.NOT_FOUND, "Car booking not found");
 
-      service = await prisma.car_Rental.findUnique({
+      service = await prisma.car.findUnique({
         where: { id: booking.carId },
       });
       if (!service) throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
