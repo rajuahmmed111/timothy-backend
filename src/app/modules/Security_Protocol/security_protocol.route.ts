@@ -123,7 +123,7 @@ router.get(
 
 // get single security protocol security guard
 router.get(
-  "/security-guard/:guardId",
+  "/single-security-guard/:guardId",
   auth(
     UserRole.ADMIN,
     UserRole.SUPER_ADMIN,
