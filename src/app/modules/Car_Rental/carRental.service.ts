@@ -419,7 +419,12 @@ const getAllCarRentalsCars = async (
             carRating: "desc",
           },
     include: {
-      car_Rental: true,
+      car_Rental: {
+        select: {
+          id: true,
+          carName: true,
+        },
+      },
       review: true,
     },
   });

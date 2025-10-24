@@ -107,6 +107,7 @@ const cancelStripeBooking = catchAsync(async (req, res) => {
   });
 });
 
+// --------------------------- pay-stack ---------------------------
 //
 // bank list
 const getPayStackBanks = catchAsync(async (req: Request, res: Response) => {

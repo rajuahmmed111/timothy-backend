@@ -7,6 +7,7 @@ export const filterField: string[] = [
   "category",
   "fromDate",
   "toDate",
+  "carType",
 ];
 
 export const searchableFields: string[] = [
@@ -15,4 +16,5 @@ export const searchableFields: string[] = [
   "carCity",
   "carCountry",
   "category",
+  "carType",
 ];

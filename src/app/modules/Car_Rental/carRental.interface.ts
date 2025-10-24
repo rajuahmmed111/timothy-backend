@@ -7,4 +7,5 @@ export interface ICarRentalFilter {
   category?: string | undefined;
   fromDate?: string | undefined;
   toDate?: string | undefined;
+  carType?: string | undefined;
 }
