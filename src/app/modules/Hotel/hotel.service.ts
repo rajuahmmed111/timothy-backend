@@ -368,6 +368,7 @@ const getAllHotels = async (
     maxPrice,
     fromDate,
     toDate,
+    hotelRating,
     hotelNumberOfRooms,
     hotelNumAdults,
     hotelNumChildren,
@@ -441,6 +442,7 @@ const getAllHotels = async (
           },
         }
       : {}),
+    ...(hotelRating ? { hotelRating: { equals: hotelRating } } : {}),
   };
 
   const result = await prisma.hotel.findMany({
@@ -452,7 +454,6 @@ const getAllHotels = async (
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
     include: {
-      
       room: {
         where: roomWhere,
         // include: {
