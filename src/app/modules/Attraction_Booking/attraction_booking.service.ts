@@ -152,7 +152,43 @@ const getAllAttractionBookings = async (partnerId: string) => {
   }
 
   const result = await prisma.attraction_Booking.findMany({
-    where: { partnerId: partner.id },
+    where: { userId: partner.id },
+    include: {
+      appeal: {
+        select: {
+          id: true,
+          attractionAdultPrice: true,
+          attractionImages: true,
+          attractionAddress: true,
+          discount: true,
+          category: true,
+          partnerId: true,
+        },
+      },
+      attraction: {
+        select: {
+          id: true,
+          attractionName: true,
+          partnerId: true,
+        },
+      },
+      payment: {
+        where: { status: PaymentStatus.PAID },
+        select: {
+          id: true,
+          provider: true,
+          status: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
+        },
+      },
+    },
   });
   return result;
 };
@@ -180,6 +216,14 @@ const getAttractionBookingById = async (bookingId: string, userId: string) => {
       attraction: {
         select: {
           attractionName: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },
@@ -221,6 +265,14 @@ const getAllMyAttractionBookings = async (userId: string) => {
           id: true,
           provider: true,
           status: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },

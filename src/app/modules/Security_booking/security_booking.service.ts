@@ -109,7 +109,7 @@ const createSecurityBooking = async (
   // }
 
   // create booking
- const result = await prisma.security_Booking.create({
+  const result = await prisma.security_Booking.create({
     data: {
       number_of_security,
       securityBookedFromDate,
@@ -146,6 +146,28 @@ const getAllSecurityBookings = async (partnerId: string) => {
           securityName: true,
         },
       },
+      security_Guard: {
+        select: {
+          id: true,
+          securityPriceDay: true,
+        },
+      },
+      payment: {
+        where: { status: PaymentStatus.PAID },
+        select: {
+          id: true,
+          provider: true,
+          status: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
+        },
+      },
     },
   });
   if (result.length === 0) {
@@ -170,6 +192,23 @@ const getSingleSecurityBooking = async (id: string) => {
         select: {
           id: true,
           securityName: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
+        },
+      },
+
+      payment: {
+        where: { status: PaymentStatus.PAID },
+        select: {
+          id: true,
+          provider: true,
+          status: true,
         },
       },
     },
@@ -209,6 +248,20 @@ const getAllMySecurityBookings = async (userId: string) => {
           id: true,
           provider: true,
           status: true,
+        },
+      },
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },

@@ -155,12 +155,43 @@ const getAllHotelBookings = async (partnerId: string) => {
   }
 
   const result = await prisma.hotel_Booking.findMany({
-    where: { partnerId },
+    where: { id: partner.id },
     include: {
       room: {
         select: {
           id: true,
+          hotelRoomType: true,
+          hotelRoomCapacity: true,
+          hotelRoomPriceNight: true,
+          hotelRoomImages: true,
+          discount: true,
+          category: true,
           partnerId: true,
+        },
+      },
+      hotel: {
+        select: {
+          id: true,
+          hotelName: true,
+          partnerId: true,
+          hotelCity: true,
+          hotelCountry: true,
+        },
+      },
+      payment: {
+        where: { status: PaymentStatus.PAID },
+        select: {
+          id: true,
+          provider: true,
+          status: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },
@@ -213,8 +244,17 @@ const getAllMyHotelBookings = async (userId: string) => {
           status: true,
         },
       },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
+        },
+      },
     },
   });
+
   return result;
 };
 
@@ -237,6 +277,14 @@ const getHotelBookingById = async (partnerId: string, bookingId: string) => {
           id: true,
           hotelName: true,
           partnerId: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },
