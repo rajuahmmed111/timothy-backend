@@ -1,5 +1,6 @@
 NODE_ENV=development # do not add this when deploying to production
 DATABASE_URL="mongodb+srv://timothyapp:RjKfD7UAMaF1aiyL@cluster0.wqymbxc.mongodb.net/timothy?retryWrites=true&w=majority&appName=Cluster0"
+# DATABASE_URL="mongodb+srv://Fasify:mMSEJIS5OMmZt3LV@cluster0.lzu6ggj.mongodb.net/fasity?appName=Cluster0"
 PORT=5000
 
 EMAIL="amsohelrana.me@gmail.com"

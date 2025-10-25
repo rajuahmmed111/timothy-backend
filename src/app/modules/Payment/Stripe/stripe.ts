@@ -138,9 +138,3 @@ export const zeroDecimalCurrencies: Record<string, string> = {
 // ytZ9W_RU
 
 // raju@2025#
-
-// Fasify
-
-// mMSEJIS5OMmZt3LV
-
-// mongodb+srv://Fasify:<db_password>@cluster0.lzu6ggj.mongodb.net/?appName=Cluster0
