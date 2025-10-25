@@ -475,7 +475,7 @@ const getAllSecurityProtocols = async (
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, fromDate, toDate, ...filterData } = params;
 
   const filters: Prisma.Security_ProtocolWhereInput[] = [];
 
@@ -518,20 +518,15 @@ const getAllSecurityProtocols = async (
   }
 
   // fromDate - toDate booking exclude
-  if (filterData.fromDate && filterData.toDate) {
+  // Date availability filter
+  if (fromDate && toDate) {
     filters.push({
       security_Booking: {
         none: {
           AND: [
-            {
-              securityBookedFromDate: { lte: filterData.toDate },
-            },
-            {
-              securityBookedToDate: { gte: filterData.fromDate },
-            },
-            {
-              bookingStatus: { not: BookingStatus.COMPLETED },
-            },
+            { securityBookedFromDate: { lte: toDate } },
+            { securityBookedToDate: { gte: fromDate } },
+            { bookingStatus: { not: BookingStatus.COMPLETED } },
           ],
         },
       },
