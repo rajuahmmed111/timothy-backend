@@ -158,7 +158,7 @@ const createCarBooking = async (
       carBookedFromDate: true,
       carBookedToDate: true,
       promo_code: true,
-    }
+    },
   });
 
   return booking;
@@ -184,6 +184,22 @@ const getAllCarBookings = async (partnerId: string) => {
       car_Rental: {
         select: {
           carName: true,
+        },
+      },
+      payment: {
+        where: { status: PaymentStatus.PAID },
+        select: {
+          id: true,
+          provider: true,
+          status: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },
@@ -212,6 +228,14 @@ const getSingleCarBooking = async (id: string) => {
       car_Rental: {
         select: {
           carName: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
     },
@@ -252,6 +276,14 @@ const getAllMyCarBookings = async (userId: string) => {
       car_Rental: {
         select: {
           carName: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          contactNumber: true,
         },
       },
       payment: {
