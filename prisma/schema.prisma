@@ -331,6 +331,7 @@ model Security_Guard {
   securityDistrict         String
   securityCity             String
   securityCountry          String
+  // securityProtocolType     String
   securityGuardDescription String
   securityImages           String[] // 10 image
   securityServicesOffered  String[]

@@ -146,6 +146,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
     securityPostalCode,
     securityDistrict,
     securityCountry,
+    // securityProtocolType,
     securityGuardDescription,
     securityServicesOffered,
     experience,
@@ -181,6 +182,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
       securityDistrict,
       securityCity,
       securityCountry,
+      // securityProtocolType,
       securityGuardDescription,
       securityServicesOffered: parsedServices,
       experience: parseInt(experience),
@@ -1300,6 +1302,7 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
     securityPostalCode,
     securityDistrict,
     securityCountry,
+    // securityProtocolType,
     securityGuardDescription,
     securityServicesOffered,
     experience,
@@ -1339,6 +1342,8 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
       securityDistrict: securityDistrict || existingGuard.securityDistrict,
       securityCity: securityCity || existingGuard.securityCity,
       securityCountry: securityCountry || existingGuard.securityCountry,
+      // securityProtocolType:
+      //   securityProtocolType || existingGuard.securityProtocolType,
       securityGuardDescription:
         securityGuardDescription || existingGuard.securityGuardDescription,
       securityServicesOffered:
