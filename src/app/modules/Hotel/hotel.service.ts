@@ -442,7 +442,7 @@ const getAllHotels = async (
           },
         }
       : {}),
-    ...(hotelRating ? { hotelRating: { equals: hotelRating } } : {}),
+    ...(hotelRating ? { hotelRating: { gte: hotelRating } } : {}),
   };
 
   const result = await prisma.hotel.findMany({
