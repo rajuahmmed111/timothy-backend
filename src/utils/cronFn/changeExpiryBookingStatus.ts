@@ -2,6 +2,7 @@ import { BookingStatus } from "@prisma/client";
 import cron from "node-cron";
 import dayjs from "dayjs";
 import prisma from "../../shared/prisma";
+import { subMinutes } from "date-fns";
 
 // Helper function for date check
 const isPastDate = (date: string) => {
@@ -23,7 +24,7 @@ export const changeExpiryBookingStatus = () => {
       if (isPastDate(booking.bookedToDate)) {
         await prisma.hotel_Booking.update({
           where: { id: booking.id },
-          data: { bookingStatus: BookingStatus.COMPLETED  },
+          data: { bookingStatus: BookingStatus.COMPLETED },
         });
       }
     }
@@ -77,5 +78,50 @@ export const changeExpiryBookingStatus = () => {
     }
 
     console.log("All expired bookings marked as COMPLETED");
+  });
+};
+
+export const changeExpiryBookingStatusForCancel = () => {
+  // Node-Cron (run every 10 minutes)
+  cron.schedule("*/10 * * * *", async () => {
+    const expiryTime = subMinutes(new Date(), 10);
+
+    // hotel bookings
+    await prisma.hotel_Booking.updateMany({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        createdAt: { lte: expiryTime },
+      },
+      data: { bookingStatus: BookingStatus.CANCELLED },
+    });
+
+    // security bookings
+    await prisma.security_Booking.updateMany({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        createdAt: { lte: expiryTime },
+      },
+      data: { bookingStatus: BookingStatus.CANCELLED },
+    });
+
+    // car bookings
+    await prisma.car_Booking.updateMany({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        createdAt: { lte: expiryTime },
+      },
+      data: { bookingStatus: BookingStatus.CANCELLED },
+    });
+
+    // attraction bookings
+    await prisma.attraction_Booking.updateMany({
+      where: {
+        bookingStatus: BookingStatus.PENDING,
+        createdAt: { lte: expiryTime },
+      },
+      data: { bookingStatus: BookingStatus.CANCELLED },
+    });
+
+    // console.log("Expired pending bookings auto-cancelled");
   });
 };
