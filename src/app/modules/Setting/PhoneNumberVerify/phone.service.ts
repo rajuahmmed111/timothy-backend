@@ -71,12 +71,12 @@ const sendOtpToPhoneNumber = async (userId: string, contactNumber: string) => {
       sid: sms.sid,
     };
   } catch (error: any) {
-  console.error("Twilio Error:", error);
-  throw new ApiError(
-    httpStatus.INTERNAL_SERVER_ERROR,
-    `Failed to send OTP: ${error.message}`
-  );
-}
+    console.error("Twilio Error:", error);
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      `Failed to send OTP: ${error.message}`
+    );
+  }
 };
 
 // verify otp
