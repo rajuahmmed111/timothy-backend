@@ -1005,13 +1005,7 @@ const getPopularHotels = async (
       }),
     },
     include: {
-      room: {
-        select: {
-          hotelRoomPriceNight: true,
-          hotelRating: true,
-          hotelReviewCount: true,
-        },
-      },
+      room: true,
     },
   });
 
