@@ -734,7 +734,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         where: { sessionId: paymentIntentId },
       });
       if (!payment) {
-        console.log(`No payment found for payment intent: ${paymentIntentId}`);
+        // console.log(`No payment found for payment intent: ${paymentIntentId}`);
         break;
       }
 
