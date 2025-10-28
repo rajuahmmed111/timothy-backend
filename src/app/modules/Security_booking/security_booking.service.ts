@@ -248,6 +248,7 @@ const getAllMySecurityBookings = async (userId: string) => {
           id: true,
           provider: true,
           status: true,
+          amount: true,
         },
       },
       security: {
