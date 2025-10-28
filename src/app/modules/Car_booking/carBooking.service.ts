@@ -275,7 +275,9 @@ const getAllMyCarBookings = async (userId: string) => {
       },
       car_Rental: {
         select: {
+          id: true,
           carName: true,
+          businessLogo: true,
         },
       },
       user: {

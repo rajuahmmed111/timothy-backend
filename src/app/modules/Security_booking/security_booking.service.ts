@@ -255,6 +255,7 @@ const getAllMySecurityBookings = async (userId: string) => {
         select: {
           id: true,
           securityName: true,
+          businessLogo: true,
         },
       },
       user: {

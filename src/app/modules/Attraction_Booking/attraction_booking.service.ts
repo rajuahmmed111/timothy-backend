@@ -257,6 +257,7 @@ const getAllMyAttractionBookings = async (userId: string) => {
           id: true,
           attractionName: true,
           partnerId: true,
+          businessLogo: true,
         },
       },
       payment: {

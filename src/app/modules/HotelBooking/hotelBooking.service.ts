@@ -234,6 +234,7 @@ const getAllMyHotelBookings = async (userId: string) => {
           partnerId: true,
           hotelCity: true,
           hotelCountry: true,
+          businessLogo: true,
         },
       },
       payment: {
