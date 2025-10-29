@@ -54,7 +54,7 @@ function installHeartbeat(wss: WebSocketServer) {
 }
 
 async function main() {
-const port = Number(config.port) || 5000; // fallback to 5000
+const port = Number(config.port) || 5000;
 server = app.listen(port, "0.0.0.0", () => {
   console.log("Server is running on port", port);
 });
