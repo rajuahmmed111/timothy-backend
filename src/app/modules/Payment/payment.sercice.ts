@@ -1055,6 +1055,7 @@ const createCheckoutSessionPayStack = async (
       httpStatus.NOT_FOUND,
       `${serviceType} booking not found`
     );
+  // console.log(booking, "booking");
 
   // find user
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -1064,6 +1065,7 @@ const createCheckoutSessionPayStack = async (
   const service = await serviceT.serviceModel.findUnique({
     where: { id: (booking as any)[serviceT.bookingToServiceField] },
   });
+  // console.log(service, "service");
 
   if (!service)
     throw new ApiError(httpStatus.NOT_FOUND, `${serviceType} not found`);
@@ -1326,15 +1328,24 @@ const cancelPayStackBooking = async (
 
   const serviceModelMap: Record<string, any> = {
     car: prisma.car,
-    hotel: prisma.hotel,
+    hotel: prisma.room,
     security: prisma.security_Guard,
     attraction: prisma.appeal,
   };
 
+  // define correct field for each service type
+  const serviceIdFieldMap: Record<string, string> = {
+    car: "carId",
+    hotel: "roomId",
+    security: "security_GuardId",
+    attraction: "appealId",
+  };
+
   const bookingModel = bookingModelMap[serviceType.toLowerCase()];
   const serviceModel = serviceModelMap[serviceType.toLowerCase()];
+  const serviceIdField = serviceIdFieldMap[serviceType.toLowerCase()];
 
-  if (!bookingModel || !serviceModel) {
+  if (!bookingModel || !serviceModel || !serviceIdField) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
 
@@ -1343,7 +1354,7 @@ const cancelPayStackBooking = async (
     where: {
       id: bookingId,
       userId,
-      bookingStatus: BookingStatus.CONFIRMED, // or any other status
+      bookingStatus: BookingStatus.CONFIRMED,
     },
     include: {
       payment: true,
@@ -1358,20 +1369,16 @@ const cancelPayStackBooking = async (
       },
     },
   });
-  console.log("booking:", booking);
+
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
-  // const payment = booking.payment
-  //   ?.filter((p:any) => p.provider === "PAYSTACK" && p.status === "PAID" && p.transactionId)
-  //   .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-
+  // Find last paid Paystack payment
   const payment = booking.payment
     ?.filter(
       (p: any) =>
         p.provider === "PAYSTACK" && p.status === "PAID" && p.transactionId
     )
     .pop();
-  // console.log(payment);
 
   if (!payment || !payment.transactionId) {
     throw new ApiError(
@@ -1380,7 +1387,7 @@ const cancelPayStackBooking = async (
     );
   }
 
-  // Find the partner (service provider)
+  // Find partner
   const partner = await prisma.user.findUnique({
     where: { id: payment.partnerId },
   });
@@ -1410,15 +1417,18 @@ const cancelPayStackBooking = async (
     data: { bookingStatus: BookingStatus.CANCELLED },
   });
 
-  const serviceIdField = `${serviceType.toLowerCase()}Id`;
-  await serviceModel.update({
-    where: { id: booking[serviceIdField] },
-    data: { isBooked: EveryServiceStatus.AVAILABLE },
-  });
+  // Correctly use serviceIdField
+  const serviceId = booking[serviceIdField];
+  if (serviceId) {
+    await serviceModel.update({
+      where: { id: serviceId },
+      data: { isBooked: EveryServiceStatus.AVAILABLE },
+    });
+  }
 
   // -------- Send Cancel Notification --------
   const service = await serviceModel.findUnique({
-    where: { id: booking[serviceIdField] },
+    where: { id: serviceId },
   });
 
   const notificationData: IBookingNotificationData = {
@@ -1426,7 +1436,12 @@ const cancelPayStackBooking = async (
     userId: booking.userId,
     partnerId: booking.partnerId,
     serviceTypes: serviceType.toUpperCase() as ServiceTypes,
-    serviceName: service?.name || "",
+    serviceName:
+      service?.attractionName ||
+      service?.carName ||
+      service?.securityName ||
+      service?.hotelName ||
+      "",
     totalPrice: booking.totalPrice,
   };
 
