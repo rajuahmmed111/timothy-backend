@@ -7,6 +7,7 @@ import ApiError from "../../../errors/ApiErrors";
 import config from "../../../config";
 import stripe from "../../../helpars/stripe";
 import Stripe from "stripe";
+import { ServiceType } from "./Stripe/stripe";
 
 // stripe account onboarding
 const stripeAccountOnboarding = catchAsync(
@@ -94,7 +95,7 @@ const cancelStripeBooking = catchAsync(async (req, res) => {
   const userId = req.user?.id;
 
   const result = await PaymentService.cancelStripeBooking(
-    serviceType,
+    serviceType as ServiceType,
     bookingId,
     userId
   );

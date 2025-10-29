@@ -1218,7 +1218,6 @@ const payStackHandleWebhook = async (req: any) => {
     }
 
     const reference = event.data.reference;
-    console.log("event.data.reference:", event.data.reference);
 
     // find payment
     const payment = await prisma.payment.findFirst({
