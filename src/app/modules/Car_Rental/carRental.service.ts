@@ -724,9 +724,10 @@ const updateCarRental = async (req: Request) => {
   }
 
   // check if rental exists and belongs to partner
-  const carRentalExists = await prisma.car_Rental.findFirst({
-    where: { id: car_RentalId, partnerId },
+  const carRentalExists = await prisma.car_Rental.findUnique({
+    where: { id: car_RentalId },
   });
+  console.log(carRentalExists, "carRentalExists");
   if (!carRentalExists) {
     throw new ApiError(
       httpStatus.NOT_FOUND,
