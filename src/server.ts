@@ -3,10 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import app from "./app";
 import config from "./config";
 import prisma from "./shared/prisma";
-import {
-  changeExpiryBookingStatus,
-  changeExpiryBookingStatusForCancel,
-} from "./utils/cronFn/changeExpiryBookingStatus";
+import { changeExpiryBookingStatus, changeExpiryBookingStatusForCancel } from "./utils/cronFn/changeExpiryBookingStatus";
 
 // ---------- WebSocket state ----------
 type channelName = string;
