@@ -684,9 +684,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       });
 
       // update service status → BOOKED
-      const serviceId = (booking as any)[
-        `${payment.serviceType.toLowerCase()}Id`
-      ];
+      const serviceId = (booking as any)[config.bookingToServiceField];
       if (serviceId) {
         await config.serviceModel.update({
           where: { id: serviceId },
@@ -833,38 +831,29 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
 
 // cancel booking service stripe
 const cancelStripeBooking = async (
-  serviceType: string,
+  serviceType: ServiceType,
   bookingId: string,
   userId: string
 ) => {
-  const bookingModelMap: Record<string, any> = {
-    car: prisma.car_Booking,
-    hotel: prisma.hotel_Booking,
-    security: prisma.security_Booking,
-    attraction: prisma.attraction_Booking,
-  };
-
-  const serviceModelMap: Record<string, any> = {
-    car: prisma.car,
-    hotel: prisma.room,
-    security: prisma.security_Guard,
-    attraction: prisma.appeal,
-  };
-
-  const bookingModel = bookingModelMap[serviceType.toLowerCase()];
-  const serviceModel = serviceModelMap[serviceType.toLowerCase()];
-
-  if (!bookingModel || !serviceModel) {
+  // Get config for the service type
+  const serviceCfg = serviceConfig[serviceType.toUpperCase() as ServiceType];
+  // console.log(serviceCfg, "serviceCfg");
+  if (!serviceCfg) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
 
-  // Booking with payment and user
+  const bookingModel = serviceCfg.bookingModel;
+  const serviceModel = serviceCfg.serviceModel;
+
+  // Fetch booking with payment and user
   const booking = await bookingModel.findUnique({
     where: { id: bookingId, userId },
     include: { payment: true, user: true },
   });
 
-  if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
 
   const payment = booking.payment?.[0];
   if (!payment || !payment.payment_intent) {
@@ -874,11 +863,10 @@ const cancelStripeBooking = async (
     );
   }
 
-  // Find the partner (service provider)
+  // Find partner (service provider)
   const partner = await prisma.user.findUnique({
     where: { id: payment.partnerId },
   });
-
   if (!partner || !partner.stripeAccountId) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -886,13 +874,13 @@ const cancelStripeBooking = async (
     );
   }
 
-  // Full refund for main payment_intent
+  // Refund full amount
   await stripe.refunds.create({
     payment_intent: payment.payment_intent,
-    amount: payment.amount, // full amount
+    amount: payment.amount,
   });
 
-  // Reverse transfer to connected account (provider)
+  // Reverse transfer to partner if applicable
   if (payment.transfer_id && payment.service_fee > 0) {
     await stripe.transfers.createReversal(payment.transfer_id, {
       amount: payment.service_fee,
@@ -905,30 +893,32 @@ const cancelStripeBooking = async (
     data: { status: PaymentStatus.REFUNDED },
   });
 
-  // Update booking status to CANCELLED
+  // Update booking status → CANCELLED
   await bookingModel.update({
     where: { id: bookingId },
     data: { bookingStatus: BookingStatus.CANCELLED },
   });
 
-  // Free the service
-  const serviceIdField = `${serviceType.toLowerCase()}Id`;
-  await serviceModel.update({
-    where: { id: booking[serviceIdField] },
-    data: { isBooked: EveryServiceStatus.AVAILABLE },
-  });
+  // update service status → AVAILABLE
+  const serviceId = (booking as any)[serviceCfg.bookingToServiceField];
+  if (serviceId) {
+    await serviceModel.update({
+      where: { id: serviceId },
+      data: { isBooked: EveryServiceStatus.AVAILABLE },
+    });
+  }
 
-  // Send cancel notification
-  const service = await serviceModel.findUnique({
-    where: { id: booking[serviceIdField] },
-  });
+  // Send cancellation notification
+  const service = serviceId
+    ? await serviceModel.findUnique({ where: { id: serviceId } })
+    : null;
 
   const notificationData: IBookingNotificationData = {
     bookingId: booking.id,
     userId: booking.userId,
     partnerId: booking.partnerId,
     serviceTypes: serviceType.toUpperCase() as ServiceTypes,
-    serviceName: service?.name || "",
+    serviceName: service?.[serviceCfg.nameField] || "",
     totalPrice: booking.totalPrice,
   };
 
@@ -1228,7 +1218,7 @@ const payStackHandleWebhook = async (req: any) => {
     }
 
     const reference = event.data.reference;
-    // console.log("event.data.reference:", event.data.reference);
+    console.log("event.data.reference:", event.data.reference);
 
     // find payment
     const payment = await prisma.payment.findFirst({
@@ -1369,6 +1359,7 @@ const cancelPayStackBooking = async (
       },
     },
   });
+  console.log("booking:", booking);
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
   // const payment = booking.payment
@@ -1381,6 +1372,7 @@ const cancelPayStackBooking = async (
         p.provider === "PAYSTACK" && p.status === "PAID" && p.transactionId
     )
     .pop();
+  // console.log(payment);
 
   if (!payment || !payment.transactionId) {
     throw new ApiError(

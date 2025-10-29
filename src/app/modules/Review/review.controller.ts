@@ -65,11 +65,11 @@ const createCarReview = catchAsync(async (req: Request, res: Response) => {
 const createAttractionReview = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const { attractionId, rating, comment } = req.body;
+    const { appealId, rating, comment } = req.body;
 
     const result = await ReviewService.createAttractionReview(
       userId,
-      attractionId,
+      appealId,
       rating,
       comment
     );
