@@ -237,6 +237,7 @@ const getAllMySecurityBookings = async (userId: string) => {
           securityPriceDay: true,
           securityImages: true,
           securityAddress: true,
+          securityRating: true,
           discount: true,
           category: true,
           partnerId: true,
