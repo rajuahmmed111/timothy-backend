@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, EveryServiceStatus } from "@prisma/client";
 import cron from "node-cron";
 import dayjs from "dayjs";
 import prisma from "../../shared/prisma";
@@ -15,9 +15,7 @@ export const changeExpiryBookingStatus = () => {
 
     // hotel bookings
     const expiredHotels = await prisma.hotel_Booking.findMany({
-      where: {
-        bookingStatus: BookingStatus.CONFIRMED,
-      },
+      where: { bookingStatus: BookingStatus.CONFIRMED },
     });
 
     for (const booking of expiredHotels) {
@@ -26,14 +24,19 @@ export const changeExpiryBookingStatus = () => {
           where: { id: booking.id },
           data: { bookingStatus: BookingStatus.COMPLETED },
         });
+
+        if (booking.roomId) {
+          await prisma.room.update({
+            where: { id: booking.roomId },
+            data: { isBooked: EveryServiceStatus.AVAILABLE },
+          });
+        }
       }
     }
 
     // car bookings
     const expiredCars = await prisma.car_Booking.findMany({
-      where: {
-        bookingStatus: BookingStatus.CONFIRMED,
-      },
+      where: { bookingStatus: BookingStatus.CONFIRMED },
     });
 
     for (const booking of expiredCars) {
@@ -42,14 +45,19 @@ export const changeExpiryBookingStatus = () => {
           where: { id: booking.id },
           data: { bookingStatus: BookingStatus.COMPLETED },
         });
+
+        if (booking.carId) {
+          await prisma.car.update({
+            where: { id: booking.carId },
+            data: { isBooked: EveryServiceStatus.AVAILABLE },
+          });
+        }
       }
     }
 
     // security bookings
     const expiredSecurities = await prisma.security_Booking.findMany({
-      where: {
-        bookingStatus: BookingStatus.CONFIRMED,
-      },
+      where: { bookingStatus: BookingStatus.CONFIRMED },
     });
 
     for (const booking of expiredSecurities) {
@@ -58,14 +66,19 @@ export const changeExpiryBookingStatus = () => {
           where: { id: booking.id },
           data: { bookingStatus: BookingStatus.COMPLETED },
         });
+
+        if (booking.security_GuardId) {
+          await prisma.security_Guard.update({
+            where: { id: booking.security_GuardId },
+            data: { isBooked: EveryServiceStatus.AVAILABLE },
+          });
+        }
       }
     }
 
     // attraction bookings
     const expiredAttractions = await prisma.attraction_Booking.findMany({
-      where: {
-        bookingStatus: BookingStatus.CONFIRMED,
-      },
+      where: { bookingStatus: BookingStatus.CONFIRMED },
     });
 
     for (const booking of expiredAttractions) {
@@ -74,6 +87,13 @@ export const changeExpiryBookingStatus = () => {
           where: { id: booking.id },
           data: { bookingStatus: BookingStatus.COMPLETED },
         });
+
+        if (booking.appealId) {
+          await prisma.appeal.update({
+            where: { id: booking.appealId },
+            data: { isBooked: EveryServiceStatus.AVAILABLE },
+          });
+        }
       }
     }
 
