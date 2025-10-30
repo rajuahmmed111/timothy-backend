@@ -112,7 +112,7 @@ export const changeExpiryBookingStatusForCancel = () => {
         bookingStatus: BookingStatus.PENDING,
         createdAt: { lte: expiryTime },
       },
-      data: { bookingStatus: BookingStatus.CANCELLED },
+      data: { bookingStatus: BookingStatus.EXPIRED },
     });
 
     // security bookings
@@ -121,7 +121,7 @@ export const changeExpiryBookingStatusForCancel = () => {
         bookingStatus: BookingStatus.PENDING,
         createdAt: { lte: expiryTime },
       },
-      data: { bookingStatus: BookingStatus.CANCELLED },
+      data: { bookingStatus: BookingStatus.EXPIRED },
     });
 
     // car bookings
@@ -130,7 +130,7 @@ export const changeExpiryBookingStatusForCancel = () => {
         bookingStatus: BookingStatus.PENDING,
         createdAt: { lte: expiryTime },
       },
-      data: { bookingStatus: BookingStatus.CANCELLED },
+      data: { bookingStatus: BookingStatus.EXPIRED },
     });
 
     // attraction bookings
@@ -139,7 +139,7 @@ export const changeExpiryBookingStatusForCancel = () => {
         bookingStatus: BookingStatus.PENDING,
         createdAt: { lte: expiryTime },
       },
-      data: { bookingStatus: BookingStatus.CANCELLED },
+      data: { bookingStatus: BookingStatus.EXPIRED },
     });
 
     // console.log("Expired pending bookings auto-cancelled");

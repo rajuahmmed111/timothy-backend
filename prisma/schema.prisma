@@ -51,6 +51,7 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+  EXPIRED
 }
 
 enum PaymentProvider {
