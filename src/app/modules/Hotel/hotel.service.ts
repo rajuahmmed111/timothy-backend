@@ -450,7 +450,7 @@ const getAllHotels = async (
     skip,
     take: limit,
     orderBy:
-      options.sortBy && options.sortOrder
+      options.sortBy && options.sortOrder && options.sortBy !== "price"
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
     include: {
@@ -464,7 +464,7 @@ const getAllHotels = async (
   });
 
   // averages for each hotel
-  const resultWithAverages = result
+  let resultWithAverages = result
     .filter((hotel) => hotel.room.length > 0)
     .map((hotel) => {
       const rooms = hotel.room;
@@ -487,6 +487,15 @@ const getAllHotels = async (
         averageReviewCount: Math.round(totalReviews / rooms.length),
       };
     });
+
+  // sort by averagePrice (low → high / high → low)
+  if (options.sortBy === "price") {
+    resultWithAverages = resultWithAverages.sort((a, b) =>
+      options.sortOrder === "asc"
+        ? a.averagePrice - b.averagePrice
+        : b.averagePrice - a.averagePrice
+    );
+  }
 
   const total = resultWithAverages.length;
 
