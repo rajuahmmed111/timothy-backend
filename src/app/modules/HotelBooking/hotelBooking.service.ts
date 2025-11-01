@@ -4,7 +4,6 @@ import prisma from "../../../shared/prisma";
 import { differenceInDays, parse, startOfDay } from "date-fns";
 import {
   BookingStatus,
-  EveryServiceStatus,
   PaymentStatus,
 } from "@prisma/client";
 import {
