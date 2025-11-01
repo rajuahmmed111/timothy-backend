@@ -827,6 +827,17 @@ model Privacy_Policy {
   @@map("privacy_policies")
 }
 
+model Advertise {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  videoUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("advertisements")
+}
+
 model Channel {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   channelName String   @unique
