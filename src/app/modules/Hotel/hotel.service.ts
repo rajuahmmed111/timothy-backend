@@ -1048,7 +1048,7 @@ const getPopularHotels = async (
   // Sort by average rating and take top 10
   const sortedHotels = hotelsWithAverages
     .sort((a, b) => b.averageRating - a.averageRating)
-    .slice(0, 12);
+    .slice(0, 4);
 
   return sortedHotels;
 };

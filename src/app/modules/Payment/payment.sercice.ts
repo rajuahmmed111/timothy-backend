@@ -631,6 +631,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         paymentIntentId
       );
+      console.log(paymentIntent, "paymentIntent");
 
       if (!paymentIntent.latest_charge) {
         throw new ApiError(
@@ -646,6 +647,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         const applicationFee = paymentIntent.application_fee_amount ?? 0;
         providerReceived = amountReceived - applicationFee; // not USD
       }
+      console.log(providerReceived);
 
       // find Payment
       const payment = await prisma.payment.findFirst({
@@ -1570,27 +1572,25 @@ const createStripeCheckoutSessionWebsite = async (
     );
   }
 
-  // amount (convert USD → cents)
-  const amount = Math.round(totalPrice * 100);
+  // amount in USD
+  const amount = totalPrice; // 1280 USD
 
-  // add 5% vat
+  // add 5% VAT
   const vatPercentage = 5;
-  const vatAmount = Math.round(amount * (vatPercentage / 100));
-
-  // total amount with 5% vat
-  const totalWithVAT = amount + vatAmount;
+  const vatAmount = +(amount * (vatPercentage / 100)).toFixed(2); // 64 USD
 
   // 15% admin commission
   const adminCommissionPercentage = 15;
-  const adminCommission = Math.round(
-    amount * (adminCommissionPercentage / 100)
-  );
+  const adminCommission = +(amount * (adminCommissionPercentage / 100)).toFixed(
+    2
+  ); // 192 USD
 
-  // total admin earnings
-  const adminFee = adminCommission + vatAmount;
+  // total amount with VAT
+  const totalWithVAT = +(amount + vatAmount).toFixed(2); // 1344 USD
 
-  // service fee (partner earnings)
-  const serviceFee = totalWithVAT - adminFee;
+  // partner earning (service fee)
+  const serviceFee = +(totalWithVAT - (adminCommission + vatAmount)).toFixed(2); // 1088 USD
+  console.log("serviceFee", serviceFee);
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -1603,7 +1603,7 @@ const createStripeCheckoutSessionWebsite = async (
             name: serviceName || "Service Booking",
             description: description || "Service payment",
           },
-          unit_amount: totalWithVAT,
+          unit_amount: Math.round(totalWithVAT * 100), // Stripe expects cents
         },
         quantity: 1,
       },
@@ -1612,8 +1612,8 @@ const createStripeCheckoutSessionWebsite = async (
     success_url: `${config.stripe.checkout_success_url}`,
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
-      application_fee_amount: adminFee, // goes to Admin
-      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
+      application_fee_amount: Math.round(adminCommission * 100), // Stripe expects cents
+      transfer_data: { destination: partner.stripeAccountId },
       description,
     },
     metadata: {
@@ -1622,6 +1622,59 @@ const createStripeCheckoutSessionWebsite = async (
       serviceType,
     },
   });
+
+  // // amount (convert USD → cents)
+  // const amount = Math.round(totalPrice * 100);
+
+  // // add 5% vat
+  // const vatPercentage = 5;
+  // const vatAmount = Math.round(amount * (vatPercentage / 100));
+
+  // // total amount with 5% vat
+  // const totalWithVAT = amount + vatAmount;
+
+  // // 15% admin commission
+  // const adminCommissionPercentage = 15;
+  // const adminCommission = Math.round(
+  //   amount * (adminCommissionPercentage / 100)
+  // );
+
+  // // total admin earnings
+  // const adminFee = adminCommission + vatAmount;
+
+  // // service fee (partner earnings)
+  // const serviceFee = totalWithVAT - adminFee;
+
+  // // create Stripe checkout session
+  // const checkoutSession = await stripe.checkout.sessions.create({
+  //   payment_method_types: ["card"],
+  //   line_items: [
+  //     {
+  //       price_data: {
+  //         currency: "usd",
+  //         product_data: {
+  //           name: serviceName || "Service Booking",
+  //           description: description || "Service payment",
+  //         },
+  //         unit_amount: totalWithVAT,
+  //       },
+  //       quantity: 1,
+  //     },
+  //   ],
+  //   mode: "payment",
+  //   success_url: `${config.stripe.checkout_success_url}`,
+  //   cancel_url: `${config.stripe.checkout_cancel_url}`,
+  //   payment_intent_data: {
+  //     application_fee_amount: adminFee, // goes to Admin
+  //     transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
+  //     description,
+  //   },
+  //   metadata: {
+  //     bookingId: booking.id,
+  //     userId,
+  //     serviceType,
+  //   },
+  // });
 
   // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
 
@@ -1653,10 +1706,9 @@ const createStripeCheckoutSessionWebsite = async (
       break;
   }
 
-  // save payment record
   await prisma.payment.create({
     data: {
-      amount: totalWithVAT,
+      amount: totalWithVAT, // 1344 USD
       description,
       currency: checkoutSession.currency,
       sessionId: checkoutSession.id,
@@ -1666,9 +1718,9 @@ const createStripeCheckoutSessionWebsite = async (
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
-      admin_commission: adminFee, // 15%
-      service_fee: serviceFee, // partner earning
-      vat_amount: vatAmount, // 5% transaction admin account
+      admin_commission: adminCommission, // 192 USD
+      service_fee: serviceFee, // 1088 USD
+      vat_amount: vatAmount, // 64 USD
       serviceType,
       partnerId,
       userId,
@@ -1679,6 +1731,33 @@ const createStripeCheckoutSessionWebsite = async (
         serviceType === "ATTRACTION" ? booking.id : undefined,
     },
   });
+
+  // save payment record
+  // await prisma.payment.create({
+  //   data: {
+  //     amount: totalWithVAT,
+  //     description,
+  //     currency: checkoutSession.currency,
+  //     sessionId: checkoutSession.id,
+  //     paymentMethod: checkoutSession.payment_method_types.join(","),
+  //     status: PaymentStatus.UNPAID,
+  //     provider: "STRIPE",
+  //     payable_name: partner.fullName ?? "",
+  //     payable_email: partner.email,
+  //     country: partner.country ?? "",
+  //     admin_commission: adminFee, // 15%
+  //     service_fee: serviceFee, // partner earning
+  //     vat_amount: vatAmount, // 5% transaction admin account
+  //     serviceType,
+  //     partnerId,
+  //     userId,
+  //     car_bookingId: serviceType === "CAR" ? booking.id : undefined,
+  //     hotel_bookingId: serviceType === "HOTEL" ? booking.id : undefined,
+  //     security_bookingId: serviceType === "SECURITY" ? booking.id : undefined,
+  //     attraction_bookingId:
+  //       serviceType === "ATTRACTION" ? booking.id : undefined,
+  //   },
+  // });
 
   return {
     checkoutUrl: checkoutSession.url,
