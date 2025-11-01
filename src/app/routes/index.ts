@@ -29,6 +29,7 @@ import { humanRightRoute } from "../modules/Human_Rights/humanRight.route";
 import { cancelReservationRoute } from "../modules/Cancel_Reservation/cancel_reservation.route";
 import { refundPolicyRoute } from "../modules/Refund_Policy/refund_policy.route";
 import { newsRoomRoute } from "../modules/NewsRoom/news_room.route";
+import { advertisingRoutes } from "../modules/Advertise/advertising.route";
 
 const router = express.Router();
 
@@ -117,6 +118,10 @@ const moduleRoutes = [
   {
     path: "/policy",
     route: privacyPolicyRoute,
+  },
+  {
+    path: "/advertises",
+    route: advertisingRoutes,
   },
   {
     path: "/settings",
