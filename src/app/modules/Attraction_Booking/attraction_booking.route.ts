@@ -29,7 +29,7 @@ router.get(
 // create attraction booking by attraction id
 router.post(
   "/:appealId",
-  auth(UserRole.USER),
+  auth(UserRole.USER, UserRole.BUSINESS_PARTNER),
   AttractionBookingController.createAttractionBooking
 );
 
