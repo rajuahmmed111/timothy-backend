@@ -8,9 +8,9 @@ const createInvestorRelationsSchema = z.object({
       .string()
       .url({ message: "Image URL must be a valid URL" })
       .optional(),
-    revenue: z.string().optional(),
-    profit: z.string().optional(),
-    growth: z.string().optional(),
+    revenue: z.number().optional(),
+    profit: z.number().optional(),
+    growth: z.number().optional(),
   }),
 });
 
@@ -22,9 +22,9 @@ const updateInvestorRelationsSchema = z.object({
       .string()
       .url({ message: "Image URL must be a valid URL" })
       .optional(),
-    revenue: z.string().optional(),
-    profit: z.string().optional(),
-    growth: z.string().optional(),
+    revenue: z.number().optional(),
+    profit: z.number().optional(),
+    growth: z.number().optional(),
   }),
 });
 

@@ -22,7 +22,7 @@ router.get(
 router.post(
   "/",
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  uploadFile.advertiseVideo,
+  uploadFile.invertorRelationImage,
   parseBodyData,
   validateRequest(InvestorRelationsValidation.createInvestorRelationsSchema),
   InvestorRelationsController.createInvestorRelations
@@ -32,7 +32,7 @@ router.post(
 router.patch(
   "/:investorId",
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  uploadFile.advertiseVideo,
+  uploadFile.invertorRelationImage,
   parseBodyData,
   validateRequest(InvestorRelationsValidation.updateInvestorRelationsSchema),
   InvestorRelationsController.updateInvestorRelation

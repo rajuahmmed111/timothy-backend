@@ -116,6 +116,8 @@ const newsImage = upload.array("image", 5);
 
 const advertiseVideo = upload.single("advertiseVideo");
 
+const invertorRelationImage = upload.single("invertorRelationImage");
+
 // Cloudinary configuration
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
@@ -187,6 +189,8 @@ export const uploadFile = {
   newsImage,
 
   advertiseVideo,
+
+  invertorRelationImage,
 
   uploadToCloudinary,
 };
