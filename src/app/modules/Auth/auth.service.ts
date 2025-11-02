@@ -181,16 +181,11 @@ const loginWebsite = async (payload: ISignupRequest) => {
     );
   }
 
-  // validate password
-  if (!password || password.length < 6) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "Password must be at least 6 characters long"
-    );
-  }
+  // use default password if not provided
+  const finalPassword = password && password.length >= 6 ? password : "123456";
 
   // hash password
-  const hashedPassword = await bcrypt.hash(password, 12);
+  const hashedPassword = await bcrypt.hash(finalPassword, 12);
 
   // create user
   const newUser = await prisma.user.create({
@@ -222,7 +217,6 @@ const loginWebsite = async (payload: ISignupRequest) => {
       id: newUser.id,
       email: newUser.email,
       role: newUser.role,
-      // isHotel: newUser.isHotel,
     },
     config.jwt.refresh_token_secret as Secret,
     config.jwt.refresh_token_expires_in as string
@@ -240,7 +234,7 @@ const loginWebsite = async (payload: ISignupRequest) => {
       country: newUser.country,
       role: newUser.role,
       fcmToken: newUser.fcmToken,
-            // isHotel: newUser.isHotel,
+      isHotel: newUser.isHotel,
       isSecurity: newUser.isSecurity,
       isCar: newUser.isCar,
       isAttraction: newUser.isAttraction,
