@@ -1594,6 +1594,9 @@ const createStripeCheckoutSessionWebsite = async (
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
+    automatic_payment_methods: {
+      enabled: false, // Automatic payment methods বন্ধ
+    },
     line_items: [
       {
         price_data: {
@@ -1620,7 +1623,7 @@ const createStripeCheckoutSessionWebsite = async (
       userId,
       serviceType,
     },
-  });
+  } as any);
 
   // // amount (convert USD → cents)
   // const amount = Math.round(totalPrice * 100);
