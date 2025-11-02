@@ -631,7 +631,6 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         paymentIntentId
       );
-      console.log(paymentIntent, "paymentIntent");
 
       if (!paymentIntent.latest_charge) {
         throw new ApiError(
@@ -647,7 +646,6 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         const applicationFee = paymentIntent.application_fee_amount ?? 0;
         providerReceived = amountReceived - applicationFee; // not USD
       }
-      console.log(providerReceived);
 
       // find Payment
       const payment = await prisma.payment.findFirst({
@@ -665,7 +663,7 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         data: {
           status: PaymentStatus.PAID,
           payment_intent: paymentIntentId,
-          service_fee: providerReceived,
+          service_fee: providerReceived / 100,
         },
       });
 
@@ -1087,6 +1085,7 @@ const createCheckoutSessionPayStack = async (
 
   // total amount with 5% vat
   const totalWithVAT = amount + vatAmount;
+  // console.log(totalWithVAT, "totalWithVAT");
 
   // 15% admin commission
   const adminCommissionPercentage = 15;
@@ -1096,9 +1095,11 @@ const createCheckoutSessionPayStack = async (
 
   // total admin earnings
   const adminFee = adminCommission + vatAmount;
+  // console.log(adminFee, "adminFee");
 
   // service fee (partner earnings)
   const serviceFee = totalWithVAT - adminFee;
+  // console.log(serviceFee, "serviceFee");
 
   // --- Initialize Pay-stack transaction ---
   const response = await axios.post(
@@ -1129,7 +1130,7 @@ const createCheckoutSessionPayStack = async (
   // --- Save payment record in DB ---
   await prisma.payment.create({
     data: {
-      amount: totalWithVAT,
+      amount: totalWithVAT / 100,
       description,
       currency: "NGN",
       sessionId: data.reference,
@@ -1139,9 +1140,9 @@ const createCheckoutSessionPayStack = async (
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
-      admin_commission: adminCommission, // 15%
-      vat_amount: vatAmount, // 5%
-      service_fee: serviceFee, // partner earning
+      admin_commission: adminCommission / 100, // 15%
+      vat_amount: vatAmount / 100, // 5%
+      service_fee: serviceFee / 100, // partner earning
       serviceType,
       partnerId,
       userId,
@@ -1239,9 +1240,9 @@ const payStackHandleWebhook = async (req: any) => {
       data: {
         status: PaymentStatus.PAID,
         transactionId: String(event.data.id),
-        admin_commission: event.data.fees_split?.integration ?? 0,
-        service_fee: event.data.fees_split?.subaccount ?? 0,
-        paystack_fee: event.data.fees_split?.paystack ?? 0,
+        admin_commission: event.data.fees_split?.integration / 100,
+        service_fee: event.data.fees_split?.subaccount / 100,
+        paystack_fee: event.data.fees_split?.paystack / 100,
         metadata: event.data,
       },
     });
@@ -1572,84 +1573,31 @@ const createStripeCheckoutSessionWebsite = async (
   }
 
   // amount in USD
-  const amount = totalPrice; // 1280 USD
+  // const amount = totalPrice; // 1280 USD
 
-  // add 5% VAT
-  const vatPercentage = 5;
-  const vatAmount = +(amount * (vatPercentage / 100)).toFixed(2); // 64 USD
-
-  // 15% admin commission
-  const adminCommissionPercentage = 15;
-  const adminCommission = +(amount * (adminCommissionPercentage / 100)).toFixed(
-    2
-  ); // 192 USD
-
-  // total amount with VAT
-  const totalWithVAT = +(amount + vatAmount).toFixed(2); // 1344 USD
-
-  // partner earning (service fee)
-  const serviceFee = +(totalWithVAT - (adminCommission + vatAmount)).toFixed(2); // 1088 USD
-  console.log("serviceFee", serviceFee);
-
-  // create Stripe checkout session
-  const checkoutSession = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    automatic_payment_methods: {
-      enabled: false, // Automatic payment methods বন্ধ
-    },
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: serviceName || "Service Booking",
-            description: description || "Service payment",
-          },
-          unit_amount: Math.round(totalWithVAT * 100), // Stripe expects cents
-        },
-        quantity: 1,
-      },
-    ],
-    mode: "payment",
-    success_url: `${config.stripe.checkout_success_url}`,
-    cancel_url: `${config.stripe.checkout_cancel_url}`,
-    payment_intent_data: {
-      application_fee_amount: Math.round(adminCommission * 100), // Stripe expects cents
-      transfer_data: { destination: partner.stripeAccountId },
-      description,
-    },
-    metadata: {
-      bookingId: booking.id,
-      userId,
-      serviceType,
-    },
-  } as any);
-
-  // // amount (convert USD → cents)
-  // const amount = Math.round(totalPrice * 100);
-
-  // // add 5% vat
+  // // add 5% VAT
   // const vatPercentage = 5;
-  // const vatAmount = Math.round(amount * (vatPercentage / 100));
-
-  // // total amount with 5% vat
-  // const totalWithVAT = amount + vatAmount;
+  // const vatAmount = +(amount * (vatPercentage / 100)).toFixed(2); // 64 USD
 
   // // 15% admin commission
   // const adminCommissionPercentage = 15;
-  // const adminCommission = Math.round(
-  //   amount * (adminCommissionPercentage / 100)
-  // );
+  // const adminCommission = +(amount * (adminCommissionPercentage / 100)).toFixed(
+  //   2
+  // ); // 192 USD
 
-  // // total admin earnings
-  // const adminFee = adminCommission + vatAmount;
+  // // total amount with VAT
+  // const totalWithVAT = +(amount + vatAmount).toFixed(2); // 1344 USD
 
-  // // service fee (partner earnings)
-  // const serviceFee = totalWithVAT - adminFee;
+  // // partner earning (service fee)
+  // const serviceFee = +(totalWithVAT - (adminCommission + vatAmount)).toFixed(2); // 1088 USD
+  // console.log("serviceFee", serviceFee);
 
   // // create Stripe checkout session
   // const checkoutSession = await stripe.checkout.sessions.create({
   //   payment_method_types: ["card"],
+  //   // automatic_payment_methods: {
+  //   //   enabled: false, // Automatic payment methods বন্ধ
+  //   // },
   //   line_items: [
   //     {
   //       price_data: {
@@ -1658,7 +1606,7 @@ const createStripeCheckoutSessionWebsite = async (
   //           name: serviceName || "Service Booking",
   //           description: description || "Service payment",
   //         },
-  //         unit_amount: totalWithVAT,
+  //         unit_amount: Math.round(totalWithVAT * 100), // Stripe expects cents
   //       },
   //       quantity: 1,
   //     },
@@ -1667,8 +1615,8 @@ const createStripeCheckoutSessionWebsite = async (
   //   success_url: `${config.stripe.checkout_success_url}`,
   //   cancel_url: `${config.stripe.checkout_cancel_url}`,
   //   payment_intent_data: {
-  //     application_fee_amount: adminFee, // goes to Admin
-  //     transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
+  //     application_fee_amount: Math.round(adminCommission * 100), // Stripe expects cents
+  //     transfer_data: { destination: partner.stripeAccountId },
   //     description,
   //   },
   //   metadata: {
@@ -1677,6 +1625,62 @@ const createStripeCheckoutSessionWebsite = async (
   //     serviceType,
   //   },
   // });
+
+  // amount (convert USD → cents)
+  const amount = Math.round(totalPrice * 100);
+
+  // add 5% vat
+  const vatPercentage = 5;
+  const vatAmount = Math.round(amount * (vatPercentage / 100));
+
+  // total amount with 5% vat
+  const totalWithVAT = amount + vatAmount;
+  console.log("totalWithVAT", totalWithVAT);
+
+  // 15% admin commission
+  const adminCommissionPercentage = 15;
+  const adminCommission = Math.round(
+    amount * (adminCommissionPercentage / 100)
+  );
+
+  // total admin earnings
+  const adminFee = adminCommission + vatAmount;
+  console.log("adminFee", adminFee);
+
+  // service fee (partner earnings)
+  const serviceFee = totalWithVAT - adminFee;
+  console.log("serviceFee", serviceFee);
+
+  // create Stripe checkout session
+  const checkoutSession = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: serviceName || "Service Booking",
+            description: description || "Service payment",
+          },
+          unit_amount: totalWithVAT,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    success_url: `${config.stripe.checkout_success_url}`,
+    cancel_url: `${config.stripe.checkout_cancel_url}`,
+    payment_intent_data: {
+      application_fee_amount: adminFee, // goes to Admin
+      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
+      description,
+    },
+    metadata: {
+      bookingId: booking.id,
+      userId,
+      serviceType,
+    },
+  });
 
   // if (!checkoutSession) throw new ApiError(httpStatus.BAD_REQUEST, "Failed");
 
@@ -1710,7 +1714,7 @@ const createStripeCheckoutSessionWebsite = async (
 
   await prisma.payment.create({
     data: {
-      amount: totalWithVAT, // 1344 USD
+      amount: totalWithVAT / 100,
       description,
       currency: checkoutSession.currency,
       sessionId: checkoutSession.id,
@@ -1720,9 +1724,9 @@ const createStripeCheckoutSessionWebsite = async (
       payable_name: partner.fullName ?? "",
       payable_email: partner.email,
       country: partner.country ?? "",
-      admin_commission: adminCommission, // 192 USD
-      service_fee: serviceFee, // 1088 USD
-      vat_amount: vatAmount, // 64 USD
+      admin_commission: adminCommission / 100,
+      service_fee: serviceFee / 100,
+      vat_amount: vatAmount / 100,
       serviceType,
       partnerId,
       userId,
