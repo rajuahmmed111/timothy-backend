@@ -1157,7 +1157,6 @@ const createCheckoutSessionPayStack = async (
 
 // charge card (in-app payment)
 const chargeCardPayStack = async (payload: any) => {
-  console.log(payload, "payload");
   const [expiryMonth, expiryYear] = payload.expiry.split("/");
 
   const response = await axios.post(
@@ -1615,6 +1614,7 @@ const createStripeCheckoutSessionWebsite = async (
       application_fee_amount: Math.round(adminCommission * 100), // Stripe expects cents
       transfer_data: { destination: partner.stripeAccountId },
       description,
+      setup_future_usage: "off_session",
     },
     metadata: {
       bookingId: booking.id,
