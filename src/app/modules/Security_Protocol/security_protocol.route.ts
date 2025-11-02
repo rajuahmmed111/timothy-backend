@@ -54,7 +54,7 @@ router.get(
   //   UserRole.BUSINESS_PARTNER,
   //   UserRole.USER
   // ),
-  Security_ProtocolController.getAllSecurityProtocolsGuardsBySecurityProtocolId 
+  Security_ProtocolController.getAllSecurityProtocolsGuardsBySecurityProtocolId
 );
 
 // get all security protocols security guard app
@@ -131,7 +131,7 @@ router.get(
     UserRole.USER
   ),
   Security_ProtocolController.getSingleSecurityProtocolGuard
-)
+);
 
 // create security protocol
 router.post(
@@ -149,7 +149,7 @@ router.post(
 router.post(
   "/security-guard-type/:securityId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([{ name: "securityImages", maxCount: 10 }]),
+  uploadFile.upload.fields([{ name: "securityImages", maxCount: 40 }]),
   parseBodyData,
   Security_ProtocolController.createSecurityProtocolGuardType
 );
@@ -170,7 +170,7 @@ router.patch(
 router.patch(
   "/security-guard-type/:guardId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([{ name: "securityImages", maxCount: 10 }]),
+  uploadFile.upload.fields([{ name: "securityImages", maxCount: 40 }]),
   parseBodyData,
   Security_ProtocolController.updateSecurityProtocolGuardType
 );

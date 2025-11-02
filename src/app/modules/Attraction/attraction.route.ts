@@ -111,7 +111,7 @@ router.post(
 router.post(
   "/appeal/:attractionId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([{ name: "attractionImages", maxCount: 10 }]),
+  uploadFile.upload.fields([{ name: "attractionImages", maxCount: 40 }]),
   parseBodyData,
   AttractionController.createAttractionAppeal
 );
@@ -132,7 +132,7 @@ router.patch(
 router.patch(
   "/appeal/:appealId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([{ name: "attractionImages", maxCount: 10 }]),
+  uploadFile.upload.fields([{ name: "attractionImages", maxCount: 40 }]),
   parseBodyData,
   AttractionController.updateAttractionAppeal
 );

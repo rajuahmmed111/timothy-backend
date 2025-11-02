@@ -1614,7 +1614,6 @@ const createStripeCheckoutSessionWebsite = async (
       application_fee_amount: Math.round(adminCommission * 100), // Stripe expects cents
       transfer_data: { destination: partner.stripeAccountId },
       description,
-      setup_future_usage: "on_session",
     },
     metadata: {
       bookingId: booking.id,

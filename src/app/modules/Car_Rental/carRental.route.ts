@@ -111,7 +111,7 @@ router.post(
 router.post(
   "/car/:car_RentalId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([{ name: "carImages", maxCount: 5 }]),
+  uploadFile.upload.fields([{ name: "carImages", maxCount: 40 }]),
   parseBodyData,
   CarRentalController.createCar
 );
@@ -132,7 +132,7 @@ router.patch(
 router.patch(
   "/car/:carId",
   auth(UserRole.BUSINESS_PARTNER),
-  uploadFile.upload.fields([{ name: "carImages", maxCount: 5 }]),
+  uploadFile.upload.fields([{ name: "carImages", maxCount: 40 }]),
   parseBodyData,
   CarRentalController.updateCar
 );

@@ -140,8 +140,8 @@ router.post(
   "/room/:hotelId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "hotelImages", maxCount: 5 },
-    { name: "hotelRoomImages", maxCount: 5 },
+    { name: "hotelImages", maxCount: 40 },
+    { name: "hotelRoomImages", maxCount: 40 },
   ]),
   parseBodyData,
   //   validateRequest(HotelController.createHotelSchema),
@@ -165,8 +165,8 @@ router.patch(
   "/room/:roomId",
   auth(UserRole.BUSINESS_PARTNER),
   uploadFile.upload.fields([
-    { name: "hotelImages", maxCount: 5 },
-    { name: "hotelRoomImages", maxCount: 5 },
+    { name: "hotelImages", maxCount: 40 },
+    { name: "hotelRoomImages", maxCount: 40 },
   ]),
   parseBodyData,
   HotelController.updateHotelRoom
