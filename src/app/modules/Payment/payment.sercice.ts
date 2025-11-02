@@ -879,7 +879,7 @@ const cancelStripeBooking = async (
   // Refund full amount
   await stripe.refunds.create({
     payment_intent: payment.payment_intent,
-    amount: payment.amount,
+    amount: Math.round(payment.amount * 100),
   });
 
   // Reverse transfer to partner if applicable
