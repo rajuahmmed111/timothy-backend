@@ -21,7 +21,7 @@ const sendOtpToPhoneNumber = catchAsync(async (req: Request, res: Response) => {
 // verify otp
 const verifyPhoneOtp = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const { contactNumber, otp } = req.body;
+  const { otp } = req.body;
   const result = await OtpService.verifyPhoneOtp(userId, otp);
 
   sendResponse(res, {

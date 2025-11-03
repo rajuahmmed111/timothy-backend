@@ -46,7 +46,6 @@ const sendOtpToPhoneNumber = async (userId: string, contactNumber: string) => {
 const verifyPhoneOtp = async (
   userId: string,
   otp: string,
-  // contactNumber: string
 ) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
@@ -74,7 +73,6 @@ const verifyPhoneOtp = async (
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      // contactNumber,
       isPhoneVerified: true,
       otp: null,
       otpExpiry: null,
