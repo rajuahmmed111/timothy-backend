@@ -18,6 +18,15 @@ router.post(
 );
 
 // verify otp
-router.post("/verify-otp", OtpController.verifyOtpToPhoneNumber);
+router.post(
+  "/verify-otp",
+  auth(
+    UserRole.USER,
+    UserRole.BUSINESS_PARTNER,
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN
+  ),
+  OtpController.verifyPhoneOtp
+);
 
 export const phoneRoute = router;

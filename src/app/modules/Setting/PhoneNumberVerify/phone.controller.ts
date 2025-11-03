@@ -19,21 +19,20 @@ const sendOtpToPhoneNumber = catchAsync(async (req: Request, res: Response) => {
 });
 
 // verify otp
-const verifyOtpToPhoneNumber = catchAsync(
-  async (req: Request, res: Response) => {
-    const { contactNumber, otp } = req.body;
-    const result = await OtpService.verifyOtpToPhoneNumber(contactNumber, otp);
+const verifyPhoneOtp = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { contactNumber, otp } = req.body;
+  const result = await OtpService.verifyPhoneOtp(userId, otp);
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Otp verified successfully",
-      data: result,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Otp verified successfully",
+    data: result,
+  });
+});
 
 export const OtpController = {
   sendOtpToPhoneNumber,
-  verifyOtpToPhoneNumber,
+  verifyPhoneOtp,
 };

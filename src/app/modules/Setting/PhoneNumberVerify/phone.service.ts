@@ -7,62 +7,25 @@ import config from "../../../../config";
 
 const client = twilio(config.twilio.accountSid, config.twilio.authToken);
 
-// send otp to phone number
-// const sendOtpToPhoneNumber = async (userId: string, contactNumber: string) => {
-//   // check if user exists
-//   const user = await prisma.user.findUnique({
-//     where: { id: userId },
-//   });
-//   if (!user) {
-//     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-//   }
-
-//   // generate otp
-//   const randomOtp = generateOtp(4);
-//   // 5 minutes
-//   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
-//   // update user with OTP + expiry
-//   await prisma.user.update({
-//     where: { id: user.id },
-//     data: { otp: randomOtp, otpExpiry: otpExpiry },
-//   });
-
-//   // send SMS using twilio
-//   const sms = await client.messages.create({
-//     body: `Your OTP is ${randomOtp}`,
-//     from: "+19787238911",
-//     to: contactNumber,
-//   });
-
-//   return { sms, success: true, message: "OTP sent successfully" };
-// };
 const sendOtpToPhoneNumber = async (userId: string, contactNumber: string) => {
-  // 1️⃣ Check if user exists
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-  }
-
-  // 2️⃣ Generate OTP and expiry (valid for 5 mins)
   const randomOtp = generateOtp(4);
-  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
 
-  // 3️⃣ Update user with OTP
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { otp: randomOtp, otpExpiry },
-  });
-
-  // 4️⃣ Send SMS via Twilio
   try {
+    // Send SMS
     const sms = await client.messages.create({
       body: `🔐 Your verification code is: ${randomOtp}`,
-      from: process.env.TWILIO_PHONE_NUMBER || "+19787238911",
+      from: process.env.TWILIO_PHONE_NUMBER || "+14199888443",
       to: contactNumber.startsWith("+") ? contactNumber : `+${contactNumber}`,
+    });
+
+    // save otp
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { otp: randomOtp, otpExpiry, contactNumber },
     });
 
     return {
@@ -80,9 +43,51 @@ const sendOtpToPhoneNumber = async (userId: string, contactNumber: string) => {
 };
 
 // verify otp
-const verifyOtpToPhoneNumber = async (contactNumber: string, otp: string) => {};
+const verifyPhoneOtp = async (
+  userId: string,
+  otp: string,
+  // contactNumber: string
+) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  if (!user.otp || !user.otpExpiry)
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "No OTP found. Please request again."
+    );
+
+  // check expiry
+  if (user.otpExpiry < new Date()) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "OTP has expired. Please request again."
+    );
+  }
+
+  // check match
+  if (user.otp !== otp) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP");
+  }
+
+  // mark as verified
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      // contactNumber,
+      isPhoneVerified: true,
+      otp: null,
+      otpExpiry: null,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Phone number verified successfully",
+  };
+};
 
 export const OtpService = {
   sendOtpToPhoneNumber,
-  verifyOtpToPhoneNumber,
+  verifyPhoneOtp,
 };
