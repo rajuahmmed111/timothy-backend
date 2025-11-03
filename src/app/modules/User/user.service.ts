@@ -129,6 +129,7 @@ const verifyOtpAndCreateUser = async (email: string, otp: string) => {
     where: { id: user.id },
     data: {
       status: UserStatus.ACTIVE,
+      isEmailVerified: true,
       otp: null,
       otpExpiry: null,
     },
@@ -138,6 +139,7 @@ const verifyOtpAndCreateUser = async (email: string, otp: string) => {
       email: true,
       profileImage: true,
       contactNumber: true,
+      isEmailVerified: true,
       address: true,
       country: true,
       role: true,
