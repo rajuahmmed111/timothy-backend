@@ -1635,7 +1635,7 @@ const createStripeCheckoutSessionWebsite = async (
 
   // total amount with 5% vat
   const totalWithVAT = amount + vatAmount;
-  console.log("totalWithVAT", totalWithVAT);
+  // console.log("totalWithVAT", totalWithVAT);
 
   // 15% admin commission
   const adminCommissionPercentage = 15;
@@ -1645,11 +1645,11 @@ const createStripeCheckoutSessionWebsite = async (
 
   // total admin earnings
   const adminFee = adminCommission + vatAmount;
-  console.log("adminFee", adminFee);
+  // console.log("adminFee", adminFee);
 
   // service fee (partner earnings)
   const serviceFee = totalWithVAT - adminFee;
-  console.log("serviceFee", serviceFee);
+  // console.log("serviceFee", serviceFee);
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
