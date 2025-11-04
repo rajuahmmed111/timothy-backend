@@ -294,7 +294,7 @@ const getHotelBookingById = async (partnerId: string, bookingId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
-  if (booking.hotel.partnerId !== partnerId) {
+  if (booking.hotel?.partnerId !== partnerId) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       "You are not authorized to update this booking"
