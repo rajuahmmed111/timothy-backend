@@ -139,11 +139,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import {
-  S3Client,
-  PutObjectCommand,
-  ObjectCannedACL,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 import { IUploadedFile } from "../interfaces/file";
 import config from "../config";
@@ -251,7 +247,7 @@ const invertorRelationImage = upload.single("invertorRelationImage");
 
 // -------------------- 🧠 AWS S3 CONFIG --------------------
 const s3 = new S3Client({
-  region: "eu-west-2",
+  region: config.s3_bucket.aws_bucket_region,
   credentials: {
     accessKeyId: config.s3_bucket.aws_bucket_accesskey!,
     secretAccessKey: config.s3_bucket.aws_bucket_secret_key!,
@@ -277,7 +273,6 @@ const uploadToS3 = async (file: IUploadedFile): Promise<string> => {
         Key: fileName,
         Body: fileStream,
         ContentType: file.mimetype,
-        // ACL: "public-read" as ObjectCannedACL,
       };
 
       await s3.send(new PutObjectCommand(uploadParams));
@@ -287,7 +282,7 @@ const uploadToS3 = async (file: IUploadedFile): Promise<string> => {
         fs.unlinkSync(file.path);
       }
 
-      const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      const fileUrl = `https://${config.s3_bucket.aws_bucket_name}.s3.${config.s3_bucket.aws_bucket_region}.amazonaws.com/${fileName}`;
       resolve(fileUrl);
     } catch (error) {
       reject(error);
@@ -321,5 +316,5 @@ export const uploadFile = {
   advertiseVideo,
   invertorRelationImage,
 
-  uploadToS3,
+  uploadToS3, // ✅ AWS upload function instead of Cloudinary
 };

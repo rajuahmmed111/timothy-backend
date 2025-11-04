@@ -732,8 +732,9 @@ const getPartnerById = async (id: string): Promise<SafeUser> => {
 const updateUser = async (
   id: string,
   updates: IUpdateUser,
-  file?: IUploadedFile
+  file?: Express.Multer.File
 ): Promise<SafeUser> => {
+  // console.log(updates, file, "updates in user service");
   const user = await prisma.user.findUnique({
     where: { id, status: UserStatus.ACTIVE },
   });
