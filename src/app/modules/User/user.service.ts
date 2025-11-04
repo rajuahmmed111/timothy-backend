@@ -16,7 +16,7 @@ import { searchableFields } from "./user.constant";
 import { IGenericResponse } from "../../../interfaces/common";
 import { IUploadedFile } from "../../../interfaces/file";
 import { uploadFile } from "../../../helpars/fileUploader";
-import e, { Request } from "express";
+import { Request } from "express";
 import { getDateRange } from "../../../helpars/filterByDate";
 import emailSender from "../../../helpars/emailSender";
 import { createOtpEmailTemplate } from "../../../utils/createOtpEmailTemplate";
