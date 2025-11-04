@@ -251,7 +251,7 @@ const invertorRelationImage = upload.single("invertorRelationImage");
 
 // -------------------- 🧠 AWS S3 CONFIG --------------------
 const s3 = new S3Client({
-  region: config.s3_bucket.aws_bucket_region,
+  region: "eu-west-2",
   credentials: {
     accessKeyId: config.s3_bucket.aws_bucket_accesskey!,
     secretAccessKey: config.s3_bucket.aws_bucket_secret_key!,
@@ -277,7 +277,7 @@ const uploadToS3 = async (file: IUploadedFile): Promise<string> => {
         Key: fileName,
         Body: fileStream,
         ContentType: file.mimetype,
-        ACL: "public-read" as ObjectCannedACL, // make it publicly accessible (optional)
+        // ACL: "public-read" as ObjectCannedACL,
       };
 
       await s3.send(new PutObjectCommand(uploadParams));

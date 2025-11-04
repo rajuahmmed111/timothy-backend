@@ -15,11 +15,12 @@ import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { searchableFields } from "./user.constant";
 import { IGenericResponse } from "../../../interfaces/common";
 import { IUploadedFile } from "../../../interfaces/file";
-import { uploadFile } from "../../../helpars/fileUploader";
+// import { uploadFile } from "../../../helpars/fileUploader";
 import e, { Request } from "express";
 import { getDateRange } from "../../../helpars/filterByDate";
 import emailSender from "../../../helpars/emailSender";
 import { createOtpEmailTemplate } from "../../../utils/createOtpEmailTemplate";
+import { uploadFile } from "../../../utils/uploadToS3";
 
 // create user
 const createUser = async (payload: any) => {
@@ -743,10 +744,11 @@ const updateUser = async (
 
   // profile image upload if provided
   let profileImageUrl = user.profileImage;
-  if (file) {
-    const cloudinaryResponse = await uploadFile.uploadToCloudinary(file);
-    profileImageUrl = cloudinaryResponse?.secure_url!;
-  }
+if (file) {
+  const s3Url = await uploadFile.uploadToS3(file);
+  profileImageUrl = s3Url;
+}
+
 
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
@@ -817,10 +819,10 @@ const updateUserProfileImage = async (
   }
 
   const file = req.file as IUploadedFile;
-  if (file) {
-    const cloudinaryResponse = await uploadFile.uploadToCloudinary(file);
-    req.body.profilePhoto = cloudinaryResponse?.secure_url;
-  }
+  // if (file) {
+  //   const cloudinaryResponse = await uploadFile.uploadToCloudinary(file);
+  //   req.body.profilePhoto = cloudinaryResponse?.secure_url;
+  // }
 
   const profileInfo = await prisma.user.update({
     where: {
