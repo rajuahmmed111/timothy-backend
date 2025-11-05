@@ -250,6 +250,7 @@ model Room {
   hotelRoomPriceNight  Float
   discount             Float              @default(0)
   isBooked             EveryServiceStatus @default(AVAILABLE)
+  currency             String             @default("USD")
   hotelReviewCount     Int                @default(0)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -345,6 +346,7 @@ model Security_Guard {
   category                 String?
   discount                 Float?
   isBooked                 EveryServiceStatus @default(AVAILABLE)
+  currency                 String             @default("USD")
   hiredCount               Int                @default(0)
   vat                      Float              @default(0)
   securityReviewCount      Int                @default(0)
@@ -446,6 +448,7 @@ model Car {
   category           String?
   discount           Float?
   isBooked           EveryServiceStatus @default(AVAILABLE)
+  currency           String             @default("USD")
   vat                Float              @default(0)
   carReviewCount     Int                @default(0)
   carBookingAbleDays String[]
@@ -567,6 +570,7 @@ model Appeal {
   category                  String?
   discount                  Float?
   isBooked                  EveryServiceStatus @default(AVAILABLE)
+  currency                  String             @default("USD")
   vat                       Float              @default(0)
   attractionReviewCount     Int                @default(0)
   createdAt                 DateTime           @default(now())
