@@ -1117,7 +1117,7 @@ const createCheckoutSessionPayStack = async (
         adminFee,
         serviceFee,
       },
-      // callback_url: `${callback_url}/payment/success`,
+      callback_url: `${config.stripe.checkout_success_url}`,
     },
     {
       headers,
