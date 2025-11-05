@@ -1595,7 +1595,6 @@ const createStripeCheckoutSessionWebsite = async (
 
   // service fee (partner earnings)
   const serviceFee = totalWithVAT - adminFee;
-  // console.log("serviceFee", serviceFee);
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
