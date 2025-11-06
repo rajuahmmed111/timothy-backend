@@ -275,6 +275,9 @@ model Hotel_Booking {
   bookedFromDate    String
   bookedToDate      String
   totalPrice        Float
+  convertedPrice    Float
+  displayCurrency   String?
+  discountedPrice   Float
   specialRequest    String?
   category          String?
   bookingStatus     BookingStatus @default(PENDING)
@@ -375,6 +378,9 @@ model Security_Booking {
   securityBookedFromDate String
   securityBookedToDate   String
   totalPrice             Float
+  convertedPrice         Float
+  displayCurrency        String
+  discountedPrice        Float?
   category               String
   bookingStatus          BookingStatus @default(PENDING)
   name                   String?
@@ -503,6 +509,9 @@ model Car_Booking {
   carBookedToDate   String
   promo_code        String?
   totalPrice        Float
+  convertedPrice    Float
+  displayCurrency   String
+  discountedPrice   Float?
   category          String
   bookingStatus     BookingStatus @default(PENDING)
   name              String?
@@ -629,6 +638,9 @@ model Attraction_Booking {
   id                String        @id @default(auto()) @map("_id") @db.ObjectId
   checkoutSessionId String?
   totalPrice        Float
+  convertedPrice    Float
+  displayCurrency   String
+  discountedPrice   Float?
   adults            Int
   children          Int
   date              String

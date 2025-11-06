@@ -14,7 +14,19 @@ const createHotelRoomBooking = async (
   roomId: string,
   data: IHotelBookingData
 ) => {
-  const { rooms, adults, children, bookedFromDate, bookedToDate } = data;
+  const {
+    name,
+    email,
+    phone,
+    convertedPrice,
+    displayCurrency,
+    discountedPrice,
+    rooms,
+    adults,
+    children,
+    bookedFromDate,
+    bookedToDate,
+  } = data;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -43,18 +55,17 @@ const createHotelRoomBooking = async (
       }, // Hotel name for notification
     },
   });
-  console.log(hotel, "room");
   if (!hotel) {
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }
 
   // validate room availability
-  if (rooms > hotel.hotelNumberOfRooms) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Only ${hotel.hotelNumberOfRooms} rooms available`
-    );
-  }
+  // if (rooms > hotel.hotelNumberOfRooms) {
+  //   throw new ApiError(
+  //     httpStatus.BAD_REQUEST,
+  //     `Only ${hotel.hotelNumberOfRooms} rooms available`
+  //   );
+  // }
 
   if (adults > hotel.hotelNumAdults) {
     throw new ApiError(
@@ -71,6 +82,8 @@ const createHotelRoomBooking = async (
   }
 
   if (
+    convertedPrice == null ||
+    displayCurrency == null ||
     rooms == null ||
     adults == null ||
     children == null ||
@@ -96,12 +109,22 @@ const createHotelRoomBooking = async (
   }
 
   // calculate base price
-  const roomPrice = hotel.hotelRoomPriceNight;
-  let totalPrice = roomPrice * rooms * numberOfNights;
+  // const roomPrice = hotel.hotelRoomPriceNight;
+  // price not 0 or null
+  if (!convertedPrice || convertedPrice <= 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid room price");
+  }
+
+  let totalPrice = convertedPrice * rooms * numberOfNights;
 
   // apply discount if available
-  if (hotel.discount && hotel.discount > 0) {
-    totalPrice -= (totalPrice * hotel.discount) / 100;
+  // if (hotel.discount && hotel.discount > 0) {
+  //   totalPrice -= (totalPrice * hotel.discount) / 100;
+  // }
+
+  // apply discount if available
+  if (discountedPrice && discountedPrice > 0) {
+    totalPrice -= (totalPrice * discountedPrice) / 100;
   }
 
   // check for overlapping bookings
@@ -116,6 +139,9 @@ const createHotelRoomBooking = async (
         },
       ],
     },
+    select: {
+      id: true,
+    },
   });
 
   if (overlappingBooking) {
@@ -129,7 +155,13 @@ const createHotelRoomBooking = async (
   const result = await prisma.hotel_Booking.create({
     data: {
       ...data,
+      name,
+      email,
+      phone,
       totalPrice,
+      convertedPrice,
+      displayCurrency,
+      discountedPrice: discountedPrice ?? 0,
       roomId,
       userId,
       hotelId: hotel.hotelId!,

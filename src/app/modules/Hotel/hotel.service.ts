@@ -469,12 +469,12 @@ const getAllHotels = async (
 
   const exchangeRates = await CurrencyHelpers.getExchangeRates();
 
-  // Convert prices এবং filter করুন
+  // Convert prices এবং filter
   let resultWithAverages = result
     .map((hotel) => {
       if (hotel.room.length === 0) return null;
 
-      // প্রতিটি room এর price convert করুন
+      // room price convert
       const roomsWithConvertedPrices = hotel.room.map((room) => {
         const roomCurrency = room.currency || "USD";
         const convertedPrice = CurrencyHelpers.convertPrice(
@@ -484,9 +484,13 @@ const getAllHotels = async (
           exchangeRates
         );
 
-        // Discount এর পরে final price
-        const discountedPrice =
-          convertedPrice - (convertedPrice * room.discount) / 100;
+        // Discount price
+        const discountedPrice = CurrencyHelpers.convertPrice(
+          room.discount,
+          roomCurrency,
+          userCurrency,
+          exchangeRates
+        );
 
         return {
           ...room,
