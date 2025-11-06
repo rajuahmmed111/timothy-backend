@@ -6,6 +6,7 @@ import { HotelService } from "./hotel.service";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
 import { filterField } from "./hotel.constant";
+import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create hotel
 const createHotel = catchAsync(async (req: Request, res: Response) => {
@@ -57,9 +58,12 @@ const getAvailableRooms = catchAsync(async (req: Request, res: Response) => {
 
 // get all hotels
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
+  const userCurrency = await getUserCurrency(req);
+  // console.log(`User currency detected: ${userCurrency}`);
+
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);
-  const result = await HotelService.getAllHotels(filter, options);
+  const result = await HotelService.getAllHotels(filter, options, userCurrency);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

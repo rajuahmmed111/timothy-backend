@@ -19,6 +19,7 @@ import {
   searchableFieldsHotel,
 } from "./hotel.constant";
 import { uploadFile } from "../../../helpars/fileUploader";
+import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create hotel
 const createHotel = async (req: Request) => {
@@ -358,7 +359,8 @@ const getAvailableRooms = async (
 // get all hotels with search filtering and pagination
 const getAllHotels = async (
   params: IHotelFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
+  userCurrency: string = 'USD'
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -463,30 +465,100 @@ const getAllHotels = async (
     },
   });
 
-  // averages for each hotel
+  const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+    // Convert prices এবং filter করুন
   let resultWithAverages = result
-    .filter((hotel) => hotel.room.length > 0)
     .map((hotel) => {
-      const rooms = hotel.room;
-      const totalPrice = rooms.reduce(
-        (sum, room) => sum + (room.hotelRoomPriceNight || 0),
+      if (hotel.room.length === 0) return null;
+
+      // প্রতিটি room এর price convert করুন
+      const roomsWithConvertedPrices = hotel.room.map((room) => {
+        const roomCurrency = room.currency || 'USD';
+        const convertedPrice = CurrencyHelpers.convertPrice(
+          room.hotelRoomPriceNight,
+          roomCurrency,
+          userCurrency,
+          exchangeRates
+        );
+
+        // Discount এর পরে final price
+        const discountedPrice =
+          convertedPrice - (convertedPrice * room.discount) / 100;
+
+        return {
+          ...room,
+          originalPrice: room.hotelRoomPriceNight,
+          originalCurrency: roomCurrency,
+          convertedPrice: convertedPrice,
+          discountedPrice: discountedPrice,
+          displayCurrency: userCurrency,
+          exchangeRate:
+            exchangeRates[userCurrency] / exchangeRates[roomCurrency],
+        };
+      });
+
+      // Price filter apply করুন (converted price এর উপর)
+      const filteredRooms = roomsWithConvertedPrices.filter((room) => {
+        const priceToCheck = room.discountedPrice;
+        if (minPrice && priceToCheck < Number(minPrice)) return false;
+        if (maxPrice && priceToCheck > Number(maxPrice)) return false;
+        return true;
+      });
+
+      // যদি filter করার পর কোন room না থাকে
+      if (filteredRooms.length === 0) return null;
+
+      // Averages calculate করুন
+      const totalPrice = filteredRooms.reduce(
+        (sum, room) => sum + room.discountedPrice,
         0
       );
-      const totalRating = rooms.reduce(
+      const totalRating = filteredRooms.reduce(
         (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
         0
       );
-      const totalReviews = rooms.reduce(
+      const totalReviews = filteredRooms.reduce(
         (sum, room) => sum + (room.hotelReviewCount || 0),
         0
       );
+
       return {
         ...hotel,
-        averagePrice: Number((totalPrice / rooms.length).toFixed(2)),
-        averageRating: Number((totalRating / rooms.length).toFixed(1)),
-        averageReviewCount: Math.round(totalReviews / rooms.length),
+        room: filteredRooms,
+        averagePrice: Number((totalPrice / filteredRooms.length).toFixed(2)),
+        averageRating: Number((totalRating / filteredRooms.length).toFixed(1)),
+        averageReviewCount: Math.round(totalReviews / filteredRooms.length),
+        displayCurrency: userCurrency,
+        currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
       };
-    });
+    })
+    .filter((hotel) => hotel !== null);
+
+  // averages for each hotel
+  // let resultWithAverages = result
+  //   .filter((hotel) => hotel.room.length > 0)
+  //   .map((hotel) => {
+  //     const rooms = hotel.room;
+  //     const totalPrice = rooms.reduce(
+  //       (sum, room) => sum + (room.hotelRoomPriceNight || 0),
+  //       0
+  //     );
+  //     const totalRating = rooms.reduce(
+  //       (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
+  //       0
+  //     );
+  //     const totalReviews = rooms.reduce(
+  //       (sum, room) => sum + (room.hotelReviewCount || 0),
+  //       0
+  //     );
+  //     return {
+  //       ...hotel,
+  //       averagePrice: Number((totalPrice / rooms.length).toFixed(2)),
+  //       averageRating: Number((totalRating / rooms.length).toFixed(1)),
+  //       averageReviewCount: Math.round(totalReviews / rooms.length),
+  //     };
+  //   });
 
   // sort by averagePrice (low → high / high → low)
   if (options.sortBy === "price") {
