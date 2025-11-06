@@ -276,8 +276,11 @@ model Hotel_Booking {
   bookedToDate      String
   totalPrice        Float
   specialRequest    String?
-  bookingStatus     BookingStatus @default(PENDING)
   category          String?
+  bookingStatus     BookingStatus @default(PENDING)
+  name              String?
+  email             String?
+  phone             String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -372,8 +375,11 @@ model Security_Booking {
   securityBookedFromDate String
   securityBookedToDate   String
   totalPrice             Float
-  bookingStatus          BookingStatus @default(PENDING)
   category               String
+  bookingStatus          BookingStatus @default(PENDING)
+  name                   String?
+  email                  String?
+  phone                  String?
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 
@@ -497,8 +503,11 @@ model Car_Booking {
   carBookedToDate   String
   promo_code        String?
   totalPrice        Float
-  bookingStatus     BookingStatus @default(PENDING)
   category          String
+  bookingStatus     BookingStatus @default(PENDING)
+  name              String?
+  email             String?
+  phone             String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -620,13 +629,16 @@ model Attraction_Booking {
   id                String        @id @default(auto()) @map("_id") @db.ObjectId
   checkoutSessionId String?
   totalPrice        Float
-  bookingStatus     BookingStatus @default(PENDING)
   adults            Int
   children          Int
   date              String
   day               String
   timeSlot          Json // { "from": "10:00:00", "to": "12:00:00" }
   category          String
+  bookingStatus     BookingStatus @default(PENDING)
+  name              String?
+  email             String?
+  phone             String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
