@@ -161,9 +161,9 @@ const createCar = async (req: Request) => {
     carPriceDay,
     category,
     discount,
-    vat,
     carReviewCount,
     carBookingAbleDays,
+    currency,
   } = req.body;
 
   const result = await prisma.car.create({
@@ -201,6 +201,7 @@ const createCar = async (req: Request) => {
       carReviewCount: carReviewCount ? parseInt(carReviewCount) : 0,
       partnerId: carRentalExists.partnerId,
       car_RentalId: carRentalExists.id,
+      currency: currency.toUpperCase(),
     },
   });
 
@@ -846,9 +847,9 @@ const updateCar = async (req: Request) => {
     carPriceDay,
     category,
     discount,
-    vat,
     carReviewCount,
     carBookingAbleDays,
+    currency,
   } = req.body;
 
   return await prisma.car.update({
@@ -885,6 +886,7 @@ const updateCar = async (req: Request) => {
       category,
       discount: discount ? parseFloat(discount) : 0,
       carReviewCount: carReviewCount ? parseInt(carReviewCount) : 0,
+      currency: currency.toUpperCase(),
     },
   });
 };

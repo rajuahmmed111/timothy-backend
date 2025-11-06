@@ -1,4 +1,7 @@
 export interface IHotelBookingData {
+  name?: string;
+  email?: string;
+  phone?: string;
   rooms: number; // number of rooms booked
   adults: number; // number of adults
   children: number; // number of children
@@ -12,4 +15,3 @@ export type BookingCategory = "hotel" | "security" | "car" | "attraction";
 export interface IBookingFilterRequest {
   category?: BookingCategory;
 }
-

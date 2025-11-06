@@ -2,10 +2,7 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { differenceInDays, parse, startOfDay } from "date-fns";
-import {
-  BookingStatus,
-  PaymentStatus,
-} from "@prisma/client";
+import { BookingStatus, PaymentStatus } from "@prisma/client";
 import {
   IBookingFilterRequest,
   IHotelBookingData,
@@ -46,7 +43,7 @@ const createHotelRoomBooking = async (
       }, // Hotel name for notification
     },
   });
-
+  console.log(hotel, "room");
   if (!hotel) {
     throw new ApiError(httpStatus.NOT_FOUND, "Hotel not found");
   }

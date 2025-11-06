@@ -160,6 +160,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
     securityReviewCount,
     hiredCount,
     securityBookingAbleDays,
+    currency,
   } = req.body;
 
   const parsedServices = Array.isArray(securityServicesOffered)
@@ -201,6 +202,7 @@ const createSecurityProtocolGuardType = async (req: Request) => {
       securityBookingAbleDays: securityBookingAbleDay,
       securityId: findSecurityProtocol.id,
       partnerId: findSecurityProtocol.partnerId,
+      currency: currency.toUpperCase(),
     },
   });
 
@@ -1310,8 +1312,8 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
     discount,
     securityReviewCount,
     hiredCount,
-    vat,
     securityBookingAbleDays,
+    currency,
   } = req.body;
 
   // normalize arrays
@@ -1360,6 +1362,7 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
       securityBookingAbleDays:
         securityBookingAbleDay || existingGuard.securityBookingAbleDays,
       securityImages: securityImageUrls,
+      currency: currency.toUpperCase(),
     },
   });
 

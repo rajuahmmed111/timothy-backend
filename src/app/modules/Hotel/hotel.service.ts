@@ -232,6 +232,7 @@ const createHotelRoom = async (req: Request) => {
     category,
     discount,
     hotelReviewCount,
+    currency,
   } = req.body;
 
   const result = await prisma.room.create({
@@ -259,6 +260,7 @@ const createHotelRoom = async (req: Request) => {
       hotelImages: hotelRoomUrls,
       hotelId: hotelId,
       partnerId: partnerExists.id,
+      currency: currency.toUpperCase(),
     },
   });
 
@@ -360,7 +362,7 @@ const getAvailableRooms = async (
 const getAllHotels = async (
   params: IHotelFilterRequest,
   options: IPaginationOptions,
-  userCurrency: string = 'USD'
+  userCurrency: string = "USD"
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -467,14 +469,14 @@ const getAllHotels = async (
 
   const exchangeRates = await CurrencyHelpers.getExchangeRates();
 
-    // Convert prices এবং filter করুন
+  // Convert prices এবং filter করুন
   let resultWithAverages = result
     .map((hotel) => {
       if (hotel.room.length === 0) return null;
 
       // প্রতিটি room এর price convert করুন
       const roomsWithConvertedPrices = hotel.room.map((room) => {
-        const roomCurrency = room.currency || 'USD';
+        const roomCurrency = room.currency || "USD";
         const convertedPrice = CurrencyHelpers.convertPrice(
           room.hotelRoomPriceNight,
           roomCurrency,
@@ -1426,6 +1428,7 @@ const updateHotelRoom = async (req: Request) => {
     category,
     discount,
     hotelReviewCount,
+    currency,
   } = req.body;
 
   // Update room
@@ -1454,6 +1457,7 @@ const updateHotelRoom = async (req: Request) => {
         : undefined,
       hotelRoomImages: roomImageUrls,
       hotelImages: hotelRoomUrls,
+      currency: currency.toUpperCase(),
     },
   });
 

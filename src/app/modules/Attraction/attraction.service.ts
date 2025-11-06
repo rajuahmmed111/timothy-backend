@@ -150,6 +150,7 @@ const createAttractionAppeal = async (req: Request) => {
     category,
     discount,
     schedules, // [{ day, slots:[{from,to}] }]
+    currency,
   } = req.body;
 
   if (!schedules || schedules.length === 0) {
@@ -193,6 +194,7 @@ const createAttractionAppeal = async (req: Request) => {
           discount: parseFloat(discount),
           partnerId,
           attractionId: attractionExists.id,
+          currency: currency.toUpperCase(),
         },
       });
 
@@ -926,6 +928,7 @@ const updateAttractionAppeal = async (req: Request) => {
     category,
     discount,
     schedules, // [{ day, slots:[{from,to}] }]
+    currency,
   } = req.body;
 
   // convert schedules if string
@@ -963,6 +966,7 @@ const updateAttractionAppeal = async (req: Request) => {
           attractionChildPrice: parseFloat(attractionChildPrice),
           category,
           discount: parseFloat(discount),
+          currency: currency.toUpperCase(),
         },
       });
 
