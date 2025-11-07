@@ -6,6 +6,7 @@ import { CarRentalService } from "./carRental.service";
 import { filterField } from "./carRental.constant";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
+import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create Car Rental
 const createCarRental = catchAsync(async (req: Request, res: Response) => {
@@ -82,9 +83,14 @@ const getAllCarRentals = catchAsync(async (req: Request, res: Response) => {
 
 // get all car rentals cars
 const getAllCarRentalsCars = catchAsync(async (req: Request, res: Response) => {
+  const userCurrency = await getUserCurrency(req);
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);
-  const result = await CarRentalService.getAllCarRentalsCars(filter, options);
+  const result = await CarRentalService.getAllCarRentalsCars(
+    filter,
+    options,
+    userCurrency
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

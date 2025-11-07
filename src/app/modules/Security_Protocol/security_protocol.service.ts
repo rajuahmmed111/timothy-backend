@@ -20,6 +20,7 @@ import {
   protocolSearchFields,
   searchableFields,
 } from "./security_protocol.constant";
+import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create security protocol
 const createSecurityProtocol = async (req: Request) => {
@@ -473,7 +474,8 @@ const getAllSecurityProtocolsForPartnerSecurityGuards = async (
 // get all security protocols
 const getAllSecurityProtocols = async (
   params: ISecurityFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
+  userCurrency: string = "USD"
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -485,22 +487,13 @@ const getAllSecurityProtocols = async (
   if (searchTerm) {
     filters.push({
       OR: [
-        // search in Security_Protocol fields
         ...protocolSearchFields.map((field) => ({
-          [field]: {
-            contains: searchTerm,
-            mode: "insensitive",
-          },
+          [field]: { contains: searchTerm, mode: "insensitive" },
         })),
-
-        // search in Security_Guard relation fields
         ...searchableFields.map((field) => ({
           security_Guard: {
             some: {
-              [field]: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
+              [field]: { contains: searchTerm, mode: "insensitive" },
             },
           },
         })),
@@ -508,18 +501,15 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  // Exact search filter
+  // Exact filter
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
+        [key]: { equals: (filterData as any)[key] },
       })),
     });
   }
 
-  // fromDate - toDate booking exclude
   // Date availability filter
   if (fromDate && toDate) {
     filters.push({
@@ -535,71 +525,80 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  // get only isBooked  AVAILABLE hotels
-  // filters.push({
-  //   isBooked: EveryServiceStatus.AVAILABLE,
-  // });
-
   const where: Prisma.Security_ProtocolWhereInput = { AND: filters };
 
-  const result = await prisma.security_Protocol.findMany({
+  // Fetch security protocols
+  const protocols = await prisma.security_Protocol.findMany({
     where,
     skip,
     take: limit,
     orderBy:
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
-        : {
-            createdAt: "desc",
-          },
+        : { createdAt: "desc" },
     include: {
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          profileImage: true,
-        },
-      },
+      user: { select: { id: true, fullName: true, profileImage: true } },
       security_Guard: true,
       review: true,
     },
   });
 
-  const total = await prisma.security_Protocol.count({
-    where,
-  });
+  const total = await prisma.security_Protocol.count({ where });
 
-  // total security protocols guards type in security protocols
-  const totalGuardsSpecificSecurity = await prisma.security_Guard.groupBy({
+  // Fetch total guards per security protocol
+  const totalGuardsPerSecurity = await prisma.security_Guard.groupBy({
     by: ["securityId"],
-    _count: {
-      securityId: true,
-    },
-    where: {
-      securityId: {
-        in: result.map((securityProtocol) => securityProtocol.id),
-      },
-    },
+    _count: { securityId: true },
+    where: { securityId: { in: protocols.map((p) => p.id) } },
   });
 
-  // merge guards into security protocols result
-  const mergedSecurityProtocols = result.map((security) => {
-    const countObj = totalGuardsSpecificSecurity.find(
+  // Fetch exchange rates
+  const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+  // Merge guards and calculate converted prices
+  const mergedProtocols = protocols.map((security) => {
+    const countObj = totalGuardsPerSecurity.find(
       (r) => r.securityId === security.id
     );
+
+    const guardsWithConvertedPrice = security.security_Guard.map((guard) => {
+      const baseCurrency = guard.currency || "USD";
+
+      const convertedPrice = CurrencyHelpers.convertPrice(
+        guard.securityPriceDay,
+        baseCurrency,
+        userCurrency,
+        exchangeRates
+      );
+
+      const discountedPrice = CurrencyHelpers.convertPrice(
+        guard.discount || 0,
+        baseCurrency,
+        userCurrency,
+        exchangeRates
+      );
+
+      return {
+        ...guard,
+        originalPrice: guard.securityPriceDay,
+        originalCurrency: baseCurrency,
+        convertedPrice,
+        discountedPrice,
+        displayCurrency: userCurrency,
+        exchangeRate: exchangeRates[userCurrency] / exchangeRates[baseCurrency],
+      };
+    });
+
     return {
       ...security,
       totalGuards: countObj?._count.securityId || 0,
+      security_Guard: guardsWithConvertedPrice,
     };
   });
 
   return {
-    meta: {
-      total,
-      page,
-      limit,
-    },
-    data: mergedSecurityProtocols,
+    meta: { total, page, limit },
+    data: mergedProtocols,
   };
 };
 

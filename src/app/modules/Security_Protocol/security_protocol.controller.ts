@@ -6,6 +6,7 @@ import httpStatus from "http-status";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
 import { filterField } from "./security_protocol.constant";
+import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create security protocol
 const createSecurityProtocol = catchAsync(
@@ -77,11 +78,13 @@ const getAllAvailableListingSecurityGuardsByPartnerId = catchAsync(
 // get all security protocols
 const getAllSecurityProtocols = catchAsync(
   async (req: Request, res: Response) => {
+    const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result = await Security_ProtocolService.getAllSecurityProtocols(
       filter,
-      options
+      options,
+      userCurrency
     );
 
     sendResponse(res, {
@@ -312,7 +315,7 @@ const deleteSecurityProtocolGuard = catchAsync(
     const guardId = req.params.guardId;
     const result = await Security_ProtocolService.deleteSecurityProtocolGuard(
       guardId,
-      partnerId,
+      partnerId
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,

@@ -484,7 +484,7 @@ const getAllHotels = async (
           exchangeRates
         );
 
-        // Discount price
+        // discount price
         const discountedPrice = CurrencyHelpers.convertPrice(
           room.discount,
           roomCurrency,
