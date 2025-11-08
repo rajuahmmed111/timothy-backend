@@ -18,7 +18,17 @@ const createCarBooking = async (
   carId: string,
   data: ICarBookingData
 ) => {
-  const { carBookedFromDate, carBookedToDate, promo_code } = data;
+  const {
+    name,
+    email,
+    phone,
+    carBookedFromDate,
+    carBookedToDate,
+    promo_code,
+    convertedPrice,
+    displayCurrency,
+    discountedPrice,
+  } = data;
 
   // validate user
   const user = await prisma.user.findUnique({
@@ -49,7 +59,12 @@ const createCarBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Car not found or unavailable");
 
   // required fields
-  if (!carBookedFromDate || !carBookedToDate)
+  if (
+    !carBookedFromDate ||
+    !carBookedToDate ||
+    !convertedPrice ||
+    !displayCurrency
+  )
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
 
   const fromDate = parse(carBookedFromDate, "yyyy-MM-dd", new Date());
@@ -88,11 +103,11 @@ const createCarBooking = async (
   }
 
   // base price calculation
-  let basePrice = car.carPriceDay * numberOfDays;
+  let basePrice = convertedPrice * numberOfDays;
 
   // car discount (if available)
-  if (car.discount && car.discount > 0) {
-    basePrice -= (basePrice * car.discount) / 100;
+  if (discountedPrice && discountedPrice > 0) {
+    basePrice -= (basePrice * discountedPrice) / 100;
   }
 
   // promo code discount (if provided)
@@ -135,7 +150,13 @@ const createCarBooking = async (
   // create booking
   const booking = await prisma.car_Booking.create({
     data: {
+      name,
+      email,
+      phone,
       totalPrice,
+      convertedPrice,
+      displayCurrency,
+      discountedPrice,
       bookingStatus: BookingStatus.PENDING,
       partnerId: car.partnerId!,
       userId,
@@ -148,7 +169,13 @@ const createCarBooking = async (
     },
     select: {
       id: true,
+      name: true,
+      email: true,
+      phone: true,
       totalPrice: true,
+      convertedPrice: true,
+      displayCurrency: true,
+      discountedPrice: true,
       bookingStatus: true,
       partnerId: true,
       userId: true,
@@ -158,6 +185,7 @@ const createCarBooking = async (
       carBookedFromDate: true,
       carBookedToDate: true,
       promo_code: true,
+      createdAt: true,
     },
   });
 

@@ -2,6 +2,7 @@ export interface IHotelBookingData {
   name?: string;
   email?: string;
   phone?: string;
+  address?: string;
   convertedPrice: number;
   displayCurrency: string;
   discountedPrice?: number;
