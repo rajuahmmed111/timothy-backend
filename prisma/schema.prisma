@@ -378,14 +378,15 @@ model Security_Booking {
   securityBookedFromDate String
   securityBookedToDate   String
   totalPrice             Float
-  convertedPrice         Float
-  displayCurrency        String
-  discountedPrice        Float?
+  // convertedPrice         Float
+  // displayCurrency        String
+  // discountedPrice        Float?
   category               String
   bookingStatus          BookingStatus @default(PENDING)
-  name                   String?
-  email                  String?
-  phone                  String?
+  // name                   String?
+  // email                  String?
+  // phone                  String?
+  // address                String?
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 
@@ -509,14 +510,15 @@ model Car_Booking {
   carBookedToDate   String
   promo_code        String?
   totalPrice        Float
-  convertedPrice    Float
-  displayCurrency   String
-  discountedPrice   Float?
+  // convertedPrice    Float
+  // displayCurrency   String
+  // discountedPrice   Float?
   category          String
   bookingStatus     BookingStatus @default(PENDING)
-  name              String?
-  email             String?
-  phone             String?
+  // name                   String?
+  // email                  String?
+  // phone                  String?
+  // address                String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -638,9 +640,9 @@ model Attraction_Booking {
   id                String        @id @default(auto()) @map("_id") @db.ObjectId
   checkoutSessionId String?
   totalPrice        Float
-  convertedPrice    Float
-  displayCurrency   String
-  discountedPrice   Float?
+  // convertedPrice    Float
+  // displayCurrency   String
+  // discountedPrice   Float?
   adults            Int
   children          Int
   date              String
@@ -648,9 +650,10 @@ model Attraction_Booking {
   timeSlot          Json // { "from": "10:00:00", "to": "12:00:00" }
   category          String
   bookingStatus     BookingStatus @default(PENDING)
-  name              String?
-  email             String?
-  phone             String?
+  // name                   String?
+  // email                  String?
+  // phone                  String?
+  // address                String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
