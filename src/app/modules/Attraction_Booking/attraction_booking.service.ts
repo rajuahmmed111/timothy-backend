@@ -3,25 +3,13 @@ import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { parse, startOfDay, isBefore, format } from "date-fns";
+import { IAttractionBookingData } from "./attraction_booking.interface";
 
 // create attraction booking
 const createAttractionBooking = async (
   userId: string,
   appealId: string,
-  data: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    convertedAdultPrice: number;
-    convertedChildPrice: number;
-    displayCurrency: string;
-    discountedPrice?: number;
-    adults: number;
-    children: number;
-    date: string; // "2025-08-12"
-    from: string; // "10:00:00"
-  }
+  data: IAttractionBookingData
 ) => {
   const {
     name,
