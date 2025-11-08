@@ -16,8 +16,18 @@ const createSecurityBooking = async (
   security_GuardId: string,
   data: ISecurityBookingData
 ) => {
-  const { number_of_security, securityBookedFromDate, securityBookedToDate } =
-    data;
+  const {
+    name,
+    email,
+    phone,
+    address,
+    discountedPrice,
+    convertedPrice,
+    displayCurrency,
+    number_of_security,
+    securityBookedFromDate,
+    securityBookedToDate,
+  } = data;
 
   // validate user
   const user = await prisma.user.findUnique({
@@ -51,7 +61,13 @@ const createSecurityBooking = async (
     );
 
   // validate required fields
-  if (!number_of_security || !securityBookedFromDate || !securityBookedToDate) {
+  if (
+    !number_of_security ||
+    !securityBookedFromDate ||
+    !securityBookedToDate ||
+    !convertedPrice ||
+    !displayCurrency
+  ) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Missing required fields");
   }
   if (number_of_security <= 0) {
@@ -111,6 +127,13 @@ const createSecurityBooking = async (
   // create booking
   const result = await prisma.security_Booking.create({
     data: {
+      name,
+      email,
+      phone,
+      address,
+      discountedPrice,
+      convertedPrice,
+      displayCurrency,
       number_of_security,
       securityBookedFromDate,
       securityBookedToDate,
@@ -119,11 +142,28 @@ const createSecurityBooking = async (
       category: security.category || "",
       partnerId: security.partnerId!,
 
-      // ✅ Proper relation connect syntax
+      // proper relation connect syntax
       user: { connect: { id: userId } },
       security_Guard: { connect: { id: security_GuardId } },
       security: { connect: { id: security.securityId! } },
     },
+    // select: {
+    //   id: true,
+    //   name: true,
+    //   email: true,
+    //   phone: true,
+    //   address: true,
+    //   discountedPrice: true,
+    //   convertedPrice: true,
+    //   displayCurrency: true,
+    //   number_of_security: true,
+    //   securityBookedFromDate: true,
+    //   securityBookedToDate: true,
+    //   totalPrice: true,
+    //   bookingStatus: true,
+    //   category: true,
+    //   partnerId: true,
+    // }
   });
 
   return result;

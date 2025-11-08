@@ -379,15 +379,15 @@ model Security_Booking {
   securityBookedFromDate String
   securityBookedToDate   String
   totalPrice             Float
-  // convertedPrice         Float
-  // displayCurrency        String
-  // discountedPrice        Float?
+  convertedPrice         Float
+  displayCurrency        String
+  discountedPrice        Float?
   category               String
   bookingStatus          BookingStatus @default(PENDING)
-  // name                   String?
-  // email                  String?
-  // phone                  String?
-  // address                String?
+  name                   String?
+  email                  String?
+  phone                  String?
+  address                String?
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 

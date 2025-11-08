@@ -434,13 +434,53 @@ const getAllCarRentalsCars = async (
 
   const total = await prisma.car.count({ where });
 
+  // currency conversion
+  const rates = await CurrencyHelpers.getExchangeRates();
+  const displayCurrency = userCurrency.toUpperCase();
+  const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
+
+  const convertedCars = result.map((car) => {
+    const baseCurrency = car.currency || "USD";
+    const originalPrice = car.carPriceDay || 0;
+
+    const exchangeRate =
+      rates[displayCurrency] && rates[baseCurrency]
+        ? rates[displayCurrency] / rates[baseCurrency]
+        : 1;
+
+    const convertedPrice = CurrencyHelpers.convertPrice(
+      originalPrice,
+      baseCurrency,
+      displayCurrency,
+      rates
+    );
+
+    const discountedPrice = CurrencyHelpers.convertPrice(
+      originalPrice,
+      baseCurrency,
+      displayCurrency,
+      rates
+    );
+
+    return {
+      ...car,
+      originalPrice,
+      originalCurrency: baseCurrency,
+      convertedPrice: Number(convertedPrice.toFixed(2)),
+      discountedPrice: Number(discountedPrice.toFixed(2)),
+      displayCurrency,
+      exchangeRate: Number(exchangeRate.toFixed(2)),
+      currencySymbol,
+    };
+  });
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: convertedCars,
   };
 };
 

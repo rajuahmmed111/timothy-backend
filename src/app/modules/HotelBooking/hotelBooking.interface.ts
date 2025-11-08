@@ -1,8 +1,8 @@
 export interface IHotelBookingData {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
+  name?: string | "";
+  email?: string | "";
+  phone?: string | "";
+  address?: string | "";
   convertedPrice: number;
   displayCurrency: string;
   discountedPrice?: number;
@@ -11,7 +11,7 @@ export interface IHotelBookingData {
   children: number; // number of children
   bookedFromDate: string; // date format: "dd-MM-yyyy"
   bookedToDate: string; // date format: "dd-MM-yyyy"
-  specialRequests?: string;
+  specialRequests?: string | "";
 }
 
 export type BookingCategory = "hotel" | "security" | "car" | "attraction";

@@ -504,7 +504,7 @@ const getAllHotels = async (
         };
       });
 
-      // Price filter apply করুন (converted price এর উপর)
+      // filter
       const filteredRooms = roomsWithConvertedPrices.filter((room) => {
         const priceToCheck = room.discountedPrice;
         if (minPrice && priceToCheck < Number(minPrice)) return false;
@@ -512,10 +512,10 @@ const getAllHotels = async (
         return true;
       });
 
-      // যদি filter করার পর কোন room না থাকে
+      // if no room found
       if (filteredRooms.length === 0) return null;
 
-      // Averages calculate করুন
+      // averages calculate
       const totalPrice = filteredRooms.reduce(
         (sum, room) => sum + room.discountedPrice,
         0
