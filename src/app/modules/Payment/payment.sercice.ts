@@ -855,6 +855,33 @@ const cancelStripeBooking = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
+  // 48-hour cancel validation
+  const bookingTimeField =
+    serviceType === "CAR"
+      ? booking.carBookedFromDate
+      : serviceType === "HOTEL"
+      ? booking.bookedFromDate
+      : serviceType === "SECURITY"
+      ? booking.securityBookedFromDate
+      : serviceType === "ATTRACTION"
+      ? booking.date
+      : null;
+
+  if (!bookingTimeField) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Booking date not found");
+  }
+
+  const bookingDate = new Date(bookingTimeField);
+  const now = new Date();
+  const diffHours = (bookingDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (diffHours < 48) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Booking cannot be cancelled less than 48 hours before the service"
+    );
+  }
+
   const payment = booking.payment?.[0];
   if (!payment || !payment.payment_intent) {
     throw new ApiError(
