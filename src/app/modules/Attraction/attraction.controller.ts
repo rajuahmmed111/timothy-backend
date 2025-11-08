@@ -6,6 +6,7 @@ import httpStatus from "http-status";
 import { pick } from "../../../shared/pick";
 import { filterField } from "./attraction.constant";
 import { paginationFields } from "../../../constants/pagination";
+import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create attraction
 const createAttraction = catchAsync(async (req: Request, res: Response) => {
@@ -85,11 +86,13 @@ const getAllAttractions = catchAsync(async (req: Request, res: Response) => {
 // get all attractions appeals
 const getAllAttractionsAppeals = catchAsync(
   async (req: Request, res: Response) => {
+      const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result = await AttractionService.getAllAttractionsAppeals(
       filter,
-      options
+      options,
+      userCurrency
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,

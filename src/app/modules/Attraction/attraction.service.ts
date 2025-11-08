@@ -8,6 +8,7 @@ import { searchableFields } from "./attraction.constant";
 import { IAttractionFilter, ISlot } from "./attraction.interface";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
+import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create attraction without schedules
 const createAttraction = async (req: Request) => {
@@ -402,7 +403,8 @@ const getAllAttractions = async (
 // get all attractions appeals
 const getAllAttractionsAppeals = async (
   params: IAttractionFilter,
-  options: IPaginationOptions
+  options: IPaginationOptions,
+  userCurrency: string = "USD"
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -467,15 +469,65 @@ const getAllAttractionsAppeals = async (
 
   const total = await prisma.appeal.count({ where });
 
-  // Step 2: Group by attractionCountry
-  const grouped = result.reduce((acc, attraction) => {
+  // currency conversion
+  const rates = await CurrencyHelpers.getExchangeRates();
+  const displayCurrency = userCurrency.toUpperCase();
+  const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
+
+  const convertedAttractions = result.map((attraction) => {
+    const baseCurrency = attraction.currency;
+    const originalAdultPrice = attraction.attractionAdultPrice || 0;
+    const originalChildPrice = attraction.attractionChildPrice || 0;
+
+    const exchangeRate =
+      rates[displayCurrency] && rates[baseCurrency]
+        ? rates[displayCurrency] / rates[baseCurrency]
+        : 1;
+
+    const convertedAdultPrice = CurrencyHelpers.convertPrice(
+      originalAdultPrice,
+      baseCurrency,
+      displayCurrency,
+      rates
+    );
+    const convertedChildPrice = CurrencyHelpers.convertPrice(
+      originalChildPrice,
+      baseCurrency,
+      displayCurrency,
+      rates
+    );
+
+    const discount = convertedAdultPrice + convertedChildPrice;
+    const discountedPrice = CurrencyHelpers.convertPrice(
+      discount,
+      baseCurrency,
+      displayCurrency,
+      rates
+    );
+
+    return {
+      ...attraction,
+      originalAdultPrice,
+      originalChildPrice,
+      convertedAdultPrice: Number(convertedAdultPrice.toFixed(2)),
+      convertedChildPrice: Number(convertedChildPrice.toFixed(2)),
+      originalCurrency: baseCurrency,
+      discountedPrice,
+      displayCurrency,
+      exchangeRate: Number(exchangeRate.toFixed(2)),
+      currencySymbol,
+    };
+  });
+
+  // group by attractionCountry
+  const grouped = convertedAttractions.reduce((acc, attraction) => {
     const country = attraction.attractionCountry || "Unknown";
     if (!acc[country]) {
       acc[country] = [];
     }
     acc[country].push(attraction);
     return acc;
-  }, {} as Record<string, typeof result>);
+  }, {} as Record<string, typeof convertedAttractions>);
 
   return {
     meta: {
