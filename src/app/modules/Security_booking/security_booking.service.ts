@@ -114,10 +114,10 @@ const createSecurityBooking = async (
 
   // base price calculation
   let totalPrice =
-    security.securityPriceDay * number_of_security * numberOfDays;
+    convertedPrice * number_of_security * numberOfDays;
 
-  if (security.discount && security.discount > 0) {
-    totalPrice -= (totalPrice * security.discount) / 100;
+  if (discountedPrice && discountedPrice > 0) {
+    totalPrice -= (totalPrice * discountedPrice) / 100;
   }
 
   // if (security.vat && security.vat > 0) {
