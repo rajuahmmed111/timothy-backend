@@ -638,25 +638,26 @@ model ScheduleSlot {
 }
 
 model Attraction_Booking {
-  id                String        @id @default(auto()) @map("_id") @db.ObjectId
-  checkoutSessionId String?
-  totalPrice        Float
-  // convertedPrice    Float
-  // displayCurrency   String
-  // discountedPrice   Float?
-  adults            Int
-  children          Int
-  date              String
-  day               String
-  timeSlot          Json // { "from": "10:00:00", "to": "12:00:00" }
-  category          String
-  bookingStatus     BookingStatus @default(PENDING)
-  // name                   String?
-  // email                  String?
-  // phone                  String?
-  // address                String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  checkoutSessionId   String?
+  totalPrice          Float
+  convertedAdultPrice Float
+  convertedChildPrice Float
+  displayCurrency     String
+  discountedPrice     Float?
+  adults              Int
+  children            Int
+  date                String
+  day                 String
+  timeSlot            Json // { "from": "10:00:00", "to": "12:00:00" }
+  category            String
+  bookingStatus       BookingStatus @default(PENDING)
+  name                String?
+  email               String?
+  phone               String?
+  address             String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   // relationships
   partnerId    String      @db.ObjectId

@@ -9,13 +9,34 @@ const createAttractionBooking = async (
   userId: string,
   appealId: string,
   data: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    convertedAdultPrice: number;
+    convertedChildPrice: number;
+    displayCurrency: string;
+    discountedPrice?: number;
     adults: number;
     children: number;
     date: string; // "2025-08-12"
     from: string; // "10:00:00"
   }
 ) => {
-  const { adults, children, date, from } = data;
+  const {
+    name,
+    email,
+    phone,
+    address,
+    discountedPrice,
+    convertedAdultPrice,
+    convertedChildPrice,
+    displayCurrency,
+    adults,
+    children,
+    date,
+    from,
+  } = data;
 
   // validate required fields
   if (adults == null || children == null || !date || !from) {
@@ -106,16 +127,22 @@ const createAttractionBooking = async (
 
   // calculate total price
   let totalPrice =
-    adults * (attraction.attractionAdultPrice || 0) +
-    children * (attraction.attractionChildPrice || 0);
+    adults * convertedAdultPrice + children * convertedChildPrice;
 
   // if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
-  if (attraction.discount)
-    totalPrice -= (totalPrice * attraction.discount) / 100;
+  if (discountedPrice) totalPrice -= (totalPrice * discountedPrice) / 100;
 
   // create booking
   const booking = await prisma.attraction_Booking.create({
     data: {
+      name,
+      email,
+      phone,
+      address,
+      displayCurrency,
+      convertedAdultPrice,
+      convertedChildPrice,
+      discountedPrice,
       userId,
       appealId,
       attractionId: attraction.attractionId!,
