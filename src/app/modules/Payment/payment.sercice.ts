@@ -746,8 +746,8 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
               <p>Your <strong>${
                 payment.serviceType
               }</strong> booking has been confirmed successfully.</p>
-              <p><b>Booking ID:</b> ${booking.id}</p>
-              <p><b>Total Paid:</b> ${booking.totalPrice} ${
+              <p><b>Payment ID:</b> ${payment.id}</p>
+              <p><b>Total Paid:</b> ${payment.amount} ${
             booking.displayCurrency || "USD"
           }</p>
               <p><b>Status:</b> Confirmed ✅</p>
@@ -1396,8 +1396,8 @@ const payStackHandleWebhook = async (req: any) => {
               <p>Your <strong>${
                 payment.serviceType
               }</strong> booking has been confirmed successfully.</p>
-              <p><b>Booking ID:</b> ${booking.id}</p>
-              <p><b>Total Paid:</b> ${booking.totalPrice} ${
+              <p><b>Payment ID:</b> ${payment.id}</p>
+              <p><b>Total Paid:</b> ${payment.amount} ${
           booking.displayCurrency || "USD"
         }</p>
               <p><b>Status:</b> Confirmed ✅</p>
