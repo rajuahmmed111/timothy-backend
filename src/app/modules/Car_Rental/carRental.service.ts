@@ -456,7 +456,7 @@ const getAllCarRentalsCars = async (
     );
 
     const discountedPrice = CurrencyHelpers.convertPrice(
-      originalPrice,
+      car.discount || 0,
       baseCurrency,
       displayCurrency,
       rates
