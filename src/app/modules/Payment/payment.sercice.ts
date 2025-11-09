@@ -22,6 +22,7 @@ import {
   ServiceTypes,
 } from "../../../shared/notificationService";
 import * as crypto from "crypto";
+import emailSender from "../../../helpars/emailSender";
 
 const callback_url = "https://paystack.com/pay";
 const payStackBaseUrl = "https://api.paystack.co";
@@ -672,6 +673,18 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       if (!config) return;
 
       const bookingId = (payment as any)[config.serviceTypeField];
+
+      // update booking totalPrice = paid amount (amount includes 5% VAT)
+      await config.bookingModel.update({
+        where: { id: bookingId },
+        data: { totalPrice: payment.amount },
+      });
+
+      // // update booking & service status
+      // const config = serviceConfig[payment.serviceType as ServiceType];
+      // if (!config) return;
+
+      // const bookingId = (payment as any)[config.serviceTypeField];
       const booking = await config.bookingModel.findUnique({
         where: { id: bookingId },
       });
@@ -718,6 +731,37 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       await BookingNotificationService.sendBookingNotifications(
         notificationData
       );
+
+      // ---------- send confirmation email ----------
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: booking.userId },
+        });
+
+        if (user?.email) {
+          const subject = `🎉 Your ${payment.serviceType} booking is confirmed!`;
+          const html = `
+            <div style="font-family: Arial; padding: 20px;">
+              <h2>Hi ${user.fullName || "User"},</h2>
+              <p>Your <strong>${
+                payment.serviceType
+              }</strong> booking has been confirmed successfully.</p>
+              <p><b>Booking ID:</b> ${booking.id}</p>
+              <p><b>Total Paid:</b> ${booking.totalPrice} ${
+            booking.displayCurrency || "USD"
+          }</p>
+              <p><b>Status:</b> Confirmed ✅</p>
+              <br/>
+              <p>Thanks for booking with us!</p>
+              <p>– Team Tim</p>
+            </div>
+          `;
+          await emailSender(subject, user.email, html);
+        }
+      } catch (error) {
+        console.error("❌ Email sending failed:", error);
+      }
+
       break;
     }
 
@@ -1286,6 +1330,14 @@ const payStackHandleWebhook = async (req: any) => {
       where: { id: bookingId },
     });
 
+    
+      // update booking totalPrice = paid amount (amount includes 5% VAT)
+    //  const updatedBooking = await config.bookingModel.update({
+    //     where: { id: booking.id },
+    //     data: { totalPrice: payment.amount },
+    //   });
+    //   console.log(updatedBooking, "updatedBooking");
+
     if (!booking) {
       // console.log("Booking not found:", bookingId);
       return { received: true };
@@ -1330,6 +1382,36 @@ const payStackHandleWebhook = async (req: any) => {
         serviceName: service[configs.nameField],
         totalPrice: booking.totalPrice,
       });
+    }
+
+    // ---------- send confirmation email ----------
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: booking.userId },
+      });
+
+      if (user?.email) {
+        const subject = `🎉 Your ${payment.serviceType} booking is confirmed!`;
+        const html = `
+            <div style="font-family: Arial; padding: 20px;">
+              <h2>Hi ${user.fullName || "User"},</h2>
+              <p>Your <strong>${
+                payment.serviceType
+              }</strong> booking has been confirmed successfully.</p>
+              <p><b>Booking ID:</b> ${booking.id}</p>
+              <p><b>Total Paid:</b> ${booking.totalPrice} ${
+          booking.displayCurrency || "USD"
+        }</p>
+              <p><b>Status:</b> Confirmed ✅</p>
+              <br/>
+              <p>Thanks for booking with us!</p>
+              <p>– Team Tim</p>
+            </div>
+          `;
+        await emailSender(subject, user.email, html);
+      }
+    } catch (error) {
+      console.error("❌ Email sending failed:", error);
     }
 
     return { received: true };
