@@ -1330,13 +1330,11 @@ const payStackHandleWebhook = async (req: any) => {
       where: { id: bookingId },
     });
 
-    
-      // update booking totalPrice = paid amount (amount includes 5% VAT)
-    //  const updatedBooking = await config.bookingModel.update({
-    //     where: { id: booking.id },
-    //     data: { totalPrice: payment.amount },
-    //   });
-    //   console.log(updatedBooking, "updatedBooking");
+    // update booking totalPrice = paid amount (amount includes 5% VAT)
+    const updatedBooking = await configs.bookingModel.update({
+      where: { id: booking.id },
+      data: { totalPrice: payment.amount },
+    });
 
     if (!booking) {
       // console.log("Booking not found:", bookingId);
