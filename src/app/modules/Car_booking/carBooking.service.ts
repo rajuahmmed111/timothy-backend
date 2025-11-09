@@ -155,7 +155,7 @@ const createCarBooking = async (
       email,
       phone,
       address,
-      totalPrice,
+      totalPrice: Number(totalPrice.toFixed(2)),
       convertedPrice,
       displayCurrency,
       discountedPrice,

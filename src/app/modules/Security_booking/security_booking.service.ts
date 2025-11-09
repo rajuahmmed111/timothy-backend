@@ -137,7 +137,7 @@ const createSecurityBooking = async (
       number_of_security,
       securityBookedFromDate,
       securityBookedToDate,
-      totalPrice,
+      totalPrice: Number(totalPrice.toFixed(2)),
       bookingStatus: BookingStatus.PENDING,
       category: security.category || "",
       partnerId: security.partnerId!,

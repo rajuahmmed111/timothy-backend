@@ -141,7 +141,7 @@ const createAttractionBooking = async (
       day,
       timeSlot: { from: slot.from, to: slot.to },
       category: attraction.category as string,
-      totalPrice,
+      totalPrice: Number(totalPrice.toFixed(2)),
       bookingStatus: BookingStatus.PENDING,
     },
   });
