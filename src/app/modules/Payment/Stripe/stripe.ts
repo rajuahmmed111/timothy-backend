@@ -132,6 +132,7 @@ export const zeroDecimalCurrencies: Record<string, string> = {
   xpf: "CFP Franc (XPF)",
 };
 
+
 // https://243102737055.signin.aws.amazon.com/console
 // Raju
 
