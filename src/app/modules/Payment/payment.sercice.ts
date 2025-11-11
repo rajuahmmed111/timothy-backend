@@ -1703,13 +1703,17 @@ const createStripeCheckoutSessionWebsite = async (
   // service fee (partner earnings)
   const serviceFee = totalWithVAT - adminFee;
 
+  // currency support added
+  const currency = booking.displayCurrency?.toLowerCase() || "usd";
+  console.log(currency, "currency");
+
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
       {
         price_data: {
-          currency: "usd",
+          currency,
           product_data: {
             name: serviceName || "Service Booking",
             description: description || "Service payment",
