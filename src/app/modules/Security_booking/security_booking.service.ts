@@ -113,8 +113,7 @@ const createSecurityBooking = async (
   }
 
   // base price calculation
-  let totalPrice =
-    convertedPrice * number_of_security * numberOfDays;
+  let totalPrice = convertedPrice * number_of_security * numberOfDays;
 
   if (discountedPrice && discountedPrice > 0) {
     totalPrice -= (totalPrice * discountedPrice) / 100;
@@ -189,6 +188,7 @@ const getAllSecurityBookings = async (partnerId: string) => {
       security_Guard: {
         select: {
           id: true,
+          securityGuardName: true,
           securityPriceDay: true,
         },
       },
@@ -274,6 +274,7 @@ const getAllMySecurityBookings = async (userId: string) => {
       security_Guard: {
         select: {
           id: true,
+          securityGuardName: true,
           securityPriceDay: true,
           securityImages: true,
           securityAddress: true,
