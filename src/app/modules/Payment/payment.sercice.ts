@@ -1705,7 +1705,6 @@ const createStripeCheckoutSessionWebsite = async (
 
   // currency support added
   const currency = booking.displayCurrency?.toLowerCase() || "usd";
-  console.log(currency, "currency");
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
