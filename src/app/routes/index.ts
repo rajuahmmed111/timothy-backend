@@ -31,6 +31,7 @@ import { refundPolicyRoute } from "../modules/Refund_Policy/refund_policy.route"
 import { newsRoomRoute } from "../modules/NewsRoom/news_room.route";
 import { advertisingRoutes } from "../modules/Advertise/advertising.route";
 import { investorRelationsRoutes } from "../modules/Investor_Relations/investor.route";
+// import { rewardsRoute } from "../modules/Fasify_Rewards/rewards.route";
 
 const router = express.Router();
 
@@ -128,6 +129,10 @@ const moduleRoutes = [
     path: "/advertises",
     route: advertisingRoutes,
   },
+  // {
+  //   path: "/rewards",
+  //   route: rewardsRoute,
+  // },
   {
     path: "/settings",
     route: settingRoute,

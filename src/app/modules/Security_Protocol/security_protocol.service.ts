@@ -892,7 +892,8 @@ const getAllSecurityProtocolsGuardsBySecurityProtocolId = async (
 // get all security protocols security guard app
 const getAllSecurityProtocolsGuardsApp = async (
   params: ISecurityFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
+  userCurrency: string = "USD"
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -1015,13 +1016,44 @@ const getAllSecurityProtocolsGuardsApp = async (
     where,
   });
 
+  // ----------- Currency conversion logic -----------
+  const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+  const convertedGuards = result.map((guard) => {
+    const baseCurrency = guard.currency || "USD";
+
+    const convertedPrice = CurrencyHelpers.convertPrice(
+      guard.securityPriceDay,
+      baseCurrency,
+      userCurrency,
+      exchangeRates
+    );
+
+    const discountedPrice = CurrencyHelpers.convertPrice(
+      guard.discount || 0,
+      baseCurrency,
+      userCurrency,
+      exchangeRates
+    );
+
+    return {
+      ...guard,
+      originalPrice: guard.securityPriceDay,
+      originalCurrency: baseCurrency,
+      convertedPrice,
+      discountedPrice,
+      displayCurrency: userCurrency,
+      exchangeRate: exchangeRates[userCurrency] / exchangeRates[baseCurrency],
+    };
+  });
+
   return {
     meta: {
       total,
       page,
       limit,
     },
-    data: result,
+    data: convertedGuards,
   };
 };
 

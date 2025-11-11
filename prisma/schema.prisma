@@ -988,3 +988,99 @@ model CurrencyRate {
 
   @@map("currency_rates")
 }
+
+// ---------------------------------------------------------
+//  REWARDS (Fasify Rewards)
+// ---------------------------------------------------------
+
+// enum RewardTransactionType {
+//   EARN
+//   REDEEM
+//   ADJUST
+// }
+
+// enum RewardSource {
+//   HOTEL
+//   CAR
+//   ATTRACTION
+//   SECURITY
+//   ADMIN
+// }
+
+// model RewardProgram {
+//   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+//   name        String   @default("Fasify Rewards")
+//   description String?
+//   earnRate    Float    @default(1.0) // points per 1 unit of currency
+//   redeemRate  Float    @default(0.01) // currency per 1 point
+//   active      Boolean  @default(true)
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   @@map("reward_programs")
+// }
+
+// model RewardPointBalance {
+//   id             String   @id @default(auto()) @map("_id") @db.ObjectId
+//   points         Int      @default(0)
+//   lifetimePoints Int      @default(0)
+//   createdAt      DateTime @default(now())
+//   updatedAt      DateTime @updatedAt
+
+//   // relations
+//   user   User   @relation(fields: [userId], references: [id])
+//   userId String @db.ObjectId
+
+//   @@unique([userId])
+//   @@map("reward_point_balances")
+// }
+
+// model RewardTransaction {
+//   id          String                @id @default(auto()) @map("_id") @db.ObjectId
+//   type        RewardTransactionType
+//   source      RewardSource
+//   points      Int
+//   referenceId String?
+//   metadata    Json?
+//   createdAt   DateTime              @default(now())
+
+//   // relations
+//   user   User   @relation(fields: [userId], references: [id])
+//   userId String @db.ObjectId
+
+//   @@index([userId])
+//   @@map("reward_transactions")
+// }
+
+// model RewardTier {
+//   id         String   @id @default(auto()) @map("_id") @db.ObjectId
+//   name       String
+//   minPoints  Int      @default(0)
+//   multiplier Float    @default(1.0)
+//   benefits   String[]
+//   active     Boolean  @default(true)
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
+
+//   @@unique([name])
+//   @@map("reward_tiers")
+// }
+
+// model RewardOffer {
+//   id              String      @id @default(auto()) @map("_id") @db.ObjectId
+//   title           String
+//   description     String?
+//   pointsBonus     Int?
+//   discountPercent Float?
+//   validFrom       DateTime
+//   validTo         DateTime
+//   status          PromoStatus @default(ACTIVE)
+//   eligibleTierIds String[]
+//   usageLimit      Int?
+//   usedCount       Int         @default(0)
+//   createdAt       DateTime    @default(now())
+//   updatedAt       DateTime    @updatedAt
+
+//   @@map("reward_offers")
+// }
