@@ -1058,7 +1058,10 @@ const getAllSecurityProtocolsGuardsApp = async (
 };
 
 // get popular security protocols
-const getPopularSecurityProtocols = async (params: ISecurityFilterRequest) => {
+const getPopularSecurityProtocols = async (
+  params: ISecurityFilterRequest,
+  userCurrency: string = "USD"
+) => {
   const { searchTerm, ...filterData } = params;
 
   const filters: Prisma.Security_GuardWhereInput[] = [];
@@ -1106,7 +1109,42 @@ const getPopularSecurityProtocols = async (params: ISecurityFilterRequest) => {
     take: 10,
   });
 
-  return result;
+  // get exchange rates
+  const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+  // convert price country-wise
+  const convertedResult = result.map((guard) => {
+    const guardCurrency = guard.currency || "USD";
+
+    // main hourly price convert
+    const convertedPrice = CurrencyHelpers.convertPrice(
+      guard.securityPriceDay,
+      guardCurrency,
+      userCurrency,
+      exchangeRates
+    );
+
+    // discount (if available)
+    const discountedPrice = CurrencyHelpers.convertPrice(
+      guard.discount || 0,
+      guardCurrency,
+      userCurrency,
+      exchangeRates
+    );
+
+    return {
+      ...guard,
+      originalPrice: guard.securityPriceDay,
+      originalCurrency: guardCurrency,
+      convertedPrice,
+      discountedPrice,
+      displayCurrency: userCurrency,
+      exchangeRate: exchangeRates[userCurrency] / exchangeRates[guardCurrency],
+      currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+    };
+  });
+
+  return convertedResult;
 };
 
 // get single security protocol security guard

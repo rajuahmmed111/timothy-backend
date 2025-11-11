@@ -206,9 +206,10 @@ const getAllSecurityProtocolsForPartnerSecurityGuards = catchAsync(
 // get popular security protocols
 const getPopularSecurityProtocols = catchAsync(
   async (req: Request, res: Response) => {
+    const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const result = await Security_ProtocolService.getPopularSecurityProtocols(
-      filter
+      filter, userCurrency
     );
 
     sendResponse(res, {
