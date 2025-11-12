@@ -94,25 +94,25 @@ const upload = multer({ storage, fileFilter });
 const profileImage = upload.single("profileImage");
 
 const hotelLogo = upload.single("businessLogo");
-const hotelImages = upload.array("hotelImages", 5);
-const hotelRoomImages = upload.array("hotelRoomImages", 5);
-const hotelDocs = upload.array("hotelDocs", 5);
+const hotelImages = upload.array("hotelImages", 40);
+const hotelRoomImages = upload.array("hotelRoomImages", 40);
+const hotelDocs = upload.array("hotelDocs", 40);
 
 const securityLogo = upload.single("securityLogo");
-const securityImages = upload.array("securityImages", 5);
-const securityDocs = upload.array("securityDocs", 5);
+const securityImages = upload.array("securityImages", 40);
+const securityDocs = upload.array("securityDocs", 40);
 
 const carBusinessLogo = upload.single("businessLogo");
-const carImages = upload.array("carImages", 5);
-const carDocs = upload.array("carDocs", 5);
+const carImages = upload.array("carImages", 40);
+const carDocs = upload.array("carDocs", 40);
 
 const attractionBusinessLogo = upload.single("businessLogo");
-const attractionImages = upload.array("attractionImages", 5);
-const attractionDocs = upload.array("attractionDocs", 5);
+const attractionImages = upload.array("attractionImages", 40);
+const attractionDocs = upload.array("attractionDocs", 40);
 
-const uploadMessageImages = upload.array("messageImages", 5);
+const uploadMessageImages = upload.array("messageImages", 40);
 
-const newsImage = upload.array("image", 5);
+const newsImage = upload.array("image", 40);
 
 const advertiseVideo = upload.single("advertiseVideo");
 
