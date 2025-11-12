@@ -530,7 +530,7 @@ const getAllSecurityProtocols = async (
       ...filters,
       {
         security_Guard: {
-          some: {}, // ✅ only protocols with guards
+          some: {}, // only protocols with guards
         },
       },
     ],
