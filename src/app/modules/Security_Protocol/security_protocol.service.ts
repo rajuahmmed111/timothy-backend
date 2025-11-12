@@ -1216,6 +1216,7 @@ const getSingleSecurityProtocol = async (id: string) => {
           profileImage: true,
         },
       },
+      security_Guard: true,
     },
   });
   if (!result) {
