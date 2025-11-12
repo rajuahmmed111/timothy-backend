@@ -478,12 +478,11 @@ const getAllSecurityProtocols = async (
   userCurrency: string = "USD"
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-
   const { searchTerm, fromDate, toDate, ...filterData } = params;
 
   const filters: Prisma.Security_ProtocolWhereInput[] = [];
 
-  // text search
+  // 🔍 text search
   if (searchTerm) {
     filters.push({
       OR: [
@@ -501,7 +500,7 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  // Exact filter
+  // ✅ Exact filters
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
@@ -510,7 +509,7 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  // Date availability filter
+  // 📅 Date availability filter
   if (fromDate && toDate) {
     filters.push({
       security_Booking: {
@@ -536,7 +535,7 @@ const getAllSecurityProtocols = async (
     ],
   };
 
-  // Fetch security protocols
+  // 🔄 Fetch data
   const protocols = await prisma.security_Protocol.findMany({
     where,
     skip,
@@ -553,63 +552,94 @@ const getAllSecurityProtocols = async (
   });
 
   const total = await prisma.security_Protocol.count({ where });
-
-  // Fetch total guards per security protocol
-  const totalGuardsPerSecurity = await prisma.security_Guard.groupBy({
-    by: ["securityId"],
-    _count: { securityId: true },
-    where: { securityId: { in: protocols.map((p) => p.id) } },
-  });
-
-  // Fetch exchange rates
   const exchangeRates = await CurrencyHelpers.getExchangeRates();
 
-  // Merge guards and calculate converted prices
-  const mergedProtocols = protocols.map((security) => {
-    const countObj = totalGuardsPerSecurity.find(
-      (r) => r.securityId === security.id
-    );
+  // 🧮 Calculate averagePrice, averageRating, averageReviewCount
+  let resultWithAverages = protocols
+    .map((security) => {
+      if (!security.security_Guard || security.security_Guard.length === 0)
+        return null;
 
-    const guardsWithConvertedPrice = security.security_Guard.map((guard) => {
-      const baseCurrency = guard.currency || "USD";
+      const guardsWithConvertedPrice = security.security_Guard.map((guard) => {
+        const baseCurrency = guard.currency || "USD";
 
-      const convertedPrice = CurrencyHelpers.convertPrice(
-        guard.securityPriceDay,
-        baseCurrency,
-        userCurrency,
-        exchangeRates
+        const convertedPrice = CurrencyHelpers.convertPrice(
+          guard.securityPriceDay,
+          baseCurrency,
+          userCurrency,
+          exchangeRates
+        );
+
+        const discountedPrice = CurrencyHelpers.convertPrice(
+          guard.discount || 0,
+          baseCurrency,
+          userCurrency,
+          exchangeRates
+        );
+
+        return {
+          ...guard,
+          originalPrice: guard.securityPriceDay,
+          originalCurrency: baseCurrency,
+          convertedPrice,
+          discountedPrice,
+          displayCurrency: userCurrency,
+          exchangeRate:
+            exchangeRates[userCurrency] / exchangeRates[baseCurrency],
+        };
+      });
+
+      // 🎯 calculate averages
+      const totalPrice = guardsWithConvertedPrice.reduce(
+        (sum, g) => sum + (g.discountedPrice || g.convertedPrice),
+        0
+      );
+      const totalRating = guardsWithConvertedPrice.reduce(
+        (sum, g) => sum + (parseFloat(g.securityRating) || 0),
+        0
+      );
+      const totalReviews = guardsWithConvertedPrice.reduce(
+        (sum, g) => sum + (g.securityReviewCount || 0),
+        0
       );
 
-      const discountedPrice = CurrencyHelpers.convertPrice(
-        guard.discount || 0,
-        baseCurrency,
-        userCurrency,
-        exchangeRates
+      const averagePrice = Number(
+        (totalPrice / guardsWithConvertedPrice.length).toFixed(2)
+      );
+      const averageRating = Number(
+        (totalRating / guardsWithConvertedPrice.length).toFixed(1)
+      );
+      const averageReviewCount = Math.round(
+        totalReviews / guardsWithConvertedPrice.length
       );
 
       return {
-        ...guard,
-        originalPrice: guard.securityPriceDay,
-        originalCurrency: baseCurrency,
-        convertedPrice,
-        discountedPrice,
+        ...security,
+        security_Guard: guardsWithConvertedPrice,
+        averagePrice,
+        averageRating,
+        averageReviewCount,
         displayCurrency: userCurrency,
-        exchangeRate: exchangeRates[userCurrency] / exchangeRates[baseCurrency],
+        currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
       };
-    });
+    })
+    .filter((security) => security !== null);
 
-    return {
-      ...security,
-      totalGuards: countObj?._count.securityId || 0,
-      security_Guard: guardsWithConvertedPrice,
-    };
-  });
+  // 🔢 sort by averagePrice if requested
+  if (options.sortBy === "price") {
+    resultWithAverages = resultWithAverages.sort((a, b) =>
+      options.sortOrder === "asc"
+        ? a.averagePrice - b.averagePrice
+        : b.averagePrice - a.averagePrice
+    );
+  }
 
   return {
-    meta: { total, page, limit },
-    data: mergedProtocols,
+    meta: { total: resultWithAverages.length, page, limit },
+    data: resultWithAverages,
   };
 };
+
 
 // get all security protocols with guards
 // const getAllSecurityProtocolsGuards = async (
