@@ -525,7 +525,16 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  const where: Prisma.Security_ProtocolWhereInput = { AND: filters };
+  const where: Prisma.Security_ProtocolWhereInput = {
+    AND: [
+      ...filters,
+      {
+        security_Guard: {
+          some: {}, // ✅ only protocols with guards
+        },
+      },
+    ],
+  };
 
   // Fetch security protocols
   const protocols = await prisma.security_Protocol.findMany({
