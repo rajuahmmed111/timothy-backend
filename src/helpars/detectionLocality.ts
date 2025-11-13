@@ -68,12 +68,29 @@ export const getUserCurrency = async (req: any): Promise<string> => {
 };
 
 // client IP extract
+// export const getClientIP = (req: any): string => {
+//   return (
+//     req.headers["x-forwarded-for"]?.split(",")[0] ||
+//     req.headers["x-real-ip"] ||
+//     req.ip ||
+//     req.connection.remoteAddress ||
+//     req.socket.remoteAddress ||
+//     ""
+//   ).replace("::ffff:", "");
+// };
+
+// client IP extract
 export const getClientIP = (req: any): string => {
-  return (
-    req.headers["x-forwarded-for"]?.split(",")[0] ||
+  let ip =
+    req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() ||
     req.headers["x-real-ip"] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    ""
-  ).replace("::ffff:", "");
+    req.ip ||
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    "";
+
+  // remove IPv6 prefix
+  ip = ip.replace("::ffff:", "").trim();
+
+  return ip || "Unknown";
 };
