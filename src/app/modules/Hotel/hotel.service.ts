@@ -382,11 +382,11 @@ const getAllHotels = async (
   const filters: Prisma.HotelWhereInput[] = [];
 
   // text search
-  if (params?.searchTerm) {
+  if (searchTerm) {
     filters.push({
       OR: searchableFields.map((field) => ({
         [field]: {
-          contains: params.searchTerm,
+          contains: searchTerm,
           mode: "insensitive",
         },
       })),
@@ -417,6 +417,7 @@ const getAllHotels = async (
 
   // room-level filters
   const roomWhere: Prisma.RoomWhereInput = {
+    // room booking date block
     NOT: {
       hotel_bookings:
         fromDate && toDate
@@ -432,12 +433,21 @@ const getAllHotels = async (
             }
           : undefined,
     },
-    ...(hotelNumberOfRooms
-      ? { hotelNumberOfRooms: Number(hotelNumberOfRooms) }
+
+    // adults
+    ...(hotelNumAdults
+      ? { hotelNumAdults: { gte: Number(hotelNumAdults) } }
       : {}),
-    ...(hotelNumAdults ? { hotelNumAdults: Number(hotelNumAdults) } : {}),
-    ...(hotelNumChildren ? { hotelNumChildren: Number(hotelNumChildren) } : {}),
+
+    // children
+    ...(hotelNumChildren
+      ? { hotelNumChildren: { gte: Number(hotelNumChildren) } }
+      : {}),
+
+    // min price
     ...(minPrice ? { hotelRoomPriceNight: { gte: Number(minPrice) } } : {}),
+
+    // max price
     ...(maxPrice
       ? {
           hotelRoomPriceNight: {
@@ -446,10 +456,13 @@ const getAllHotels = async (
           },
         }
       : {}),
+
+    // rating
     ...(hotelRating ? { hotelRating: { gte: hotelRating } } : {}),
   };
 
-  const result = await prisma.hotel.findMany({
+  // fetch hotels
+  const hotels = await prisma.hotel.findMany({
     where,
     skip,
     take: limit,
@@ -457,6 +470,7 @@ const getAllHotels = async (
       options.sortBy && options.sortOrder && options.sortBy !== "price"
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
+
     include: {
       room: {
         where: roomWhere,
@@ -467,16 +481,43 @@ const getAllHotels = async (
     },
   });
 
+  // total room count for each hotel
+  const hotelRoomCounts = await prisma.room.groupBy({
+    by: ["hotelId"],
+    _count: { hotelId: true },
+  });
+
+  const hotelRoomCountMap = new Map(
+    hotelRoomCounts.map((h) => [String(h.hotelId), h._count.hotelId])
+  );
+
+  // filter hotel based on roomCount + matching rooms
+  let filteredHotels = hotels.filter((hotel) => {
+    const totalRoomCount = hotelRoomCountMap.get(String(hotel.id)) || 0;
+
+    // hotelNumberOfRooms diye filter
+    if (hotelNumberOfRooms && totalRoomCount < Number(hotelNumberOfRooms)) {
+      return false;
+    }
+
+    // jodi room array empty hoy → hotel skip
+    if (hotel.room.length === 0) return false;
+
+    return true;
+  });
+
+  // currency exchange
   const exchangeRates = await CurrencyHelpers.getExchangeRates();
 
   // Convert prices এবং filter
-  let resultWithAverages = result
+  let resultWithAverages = filteredHotels
     .map((hotel) => {
       if (hotel.room.length === 0) return null;
 
       // room price convert
       const roomsWithConvertedPrices = hotel.room.map((room) => {
         const roomCurrency = room.currency || "USD";
+
         const convertedPrice = CurrencyHelpers.convertPrice(
           room.hotelRoomPriceNight,
           roomCurrency,
@@ -484,7 +525,6 @@ const getAllHotels = async (
           exchangeRates
         );
 
-        // discount price
         const discountedPrice = CurrencyHelpers.convertPrice(
           room.discount,
           roomCurrency,
@@ -496,75 +536,50 @@ const getAllHotels = async (
           ...room,
           originalPrice: room.hotelRoomPriceNight,
           originalCurrency: roomCurrency,
-          convertedPrice: convertedPrice,
-          discountedPrice: discountedPrice,
+          convertedPrice,
+          discountedPrice,
           displayCurrency: userCurrency,
           exchangeRate:
             exchangeRates[userCurrency] / exchangeRates[roomCurrency],
         };
       });
 
-      // filter
-      const filteredRooms = roomsWithConvertedPrices.filter((room) => {
-        const priceToCheck = room.discountedPrice;
-        if (minPrice && priceToCheck < Number(minPrice)) return false;
-        if (maxPrice && priceToCheck > Number(maxPrice)) return false;
-        return true;
-      });
-
       // if no room found
-      if (filteredRooms.length === 0) return null;
+      if (roomsWithConvertedPrices.length === 0) return null;
 
       // averages calculate
-      const totalPrice = filteredRooms.reduce(
+      const totalPrice = roomsWithConvertedPrices.reduce(
         (sum, room) => sum + room.discountedPrice,
         0
       );
-      const totalRating = filteredRooms.reduce(
+
+      const totalRating = roomsWithConvertedPrices.reduce(
         (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
         0
       );
-      const totalReviews = filteredRooms.reduce(
+
+      const totalReviews = roomsWithConvertedPrices.reduce(
         (sum, room) => sum + (room.hotelReviewCount || 0),
         0
       );
 
       return {
         ...hotel,
-        room: filteredRooms,
-        averagePrice: Number((totalPrice / filteredRooms.length).toFixed(2)),
-        averageRating: Number((totalRating / filteredRooms.length).toFixed(1)),
-        averageReviewCount: Math.round(totalReviews / filteredRooms.length),
+        room: roomsWithConvertedPrices,
+        averagePrice: Number(
+          (totalPrice / roomsWithConvertedPrices.length).toFixed(2)
+        ),
+        averageRating: Number(
+          (totalRating / roomsWithConvertedPrices.length).toFixed(1)
+        ),
+        averageReviewCount: Math.round(
+          totalReviews / roomsWithConvertedPrices.length
+        ),
         displayCurrency: userCurrency,
         currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
       };
     })
     .filter((hotel) => hotel !== null);
-
-  // averages for each hotel
-  // let resultWithAverages = result
-  //   .filter((hotel) => hotel.room.length > 0)
-  //   .map((hotel) => {
-  //     const rooms = hotel.room;
-  //     const totalPrice = rooms.reduce(
-  //       (sum, room) => sum + (room.hotelRoomPriceNight || 0),
-  //       0
-  //     );
-  //     const totalRating = rooms.reduce(
-  //       (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
-  //       0
-  //     );
-  //     const totalReviews = rooms.reduce(
-  //       (sum, room) => sum + (room.hotelReviewCount || 0),
-  //       0
-  //     );
-  //     return {
-  //       ...hotel,
-  //       averagePrice: Number((totalPrice / rooms.length).toFixed(2)),
-  //       averageRating: Number((totalRating / rooms.length).toFixed(1)),
-  //       averageReviewCount: Math.round(totalReviews / rooms.length),
-  //     };
-  //   });
 
   // sort by averagePrice (low → high / high → low)
   if (options.sortBy === "price") {
