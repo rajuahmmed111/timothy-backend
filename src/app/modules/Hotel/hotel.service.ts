@@ -21,7 +21,7 @@ import {
 import { uploadFile } from "../../../helpars/fileUploader";
 import { CurrencyHelpers } from "../../../helpars/currency";
 
-// create hotel
+// create hotels
 const createHotel = async (req: Request) => {
   const partnerId = req.user?.id;
 
