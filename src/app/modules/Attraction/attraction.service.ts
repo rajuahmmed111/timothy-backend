@@ -821,7 +821,10 @@ const getSingleAttraction = async (attractionId: string) => {
 };
 
 // get single attraction appeal
-const getSingleAttractionAppeal = async (appealId: string) => {
+const getSingleAttractionAppeal = async (
+  appealId: string,
+  userCurrency: string = "USD"
+) => {
   const result = await prisma.appeal.findUnique({
     where: { id: appealId },
     include: {
@@ -835,6 +838,7 @@ const getSingleAttractionAppeal = async (appealId: string) => {
       attractionSchedule: {
         include: { slots: true },
       },
+      review: true,
     },
   });
 
@@ -842,8 +846,58 @@ const getSingleAttractionAppeal = async (appealId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  return result;
+  
+  // convert price
+  const rates = await CurrencyHelpers.getExchangeRates();
+  const displayCurrency = userCurrency.toUpperCase();
+  const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
+
+  const baseCurrency = result.currency;
+  const originalAdultPrice = result.attractionAdultPrice || 0;
+  const originalChildPrice = result.attractionChildPrice || 0;
+
+  const convertedAdultPrice = CurrencyHelpers.convertPrice(
+    originalAdultPrice,
+    baseCurrency,
+    displayCurrency,
+    rates
+  );
+
+  const convertedChildPrice = CurrencyHelpers.convertPrice(
+    originalChildPrice,
+    baseCurrency,
+    displayCurrency,
+    rates
+  );
+
+  const discount = convertedAdultPrice + convertedChildPrice;
+
+  const discountedPrice = CurrencyHelpers.convertPrice(
+    discount,
+    baseCurrency,
+    displayCurrency,
+    rates
+  );
+
+  const exchangeRate =
+    rates[displayCurrency] && rates[baseCurrency]
+      ? rates[displayCurrency] / rates[baseCurrency]
+      : 1;
+
+  return {
+    ...result,
+    originalAdultPrice,
+    originalChildPrice,
+    convertedAdultPrice: Number(convertedAdultPrice.toFixed(2)),
+    convertedChildPrice: Number(convertedChildPrice.toFixed(2)),
+    originalCurrency: baseCurrency,
+    discountedPrice: Number(discountedPrice.toFixed(2)),
+    displayCurrency,
+    currencySymbol,
+    exchangeRate: Number(exchangeRate.toFixed(2)),
+  };
 };
+
 
 // update attraction
 const updateAttraction = async (req: Request) => {

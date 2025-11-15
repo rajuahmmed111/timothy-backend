@@ -86,7 +86,7 @@ const getAllAttractions = catchAsync(async (req: Request, res: Response) => {
 // get all attractions appeals
 const getAllAttractionsAppeals = catchAsync(
   async (req: Request, res: Response) => {
-      const userCurrency = await getUserCurrency(req);
+    const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result = await AttractionService.getAllAttractionsAppeals(
@@ -179,8 +179,13 @@ const getSingleAttraction = catchAsync(async (req: Request, res: Response) => {
 // get single attraction appeal
 const getSingleAttractionAppeal = catchAsync(
   async (req: Request, res: Response) => {
+    const userCurrency = await getUserCurrency(req);
     const appealId = req.params.appealId;
-    const result = await AttractionService.getSingleAttractionAppeal(appealId);
+    const result = await AttractionService.getSingleAttractionAppeal(
+      appealId,
+      userCurrency
+    );
+
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
