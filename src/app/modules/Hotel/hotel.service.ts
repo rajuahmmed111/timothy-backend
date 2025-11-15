@@ -549,7 +549,7 @@ const getAllHotels = async (
 
       // averages calculate
       const totalPrice = roomsWithConvertedPrices.reduce(
-        (sum, room) => sum + room.discountedPrice,
+        (sum, room) => sum + room.convertedPrice,
         0
       );
 
