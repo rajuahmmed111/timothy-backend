@@ -86,7 +86,9 @@ const createCarBooking = async (
   const overlappingBooking = await prisma.car_Booking.findFirst({
     where: {
       carId,
-      bookingStatus: { not: BookingStatus.CANCELLED },
+      bookingStatus: {
+        in: [BookingStatus.CONFIRMED, BookingStatus.PENDING], // ignore cancelled and pending bookings
+      },
       OR: [
         {
           carBookedFromDate: { lte: carBookedToDate },

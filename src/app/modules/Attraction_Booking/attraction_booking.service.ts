@@ -83,8 +83,6 @@ const createAttractionBooking = async (
       },
     },
   });
-  // console.log(attraction, "attraction");
-  // console.log(JSON.stringify(attraction, null, 2));
 
   if (!attraction) {
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
@@ -102,7 +100,6 @@ const createAttractionBooking = async (
   }
 
   const schedule = attraction.attractionSchedule[0];
-  // console.log(schedule, "schedule");
 
   // find matching slot
   const slot = schedule.slots.find((s) => s.from === from);
@@ -117,7 +114,6 @@ const createAttractionBooking = async (
   let totalPrice =
     adults * convertedAdultPrice + children * convertedChildPrice;
 
-  // if (attraction.vat) totalPrice += (totalPrice * attraction.vat) / 100;
   if (discountedPrice) totalPrice -= (totalPrice * discountedPrice) / 100;
 
   // create booking

@@ -889,63 +889,80 @@ const cancelStripeBooking = async (
   const bookingModel = serviceCfg.bookingModel;
   const serviceModel = serviceCfg.serviceModel;
 
-  // Fetch booking with payment and user
+  // booking with payment and user
   const booking = await bookingModel.findUnique({
     where: { id: bookingId, userId },
     include: { payment: true, user: true },
   });
 
+  // already cancelled or completed or expired
+  if (
+    booking.bookingStatus === BookingStatus.CANCELLED ||
+    booking.bookingStatus === BookingStatus.COMPLETED ||
+    booking.bookingStatus === BookingStatus.EXPIRED
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `This booking is already ${booking.bookingStatus.toLowerCase()}`
+    );
+  }
+
   // 24-hour cancel validation after booking
   let startDate: string | null = null;
-  if (booking) {
-    const existingHotelBooking = await prisma.hotel_Booking.findUnique({
-      where: { id: booking.id },
-      select: {
-        id: true,
-        bookedFromDate: true,
-        bookedToDate: true,
-      },
-    });
+  // hotel booking
+  const existingHotelBooking = await prisma.hotel_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      bookedFromDate: true,
+    },
+  });
+  if (existingHotelBooking?.bookedFromDate) {
+    startDate = existingHotelBooking.bookedFromDate;
   }
-  if (booking) {
-    const existingSecurityBooking = await prisma.security_Booking.findUnique({
-      where: { id: booking.id },
-      select: {
-        id: true,
-        securityBookedFromDate: true,
-        securityBookedToDate: true,
-      },
-    });
+
+  // security booking
+  const existingSecurityBooking = await prisma.security_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      securityBookedFromDate: true,
+    },
+  });
+  if (existingSecurityBooking?.securityBookedFromDate) {
+    startDate = existingSecurityBooking.securityBookedFromDate;
   }
-  if (booking) {
-    const existingCarBooking = await prisma.car_Booking.findUnique({
-      where: { id: booking.id },
-      select: {
-        id: true,
-        carBookedFromDate: true,
-        carBookedToDate: true,
-      },
-    });
+
+  // car booking
+  const existingCarBooking = await prisma.car_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      carBookedFromDate: true,
+    },
+  });
+  if (existingCarBooking?.carBookedFromDate) {
+    startDate = existingCarBooking.carBookedFromDate;
   }
-  if (booking) {
-    const existingAttractionBooking =
-      await prisma.attraction_Booking.findUnique({
-        where: { id: booking.id },
-        select: {
-          id: true,
-          date: true,
-        },
-      });
+
+  // attraction booking
+  const existingAttractionBooking = await prisma.attraction_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      date: true,
+    },
+  });
+  if (existingAttractionBooking?.date) {
+    startDate = existingAttractionBooking.date;
   }
 
   if (!booking) {
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
-  // if start date is detected, apply 24-hour rule
+  // 24-hour cancellation rule
   if (startDate) {
     const now = new Date();
+    // normalize start date to start of the service day
     const serviceDate = new Date(startDate);
+    serviceDate.setHours(0, 0, 0, 0);
 
     const diffHours =
       (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
@@ -1490,7 +1507,7 @@ const cancelPayStackBooking = async (
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
 
-  // Booking with payment + user
+  // booking with payment + user
   const booking = await bookingModel.findFirst({
     where: {
       id: bookingId,
@@ -1513,7 +1530,87 @@ const cancelPayStackBooking = async (
 
   if (!booking) throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
 
-  // Find last paid Paystack payment
+  // already cancelled or completed or expired
+  if (
+    booking.bookingStatus === BookingStatus.CANCELLED ||
+    booking.bookingStatus === BookingStatus.COMPLETED ||
+    booking.bookingStatus === BookingStatus.EXPIRED
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `This booking is already ${booking.bookingStatus.toLowerCase()}`
+    );
+  }
+
+  // 24-hour cancel validation after booking
+  let startDate: string | null = null;
+  // hotel booking
+  const existingHotelBooking = await prisma.hotel_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      bookedFromDate: true,
+    },
+  });
+  if (existingHotelBooking?.bookedFromDate) {
+    startDate = existingHotelBooking.bookedFromDate;
+  }
+
+  // security booking
+  const existingSecurityBooking = await prisma.security_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      securityBookedFromDate: true,
+    },
+  });
+  if (existingSecurityBooking?.securityBookedFromDate) {
+    startDate = existingSecurityBooking.securityBookedFromDate;
+  }
+
+  // car booking
+  const existingCarBooking = await prisma.car_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      carBookedFromDate: true,
+    },
+  });
+  if (existingCarBooking?.carBookedFromDate) {
+    startDate = existingCarBooking.carBookedFromDate;
+  }
+
+  // attraction booking
+  const existingAttractionBooking = await prisma.attraction_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      date: true,
+    },
+  });
+  if (existingAttractionBooking?.date) {
+    startDate = existingAttractionBooking.date;
+  }
+
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
+
+  // 24-hour cancellation rule
+  if (startDate) {
+    const now = new Date();
+    // normalize start date to start of the service day
+    const serviceDate = new Date(startDate);
+    serviceDate.setHours(0, 0, 0, 0);
+
+    const diffHours =
+      (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (diffHours < 24) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "You cannot cancel this booking within 24 hours of the service start time"
+      );
+    }
+  }
+
+  // paid pays-tack payment
   const payment = booking.payment
     ?.filter(
       (p: any) =>
@@ -1528,7 +1625,7 @@ const cancelPayStackBooking = async (
     );
   }
 
-  // Find partner
+  // partner
   const partner = await prisma.user.findUnique({
     where: { id: payment.partnerId },
   });
@@ -1540,14 +1637,14 @@ const cancelPayStackBooking = async (
     );
   }
 
-  // -------- Refund API call (Paystack) --------
+  // refund API call pay-stack
   await axios.post(
     `${payStackBaseUrl}/refund`,
     { transaction: payment.transactionId },
     { headers: { Authorization: `Bearer ${config.payStack.secretKey}` } }
   );
 
-  // -------- Update DB --------
+  // update payment
   await prisma.payment.update({
     where: { id: payment.id },
     data: { status: PaymentStatus.REFUNDED },
@@ -1558,7 +1655,7 @@ const cancelPayStackBooking = async (
     data: { bookingStatus: BookingStatus.CANCELLED },
   });
 
-  // Correctly use serviceIdField
+  // use serviceIdField
   const serviceId = booking[serviceIdField];
   if (serviceId) {
     await serviceModel.update({
@@ -1567,7 +1664,7 @@ const cancelPayStackBooking = async (
     });
   }
 
-  // -------- Send Cancel Notification --------
+  // send cancel notification
   const service = await serviceModel.findUnique({
     where: { id: serviceId },
   });

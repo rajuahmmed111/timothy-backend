@@ -95,7 +95,9 @@ const createSecurityBooking = async (
   const overlappingBooking = await prisma.security_Booking.findFirst({
     where: {
       security_GuardId,
-      bookingStatus: { not: BookingStatus.CANCELLED },
+      bookingStatus: {
+        in: [BookingStatus.CONFIRMED, BookingStatus.PENDING], // ignore cancelled and pending bookings
+      },
       OR: [
         {
           securityBookedFromDate: { lte: securityBookedToDate },
