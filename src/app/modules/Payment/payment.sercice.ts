@@ -879,9 +879,9 @@ const cancelStripeBooking = async (
   bookingId: string,
   userId: string
 ) => {
-  // Get config for the service type
+  // get config for the service type
   const serviceCfg = serviceConfig[serviceType.toUpperCase() as ServiceType];
-  // console.log(serviceCfg, "serviceCfg");
+
   if (!serviceCfg) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid service type");
   }
@@ -895,36 +895,69 @@ const cancelStripeBooking = async (
     include: { payment: true, user: true },
   });
 
+  // 24-hour cancel validation after booking
+  let startDate: string | null = null;
+  if (booking) {
+    const existingHotelBooking = await prisma.hotel_Booking.findUnique({
+      where: { id: booking.id },
+      select: {
+        id: true,
+        bookedFromDate: true,
+        bookedToDate: true,
+      },
+    });
+  }
+  if (booking) {
+    const existingSecurityBooking = await prisma.security_Booking.findUnique({
+      where: { id: booking.id },
+      select: {
+        id: true,
+        securityBookedFromDate: true,
+        securityBookedToDate: true,
+      },
+    });
+  }
+  if (booking) {
+    const existingCarBooking = await prisma.car_Booking.findUnique({
+      where: { id: booking.id },
+      select: {
+        id: true,
+        carBookedFromDate: true,
+        carBookedToDate: true,
+      },
+    });
+  }
+  if (booking) {
+    const existingAttractionBooking =
+      await prisma.attraction_Booking.findUnique({
+        where: { id: booking.id },
+        select: {
+          id: true,
+          date: true,
+        },
+      });
+    console.log(existingAttractionBooking, "attraction");
+  }
+
   if (!booking) {
     throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
   }
 
-  // 48-hour cancel validation
-  // const bookingTimeField =
-  //   serviceType === "CAR"
-  //     ? booking.carBookedFromDate
-  //     : serviceType === "HOTEL"
-  //     ? booking.bookedFromDate
-  //     : serviceType === "SECURITY"
-  //     ? booking.securityBookedFromDate
-  //     : serviceType === "ATTRACTION"
-  //     ? booking.date
-  //     : null;
+  // if start date is detected, apply 24-hour rule
+  if (startDate) {
+    const now = new Date();
+    const serviceDate = new Date(startDate);
 
-  // if (!bookingTimeField) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, "Booking date not found");
-  // }
+    const diffHours =
+      (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-  // const bookingDate = new Date(bookingTimeField);
-  // const now = new Date();
-  // const diffHours = (bookingDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-  // if (diffHours < 48) {
-  //   throw new ApiError(
-  //     httpStatus.BAD_REQUEST,
-  //     "Booking cannot be cancelled less than 48 hours before the service"
-  //   );
-  // }
+    if (diffHours < 24) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "You cannot cancel this booking within 24 hours of the service start time"
+      );
+    }
+  }
 
   const payment = booking.payment?.[0];
   if (!payment || !payment.payment_intent) {
@@ -945,26 +978,26 @@ const cancelStripeBooking = async (
     );
   }
 
-  // Refund full amount
+  // refund full amount
   await stripe.refunds.create({
     payment_intent: payment.payment_intent,
     amount: Math.round(payment.amount * 100),
   });
 
-  // Reverse transfer to partner if applicable
+  // reverse transfer to partner if applicable
   if (payment.transfer_id && payment.service_fee > 0) {
     await stripe.transfers.createReversal(payment.transfer_id, {
       amount: payment.service_fee,
     });
   }
 
-  // Update payment status
+  // update payment status
   await prisma.payment.update({
     where: { id: payment.id },
     data: { status: PaymentStatus.REFUNDED },
   });
 
-  // Update booking status → CANCELLED
+  // update booking status → CANCELLED
   await bookingModel.update({
     where: { id: bookingId },
     data: { bookingStatus: BookingStatus.CANCELLED },
@@ -979,7 +1012,7 @@ const cancelStripeBooking = async (
     });
   }
 
-  // Send cancellation notification
+  // send cancellation notification
   const service = serviceId
     ? await serviceModel.findUnique({ where: { id: serviceId } })
     : null;
