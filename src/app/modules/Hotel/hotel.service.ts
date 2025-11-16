@@ -1469,11 +1469,6 @@ const updateHotelRoom = async (req: Request) => {
   const {
     hotelRoomType,
     hotelRoomDescription,
-    // hotelAddress,
-    // hotelCity,
-    // hotelPostalCode,
-    // hotelDistrict,
-    // hotelCountry,
     hotelRoomCapacity,
     hotelNumberOfRooms,
     hotelNumAdults,
@@ -1490,29 +1485,31 @@ const updateHotelRoom = async (req: Request) => {
   const updatedRoom = await prisma.room.update({
     where: { id: roomId },
     data: {
-      hotelRoomType,
-      hotelRoomDescription,
-      // hotelAddress,
-      // hotelCity,
-      // hotelPostalCode,
-      // hotelDistrict,
-      // hotelCountry,
-      hotelRoomCapacity,
-      hotelNumberOfRooms: parseInt(hotelNumberOfRooms),
-      hotelNumAdults: parseInt(hotelNumAdults),
-      hotelNumChildren: parseInt(hotelNumChildren),
+      hotelRoomType: hotelRoomType ?? roomExists.hotelRoomType,
+      hotelRoomDescription:
+        hotelRoomDescription ?? roomExists.hotelRoomDescription,
+      hotelRoomCapacity: hotelRoomCapacity ?? roomExists.hotelRoomCapacity,
+      hotelNumberOfRooms: hotelNumberOfRooms
+        ? parseInt(hotelNumberOfRooms)
+        : roomExists.hotelNumberOfRooms,
+      hotelNumAdults: hotelNumAdults
+        ? parseInt(hotelNumAdults)
+        : roomExists.hotelNumAdults,
+      hotelNumChildren: hotelNumChildren
+        ? parseInt(hotelNumChildren)
+        : roomExists.hotelNumChildren,
       hotelRoomPriceNight: hotelRoomPriceNight
         ? parseFloat(hotelRoomPriceNight)
-        : 0,
-      hotelRating,
-      category,
-      discount: discount ? parseInt(discount) : 0,
+        : roomExists.hotelRoomPriceNight,
+      hotelRating: hotelRating ?? roomExists.hotelRating,
+      category: category ?? roomExists.category,
+      discount: discount ? parseInt(discount) : roomExists.discount,
       hotelReviewCount: hotelReviewCount
         ? parseInt(hotelReviewCount)
-        : undefined,
+        : roomExists.hotelReviewCount,
       hotelRoomImages: roomImageUrls,
       hotelImages: hotelRoomUrls,
-      currency: currency.toUpperCase(),
+      currency: currency ? currency.toUpperCase() : roomExists.currency,
     },
   });
 
