@@ -52,6 +52,7 @@ const createAttractionBooking = async (
 
   // get day from date automatically
   const day = format(bookingDate, "EEEE").toUpperCase(); // MONDAY, TUESDAY...
+  // console.log(day, "day");
 
   // get attraction with schedules & slots (match by day)
   const attraction = await prisma.appeal.findUnique({
@@ -92,10 +93,12 @@ const createAttractionBooking = async (
     );
   }
 
-  const schedule = attraction.attractionSchedule[0];
+  const schedule = attraction?.attractionSchedule.find(
+    (s) => s.day.toUpperCase() === day
+  );
 
   // find matching slot
-  const slot = schedule.slots.find((s) => s.from === from);
+  const slot = schedule?.slots.find((s) => s.from === from);
   if (!slot) {
     throw new ApiError(
       httpStatus.NOT_FOUND,

@@ -672,6 +672,33 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       const config = serviceConfig[payment.serviceType as ServiceType];
       if (!config) return;
 
+      // calculate reward
+      // if (payment.status === PaymentStatus.PAID) {
+      //   // calculate points
+      //   const rewardPoints = calculateRewardPoints(
+      //     payment.amount,
+      //     payment.serviceType
+      //   );
+
+      //   // add reward to DB
+      //   await prisma.reward.create({
+      //     data: {
+      //       userId: payment.userId,
+      //       bookingId: (payment as any)[config.serviceTypeField],
+      //       serviceType: payment.serviceType,
+      //       points: rewardPoints,
+      //     },
+      //   });
+
+      //   // optionally update user's total points
+      //   await prisma.user.update({
+      //     where: { id: payment.userId },
+      //     data: {
+      //       rewardPoints: { increment: rewardPoints }, // assuming user has rewardPoints field
+      //     },
+      //   });
+      // }
+
       const bookingId = (payment as any)[config.serviceTypeField];
 
       // update booking totalPrice = paid amount (amount includes 5% VAT)
@@ -679,10 +706,6 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         where: { id: bookingId },
         data: { totalPrice: payment.amount },
       });
-
-      // // update booking & service status
-      // const config = serviceConfig[payment.serviceType as ServiceType];
-      // if (!config) return;
 
       // const bookingId = (payment as any)[config.serviceTypeField];
       const booking = await config.bookingModel.findUnique({
@@ -1470,7 +1493,7 @@ const payStackHandleWebhook = async (req: any) => {
     );
   }
 };
-                
+
 // cancel booking service pay-stack
 const cancelPayStackBooking = async (
   serviceType: string,
