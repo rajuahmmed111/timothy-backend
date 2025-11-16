@@ -426,6 +426,8 @@ const getAllCarRentalsCars = async (
         select: {
           id: true,
           carName: true,
+          carBookingCondition: true,
+          carCancelationPolicy: true,
         },
       },
       review: true,

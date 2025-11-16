@@ -99,9 +99,7 @@ export const changeExpiryBookingStatus = () => {
 
     console.log("All expired bookings marked as COMPLETED");
   });
-};
 
-export const changeExpiryBookingStatusForCancel = () => {
   // Node-Cron (run every 10 minutes)
   cron.schedule("*/10 * * * *", async () => {
     const expiryTime = subMinutes(new Date(), 10);

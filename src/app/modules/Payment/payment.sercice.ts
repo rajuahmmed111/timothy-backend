@@ -936,7 +936,6 @@ const cancelStripeBooking = async (
           date: true,
         },
       });
-    console.log(existingAttractionBooking, "attraction");
   }
 
   if (!booking) {
