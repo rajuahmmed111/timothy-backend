@@ -1470,7 +1470,7 @@ const payStackHandleWebhook = async (req: any) => {
     );
   }
 };
-
+                
 // cancel booking service pay-stack
 const cancelPayStackBooking = async (
   serviceType: string,
