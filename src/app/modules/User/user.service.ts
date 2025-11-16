@@ -20,6 +20,9 @@ import { Request } from "express";
 import { getDateRange } from "../../../helpars/filterByDate";
 import emailSender from "../../../helpars/emailSender";
 import { createOtpEmailTemplate } from "../../../utils/createOtpEmailTemplate";
+import config from "../../../config";
+import { Secret } from "jsonwebtoken";
+import { jwtHelpers } from "../../../helpars/jwtHelpers";
 
 // create user
 const createUser = async (payload: any) => {
@@ -144,13 +147,50 @@ const verifyOtpAndCreateUser = async (email: string, otp: string) => {
       country: true,
       role: true,
       fcmToken: true,
+      isHotel: true,
+      isSecurity: true,
+      isCar: true,
+      isAttraction: true,
       status: true,
       createdAt: true,
       updatedAt: true,
     },
   });
 
-  return updatedUser;
+  // access and refresh token
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  const refreshToken = jwtHelpers.generateToken(
+    {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+    },
+    config.jwt.refresh_token_secret as Secret,
+    config.jwt.refresh_token_expires_in as string
+  );
+
+  const result = {
+    accessToken,
+    refreshToken,
+    user: {
+      fcmToken: updatedUser.fcmToken,
+      isHotel: updatedUser.isHotel,
+      isSecurity: updatedUser.isSecurity,
+      isCar: updatedUser.isCar,
+      isAttraction: updatedUser.isAttraction,
+    },
+  };
+
+  return result;
 };
 
 // get all users

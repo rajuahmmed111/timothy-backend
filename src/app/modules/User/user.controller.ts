@@ -9,6 +9,7 @@ import { filterField } from "./user.constant";
 import { paginationFields } from "../../../constants/pagination";
 import { isValidObjectId } from "../../../utils/validateObjectId";
 import { IUploadedFile } from "../../../interfaces/file";
+import config from "../../../config";
 
 // create user
 const createUser = catchAsync(async (req: Request, res: Response) => {
@@ -43,10 +44,18 @@ const verifyOtpAndCreateUser = catchAsync(
   async (req: Request, res: Response) => {
     const { email, otp } = req.body;
     const result = await UserService.verifyOtpAndCreateUser(email, otp);
+
+    res.cookie("token", result.accessToken, {
+      secure: config.env === "production",
+      httpOnly: true,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24 * 365,
+    });
+
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "User verified successfully",
+      message: "User logged in successfully",
       data: result,
     });
   }
@@ -294,19 +303,17 @@ const deleteAdmin = catchAsync(async (req: Request, res: Response) => {
 });
 
 // update admin access only for super admin
-const updateAdminAccess = catchAsync(
-  async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const data = req.body;
-    const result = await UserService.updateAdminAccess(id, data);
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Admin status updated successfully",
-      data: result,
-    });
-  }
-);
+const updateAdminAccess = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const data = req.body;
+  const result = await UserService.updateAdminAccess(id, data);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Admin status updated successfully",
+    data: result,
+  });
+});
 
 export const UserController = {
   createUser,
