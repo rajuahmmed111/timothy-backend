@@ -283,6 +283,7 @@ model Hotel_Booking {
   displayCurrency   String?
   discountedPrice   Float
   specialRequest    String?
+  redeemedPoint     Int?
   category          String?
   bookingStatus     BookingStatus @default(PENDING)
   name              String?
@@ -386,6 +387,7 @@ model Security_Booking {
   convertedPrice         Float
   displayCurrency        String
   discountedPrice        Float?
+  redeemedPoint          Int?
   category               String
   bookingStatus          BookingStatus @default(PENDING)
   name                   String?
@@ -518,6 +520,7 @@ model Car_Booking {
   convertedPrice    Float
   displayCurrency   String
   discountedPrice   Float?
+  redeemedPoint     Int?
   category          String
   bookingStatus     BookingStatus @default(PENDING)
   name              String?
@@ -649,6 +652,7 @@ model Attraction_Booking {
   convertedChildPrice Float
   displayCurrency     String
   discountedPrice     Float?
+  redeemedPoint       Int?
   adults              Int
   children            Int
   date                String

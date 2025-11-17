@@ -29,6 +29,7 @@ const createCarBooking = async (
     convertedPrice,
     displayCurrency,
     discountedPrice,
+    redeemedPoint,
   } = data;
 
   // validate user
@@ -148,7 +149,21 @@ const createCarBooking = async (
   //   basePrice += (basePrice * car.vat) / 100;
   // }
 
-  const totalPrice = basePrice;
+  let totalPrice = basePrice;
+
+  // reward points job
+  let appliedPoints = 0;
+  if (redeemedPoint && redeemedPoint > 0) {
+    if (user.rewardPoints < redeemedPoint) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Insufficient reward points");
+    }
+
+    // 1 point 1 tk or usd discount
+    if (totalPrice && totalPrice > 0) {
+      totalPrice -= redeemedPoint;
+    }
+    appliedPoints = redeemedPoint;
+  }
 
   // create booking
   const booking = await prisma.car_Booking.create({
@@ -162,6 +177,7 @@ const createCarBooking = async (
       displayCurrency,
       discountedPrice,
       bookingStatus: BookingStatus.PENDING,
+      redeemedPoint: appliedPoints,
       partnerId: car.partnerId!,
       userId,
       carId,
