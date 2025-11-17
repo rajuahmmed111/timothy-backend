@@ -836,6 +836,13 @@ const getSingleAttractionAppeal = async (
   const result = await prisma.appeal.findUnique({
     where: { id: appealId },
     include: {
+      attraction: {
+        select: {
+          id: true,
+          attractionBookingCondition: true,
+          attractionCancelationPolicy: true,
+        },
+      },
       user: {
         select: {
           id: true,
