@@ -464,6 +464,14 @@ const getAllAttractionsAppeals = async (
       attractionSchedule: {
         include: { slots: true },
       },
+      attraction: {
+        select: {
+          id: true,
+          attractionName: true,
+          attractionBookingCondition: true,
+          attractionCancelationPolicy: true,
+        },
+      },
     },
   });
 
@@ -846,7 +854,6 @@ const getSingleAttractionAppeal = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  
   // convert price
   const rates = await CurrencyHelpers.getExchangeRates();
   const displayCurrency = userCurrency.toUpperCase();
@@ -897,7 +904,6 @@ const getSingleAttractionAppeal = async (
     exchangeRate: Number(exchangeRate.toFixed(2)),
   };
 };
-
 
 // update attraction
 const updateAttraction = async (req: Request) => {

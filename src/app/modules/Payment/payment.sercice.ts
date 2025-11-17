@@ -672,34 +672,8 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
       const config = serviceConfig[payment.serviceType as ServiceType];
       if (!config) return;
 
-      // calculate reward
-      // if (payment.status === PaymentStatus.PAID) {
-      //   // calculate points
-      //   const rewardPoints = calculateRewardPoints(
-      //     payment.amount,
-      //     payment.serviceType
-      //   );
-
-      //   // add reward to DB
-      //   await prisma.reward.create({
-      //     data: {
-      //       userId: payment.userId,
-      //       bookingId: (payment as any)[config.serviceTypeField],
-      //       serviceType: payment.serviceType,
-      //       points: rewardPoints,
-      //     },
-      //   });
-
-      //   // optionally update user's total points
-      //   await prisma.user.update({
-      //     where: { id: payment.userId },
-      //     data: {
-      //       rewardPoints: { increment: rewardPoints }, // assuming user has rewardPoints field
-      //     },
-      //   });
-      // }
-
       const bookingId = (payment as any)[config.serviceTypeField];
+      console.log(bookingId, "bookingId");
 
       // update booking totalPrice = paid amount (amount includes 5% VAT)
       await config.bookingModel.update({
@@ -727,6 +701,39 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
           data: { isBooked: EveryServiceStatus.BOOKED },
         });
       }
+
+      // reward points
+
+      // If redeem point was used → deduct
+      if (booking?.redeemedPoint > 0) {
+        await prisma.user.update({
+          where: { id: booking.userId },
+          data: {
+            rewardPoints: { decrement: booking.redeemedPoint },
+          },
+        });
+      }
+
+      // reward earn (1%)
+      const rewardRate = 0.01; // 1%
+      const earnedPoints = Math.floor(booking.finalPrice * rewardRate);
+
+      await prisma.reward.create({
+        data: {
+          userId: booking.userId,
+          bookingId,
+          serviceType: payment.serviceType,
+          points: earnedPoints,
+        },
+      });
+
+      // add earned points to user
+      await prisma.user.update({
+        where: { id: booking.userId },
+        data: {
+          rewardPoints: { increment: earnedPoints },
+        },
+      });
 
       // ---------- send notification ----------
       const service = await config.serviceModel.findUnique({

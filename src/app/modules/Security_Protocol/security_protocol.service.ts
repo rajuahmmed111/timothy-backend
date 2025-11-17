@@ -482,7 +482,7 @@ const getAllSecurityProtocols = async (
 
   const filters: Prisma.Security_ProtocolWhereInput[] = [];
 
-  // 🔍 text search
+  // text search
   if (searchTerm) {
     filters.push({
       OR: [
@@ -500,7 +500,7 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  // ✅ Exact filters
+  // exact filters
   if (Object.keys(filterData).length > 0) {
     filters.push({
       AND: Object.keys(filterData).map((key) => ({
@@ -509,7 +509,7 @@ const getAllSecurityProtocols = async (
     });
   }
 
-  // 📅 Date availability filter
+  // date availability filter
   if (fromDate && toDate) {
     filters.push({
       security_Booking: {
@@ -535,7 +535,7 @@ const getAllSecurityProtocols = async (
     ],
   };
 
-  // 🔄 Fetch data
+  // fetch data
   const protocols = await prisma.security_Protocol.findMany({
     where,
     skip,
@@ -554,7 +554,7 @@ const getAllSecurityProtocols = async (
   const total = await prisma.security_Protocol.count({ where });
   const exchangeRates = await CurrencyHelpers.getExchangeRates();
 
-  // 🧮 Calculate averagePrice, averageRating, averageReviewCount
+  // calculate averagePrice, averageRating, averageReviewCount
   let resultWithAverages = protocols
     .map((security) => {
       if (!security.security_Guard || security.security_Guard.length === 0)
@@ -589,7 +589,7 @@ const getAllSecurityProtocols = async (
         };
       });
 
-      // 🎯 calculate averages
+      // calculate averages
       const totalPrice = guardsWithConvertedPrice.reduce(
         (sum, g) => sum + (g.discountedPrice || g.convertedPrice),
         0
@@ -625,7 +625,7 @@ const getAllSecurityProtocols = async (
     })
     .filter((security) => security !== null);
 
-  // 🔢 sort by averagePrice if requested
+  // sort by averagePrice if requested
   if (options.sortBy === "price") {
     resultWithAverages = resultWithAverages.sort((a, b) =>
       options.sortOrder === "asc"
@@ -639,7 +639,6 @@ const getAllSecurityProtocols = async (
     data: resultWithAverages,
   };
 };
-
 
 // get all security protocols with guards
 // const getAllSecurityProtocolsGuards = async (
@@ -824,6 +823,8 @@ const getAllSecurityProtocolsGuards = async (
             id: true,
             securityName: true,
             securityProtocolType: true,
+            securityBookingCondition: true,
+            securityCancelationPolicy: true,
           },
         },
         review: true,
