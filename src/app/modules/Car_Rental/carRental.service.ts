@@ -765,7 +765,7 @@ const getSingleCar = async (carId: string, userCurrency: string = "USD") => {
     throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
   }
 
-  // ---- currency conversion (same as list API) ----
+  // currency conversion
   const rates = await CurrencyHelpers.getExchangeRates();
   const displayCurrency = userCurrency.toUpperCase();
   const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
