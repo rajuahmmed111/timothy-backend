@@ -47,7 +47,6 @@ const createHotelRoomBooking = async (
       category: true,
       hotelNumAdults: true,
       hotelNumChildren: true,
-      hotelNumberOfRooms: true,
       hotel: {
         select: {
           id: true,

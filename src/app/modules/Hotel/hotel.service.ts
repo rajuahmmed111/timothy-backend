@@ -218,13 +218,7 @@ const createHotelRoom = async (req: Request) => {
   const {
     hotelRoomType,
     hotelRoomDescription,
-    // hotelAddress,
-    // hotelCity,
-    // hotelPostalCode,
-    // hotelDistrict,
-    // hotelCountry,
     hotelRoomCapacity,
-    hotelNumberOfRooms,
     hotelNumAdults,
     hotelNumChildren,
     hotelRoomPriceNight,
@@ -239,13 +233,7 @@ const createHotelRoom = async (req: Request) => {
     data: {
       hotelRoomType,
       hotelRoomDescription,
-      // hotelAddress,
-      // hotelCity,
-      // hotelPostalCode,
-      // hotelDistrict,
-      // hotelCountry,
       hotelRoomCapacity,
-      hotelNumberOfRooms: parseInt(hotelNumberOfRooms),
       hotelNumAdults: parseInt(hotelNumAdults),
       hotelNumChildren: parseInt(hotelNumChildren),
       hotelRating: hotelRating ? hotelRating : "0",
@@ -1470,7 +1458,6 @@ const updateHotelRoom = async (req: Request) => {
     hotelRoomType,
     hotelRoomDescription,
     hotelRoomCapacity,
-    hotelNumberOfRooms,
     hotelNumAdults,
     hotelNumChildren,
     hotelRoomPriceNight,
@@ -1489,9 +1476,7 @@ const updateHotelRoom = async (req: Request) => {
       hotelRoomDescription:
         hotelRoomDescription ?? roomExists.hotelRoomDescription,
       hotelRoomCapacity: hotelRoomCapacity ?? roomExists.hotelRoomCapacity,
-      hotelNumberOfRooms: hotelNumberOfRooms
-        ? parseInt(hotelNumberOfRooms)
-        : roomExists.hotelNumberOfRooms,
+
       hotelNumAdults: hotelNumAdults
         ? parseInt(hotelNumAdults)
         : roomExists.hotelNumAdults,

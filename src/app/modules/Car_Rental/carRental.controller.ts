@@ -173,8 +173,9 @@ const getSingleCarRental = catchAsync(async (req: Request, res: Response) => {
 
 // get single car
 const getSingleCar = catchAsync(async (req: Request, res: Response) => {
+  const userCurrency = await getUserCurrency(req);
   const carId = req.params.carId;
-  const result = await CarRentalService.getSingleCar(carId);
+  const result = await CarRentalService.getSingleCar(carId, userCurrency);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

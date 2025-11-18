@@ -745,14 +745,63 @@ const getSingleCarRental = async (carRentalId: string) => {
 };
 
 // get single cars
-const getSingleCar = async (carId: string) => {
-  const result = await prisma.car.findUnique({
+const getSingleCar = async (carId: string, userCurrency: string = "USD") => {
+  const car = await prisma.car.findUnique({
     where: { id: carId },
+    include: {
+      car_Rental: {
+        select: {
+          id: true,
+          carName: true,
+          carBookingCondition: true,
+          carCancelationPolicy: true,
+        },
+      },
+      review: true,
+    },
   });
-  if (!result) {
+
+  if (!car) {
     throw new ApiError(httpStatus.NOT_FOUND, "Car not found");
   }
-  return result;
+
+  // ---- currency conversion (same as list API) ----
+  const rates = await CurrencyHelpers.getExchangeRates();
+  const displayCurrency = userCurrency.toUpperCase();
+  const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
+
+  const baseCurrency = car.currency || "USD";
+  const originalPrice = car.carPriceDay || 0;
+
+  const exchangeRate =
+    rates[displayCurrency] && rates[baseCurrency]
+      ? rates[displayCurrency] / rates[baseCurrency]
+      : 1;
+
+  const convertedPrice = CurrencyHelpers.convertPrice(
+    originalPrice,
+    baseCurrency,
+    displayCurrency,
+    rates
+  );
+
+  const discountedPrice = CurrencyHelpers.convertPrice(
+    car.discount || 0,
+    baseCurrency,
+    displayCurrency,
+    rates
+  );
+
+  return {
+    ...car,
+    originalPrice,
+    originalCurrency: baseCurrency,
+    convertedPrice: Number(convertedPrice.toFixed(2)),
+    discountedPrice: Number(discountedPrice.toFixed(2)),
+    displayCurrency,
+    exchangeRate: Number(exchangeRate.toFixed(2)),
+    currencySymbol,
+  };
 };
 
 // update Car Rental

@@ -246,7 +246,7 @@ model Room {
   hotelImages          String[] // 5 image
   hotelRoomImages      String[] // 5 image
   hotelRoomCapacity    String
-  hotelNumberOfRooms   Int                @default(1)
+  // hotelNumberOfRooms   Int                @default(1)
   hotelNumAdults       Int                @default(1)
   hotelNumChildren     Int                @default(1)
   category             String
