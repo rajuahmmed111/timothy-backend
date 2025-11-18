@@ -112,7 +112,7 @@ const s3 = new S3Client({
   
 });
 
-// Upload to S3
+// upload to S3
 const uploadToS3 = async (
   file: Express.Multer.File,
   folder = "uploads"
@@ -141,7 +141,7 @@ const uploadToS3 = async (
     throw error;
   }
 };
-// -------------------- EXPORT --------------------
+
 export const uploadFile = {
   upload,
   profileImage,
