@@ -68,6 +68,7 @@ const createAttraction = async (req: Request) => {
     attractionBusinessDescription,
     attractionBookingCondition,
     attractionCancelationPolicy,
+    attractionType,
   } = req.body;
 
   const attraction = await prisma.attraction.create({
@@ -84,6 +85,7 @@ const createAttraction = async (req: Request) => {
       attractionBusinessDescription,
       attractionBookingCondition,
       attractionCancelationPolicy,
+      attractionType,
       attractionDocs,
       partnerId: partnerExists.id,
     },
@@ -968,6 +970,7 @@ const updateAttraction = async (req: Request) => {
     attractionBusinessDescription,
     attractionBookingCondition,
     attractionCancelationPolicy,
+    attractionType,
   } = req.body;
 
   // update attraction
@@ -986,6 +989,7 @@ const updateAttraction = async (req: Request) => {
       attractionBusinessDescription,
       attractionBookingCondition,
       attractionCancelationPolicy,
+      attractionType,
       attractionDocs,
     },
   });

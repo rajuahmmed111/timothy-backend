@@ -427,6 +427,7 @@ model Car_Rental {
   carDocs              String[] // 5 image
   carLate              Float?
   carLong              Float?
+  carRentalType        String
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -562,6 +563,7 @@ model Attraction {
   attractionDocs                String[] // 5 image
   hotelLate                     Float?
   hotelLong                     Float?
+  attractionType                String
   createdAt                     DateTime @default(now())
   updatedAt                     DateTime @updatedAt
 

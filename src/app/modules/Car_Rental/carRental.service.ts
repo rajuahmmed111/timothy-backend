@@ -69,6 +69,7 @@ const createCarRental = async (req: Request) => {
     carRentalDescription,
     carBookingCondition,
     carCancelationPolicy,
+    carRentalType,
   } = req.body;
 
   const result = await prisma.car_Rental.create({
@@ -84,6 +85,7 @@ const createCarRental = async (req: Request) => {
       carRentalDescription,
       carBookingCondition,
       carCancelationPolicy,
+      carRentalType,
       businessLogo,
       carDocs: carDocUrls,
       partnerId,
@@ -861,6 +863,7 @@ const updateCarRental = async (req: Request) => {
     carRentalDescription,
     carBookingCondition,
     carCancelationPolicy,
+    carRentalType,
   } = req.body;
 
   return await prisma.car_Rental.update({
@@ -877,6 +880,7 @@ const updateCarRental = async (req: Request) => {
       carRentalDescription,
       carBookingCondition,
       carCancelationPolicy,
+      carRentalType,
       businessLogo,
       carDocs: carDocUrls,
     },
