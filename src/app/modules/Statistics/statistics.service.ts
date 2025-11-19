@@ -1120,7 +1120,7 @@ const getPartnerTotalEarningsHotel = async (partnerId: string) => {
     where: {
       partnerId: partnerId,
       status: PaymentStatus.PAID,
-      // serviceType: "HOTEL",
+      serviceType: "HOTEL",
     },
     _sum: {
       service_fee: true,
@@ -1136,6 +1136,7 @@ const getPartnerTotalEarningsHotel = async (partnerId: string) => {
     select: {
       createdAt: true,
       service_fee: true,
+      currency: true,
     },
   });
 
@@ -1173,6 +1174,7 @@ const getPartnerTotalEarningsHotel = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
+    currency: monthlyPayments[0].currency,
     paymentMonthsData,
   };
 };
@@ -1210,6 +1212,7 @@ const getPartnerTotalEarningsSecurity = async (partnerId: string) => {
     select: {
       createdAt: true,
       service_fee: true,
+      currency: true,
     },
   });
 
@@ -1247,6 +1250,7 @@ const getPartnerTotalEarningsSecurity = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
+    currency: monthlyPayments[0].currency,
     paymentMonthsData,
   };
 };
@@ -1284,6 +1288,7 @@ const getPartnerTotalEarningsCar = async (partnerId: string) => {
     select: {
       createdAt: true,
       service_fee: true,
+      currency: true,
     },
   });
 
@@ -1321,6 +1326,7 @@ const getPartnerTotalEarningsCar = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
+    currency: monthlyPayments[0].currency,
     paymentMonthsData,
   };
 };
@@ -1358,6 +1364,7 @@ const getPartnerTotalEarningsAttraction = async (partnerId: string) => {
     select: {
       createdAt: true,
       service_fee: true,
+      currency: true,
     },
   });
 
@@ -1395,6 +1402,7 @@ const getPartnerTotalEarningsAttraction = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
+    currency: monthlyPayments[0].currency,
     paymentMonthsData,
   };
 };
