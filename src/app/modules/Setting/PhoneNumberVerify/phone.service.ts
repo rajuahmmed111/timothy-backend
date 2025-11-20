@@ -37,16 +37,13 @@ const sendOtpToPhoneNumber = async (userId: string, contactNumber: string) => {
     console.error("Twilio Error:", error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
-      `Failed to send OTP: ${error.message}`
+      `Failed to send OTP: Please enter your right phone number with country code.`
     );
   }
 };
 
 // verify otp
-const verifyPhoneOtp = async (
-  userId: string,
-  otp: string,
-) => {
+const verifyPhoneOtp = async (userId: string, otp: string) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
