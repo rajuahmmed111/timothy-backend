@@ -1174,7 +1174,7 @@ const getPartnerTotalEarningsHotel = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
-    currency: monthlyPayments[0].currency,
+    currency: monthlyPayments.length > 0 ? monthlyPayments[0].currency : null,
     paymentMonthsData,
   };
 };
@@ -1250,7 +1250,7 @@ const getPartnerTotalEarningsSecurity = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
-    currency: monthlyPayments[0].currency,
+    currency: monthlyPayments.length > 0 ? monthlyPayments[0].currency : null,
     paymentMonthsData,
   };
 };
@@ -1326,7 +1326,7 @@ const getPartnerTotalEarningsCar = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
-    currency: monthlyPayments[0].currency,
+    currency: monthlyPayments.length > 0 ? monthlyPayments[0].currency : null,
     paymentMonthsData,
   };
 };
@@ -1402,7 +1402,7 @@ const getPartnerTotalEarningsAttraction = async (partnerId: string) => {
 
   return {
     serviceEarnings: earnings._sum.service_fee ?? 0,
-    currency: monthlyPayments[0].currency,
+    currency: monthlyPayments.length > 0 ? monthlyPayments[0].currency : null,
     paymentMonthsData,
   };
 };
