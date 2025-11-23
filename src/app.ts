@@ -28,8 +28,12 @@ export const corsOptions = {
   //   "https://temothy-dashboard.vercel.app",
   // ],
   origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-User-IP",
+    "X-User-Currency",
+  ],
   credentials: true,
 };
 
