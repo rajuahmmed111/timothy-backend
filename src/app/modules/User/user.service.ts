@@ -71,6 +71,11 @@ const createUserForWeb = async (payload: any) => {
     accessToken,
     refreshToken,
     user: {
+      id: userData.id,
+      fullName: userData.fullName,
+      email: userData.email,
+      contactNo: userData.contactNumber,
+      address: userData.country,
       fcmToken: userData.fcmToken,
       isHotel: userData.isHotel,
       isSecurity: userData.isSecurity,
