@@ -58,9 +58,12 @@ const getAvailableRooms = catchAsync(async (req: Request, res: Response) => {
 
 // get all hotels
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
-  const userCurrency = await getUserCurrency(req);
-  // console.log(`User currency detected: ${userCurrency}`);
+  console.log(req.headers, "headers")
+  console.log("📍 Frontend IP:", req.headers["x-user-ip"]);
   
+  const userCurrency = await getUserCurrency(req);
+  console.log("💵 Currency:", userCurrency);
+
 
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);

@@ -159,45 +159,35 @@ const getClientIP = (req: any): string => {
 
 // user currency detect
 export const getUserCurrency = async (req: any): Promise<string> => {
-  if (req.query.currency) {
-    console.log("💰 Currency from query:", req.query.currency);
-    return (req.query.currency as string).toUpperCase();
-  }
-
-  // header
-  if (req.headers["x-user-currency"]) {
-    console.log("💰 Currency from header:", req.headers["x-user-currency"]);
-    return (req.headers["x-user-currency"] as string).toUpperCase();
-  }
-
-  // authenticated user
-  if (req.user?.preferredCurrency) {
-    console.log("💰 Currency from user profile:", req.user.preferredCurrency);
-    return req.user.preferredCurrency.toUpperCase();
-  }
-
-  // IP-based detection
   try {
-    const userIp = getClientIP(req);
-
-    // skip local/invalid IPs
-    if (
-      !userIp ||
-      userIp === "Unknown" ||
-      userIp.startsWith("127.") ||
-      userIp.startsWith("192.168.") ||
-      userIp.startsWith("10.")
-    ) {
-      console.log("⚠️ Invalid/Local IP, using USD");
-      return "USD";
+    // 1. frontend sent currency
+    const headerCurrency = req.headers["x-user-currency"];
+    if (headerCurrency) {
+      return String(headerCurrency).toUpperCase();
     }
 
-    const location = await detectUserLocation(userIp);
-    console.log("🗺️ Detected location:", location);
-    console.log("💵 Backend - Returning currency:", location.currency);
-    return location.currency;
-  } catch (error) {
-    console.error("❌ Currency detection failed:", error);
+    // 2. IP from frontend
+    const userIP = req.headers["x-user-ip"];
+    if (userIP) {
+      try {
+        const ipRes = await axios.get(`https://ipapi.co/${userIP}/json/`);
+        if (ipRes.data?.currency) {
+          return ipRes.data.currency;
+        }
+      } catch {}
+    }
+
+    // 3. fallback → backend detect IP
+    try {
+      const res = await axios.get("https://ipapi.co/json/");
+      if (res.data?.currency) {
+        return res.data.currency;
+      }
+    } catch {}
+
+    // 4. final fallback
+    return "USD";
+  } catch {
     return "USD";
   }
 };
