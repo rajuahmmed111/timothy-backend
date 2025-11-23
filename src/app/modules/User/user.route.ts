@@ -71,6 +71,13 @@ router.get(
   UserController.getPartnerById
 );
 
+// create user for web
+router.post(
+  "/web",
+  validateRequest(userValidation.createUserZodSchema),
+  UserController.createUserForWeb
+);
+
 // create user
 router.post(
   "/",

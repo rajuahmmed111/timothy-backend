@@ -11,6 +11,26 @@ import { isValidObjectId } from "../../../utils/validateObjectId";
 import { IUploadedFile } from "../../../interfaces/file";
 import config from "../../../config";
 
+// create user for web
+const createUserForWeb = catchAsync(async (req: Request, res: Response) => {
+  const userData = req.body;
+  const result = await UserService.createUserForWeb(userData);
+
+  res.cookie("token", result.accessToken, {
+    secure: config.env === "production",
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User created successfully",
+    data: result,
+  });
+});
+
 // create user
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const userData = req.body;
@@ -316,6 +336,7 @@ const updateAdminAccess = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const UserController = {
+  createUserForWeb,
   createUser,
   createRoleSupperAdmin,
   verifyOtpAndCreateUser,

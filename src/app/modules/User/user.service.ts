@@ -24,6 +24,64 @@ import config from "../../../config";
 import { Secret } from "jsonwebtoken";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
 
+// create user for web
+const createUserForWeb = async (payload: any) => {
+  // check if email exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "User already exists");
+  }
+
+  // hash password
+  const hashedPassword = await bcrypt.hash(payload.password, 12);
+
+  // create user with inactive status
+  const userData = await prisma.user.create({
+    data: {
+      ...payload,
+      password: hashedPassword,
+    },
+  });
+
+  // generate token
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: userData.id,
+      email: userData.email,
+      role: userData.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  const refreshToken = jwtHelpers.generateToken(
+    {
+      id: userData.id,
+      email: userData.email,
+      role: userData.role,
+    },
+    config.jwt.refresh_token_secret as Secret,
+    config.jwt.refresh_token_expires_in as string
+  );
+
+  const result = {
+    accessToken,
+    refreshToken,
+    user: {
+      fcmToken: userData.fcmToken,
+      isHotel: userData.isHotel,
+      isSecurity: userData.isSecurity,
+      isCar: userData.isCar,
+      isAttraction: userData.isAttraction,
+    },
+  };
+
+  return result;
+};
+
 // create user
 const createUser = async (payload: any) => {
   // check if email exists
@@ -973,6 +1031,7 @@ const updateAdminAccess = async (id: string, data: any) => {
 };
 
 export const UserService = {
+  createUserForWeb,
   createUser,
   createRoleSupperAdmin,
   verifyOtpAndCreateUser,
