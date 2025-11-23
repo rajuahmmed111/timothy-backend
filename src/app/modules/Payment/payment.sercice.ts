@@ -936,73 +936,73 @@ const cancelStripeBooking = async (
     );
   }
 
-  // // 24-hour cancel validation after booking
-  // let startDate: string | null = null;
-  // // hotel booking
-  // const existingHotelBooking = await prisma.hotel_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     bookedFromDate: true,
-  //   },
-  // });
-  // if (existingHotelBooking?.bookedFromDate) {
-  //   startDate = existingHotelBooking.bookedFromDate;
-  // }
+  // 24-hour cancel validation after booking
+  let startDate: string | null = null;
+  // hotel booking
+  const existingHotelBooking = await prisma.hotel_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      bookedFromDate: true,
+    },
+  });
+  if (existingHotelBooking?.bookedFromDate) {
+    startDate = existingHotelBooking.bookedFromDate;
+  }
 
-  // // security booking
-  // const existingSecurityBooking = await prisma.security_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     securityBookedFromDate: true,
-  //   },
-  // });
-  // if (existingSecurityBooking?.securityBookedFromDate) {
-  //   startDate = existingSecurityBooking.securityBookedFromDate;
-  // }
+  // security booking
+  const existingSecurityBooking = await prisma.security_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      securityBookedFromDate: true,
+    },
+  });
+  if (existingSecurityBooking?.securityBookedFromDate) {
+    startDate = existingSecurityBooking.securityBookedFromDate;
+  }
 
-  // // car booking
-  // const existingCarBooking = await prisma.car_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     carBookedFromDate: true,
-  //   },
-  // });
-  // if (existingCarBooking?.carBookedFromDate) {
-  //   startDate = existingCarBooking.carBookedFromDate;
-  // }
+  // car booking
+  const existingCarBooking = await prisma.car_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      carBookedFromDate: true,
+    },
+  });
+  if (existingCarBooking?.carBookedFromDate) {
+    startDate = existingCarBooking.carBookedFromDate;
+  }
 
-  // // attraction booking
-  // const existingAttractionBooking = await prisma.attraction_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     date: true,
-  //   },
-  // });
-  // if (existingAttractionBooking?.date) {
-  //   startDate = existingAttractionBooking.date;
-  // }
+  // attraction booking
+  const existingAttractionBooking = await prisma.attraction_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      date: true,
+    },
+  });
+  if (existingAttractionBooking?.date) {
+    startDate = existingAttractionBooking.date;
+  }
 
-  // if (!booking) {
-  //   throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
-  // }
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
 
-  // // 24-hour cancellation rule
-  // if (startDate) {
-  //   const now = new Date();
-  //   // normalize start date to start of the service day
-  //   const serviceDate = new Date(startDate);
-  //   serviceDate.setHours(0, 0, 0, 0);
+  // 24-hour cancellation rule
+  if (startDate) {
+    const now = new Date();
+    // normalize start date to start of the service day
+    const serviceDate = new Date(startDate);
+    serviceDate.setHours(0, 0, 0, 0);
 
-  //   const diffHours =
-  //     (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const diffHours =
+      (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-  //   if (diffHours < 24) {
-  //     throw new ApiError(
-  //       httpStatus.BAD_REQUEST,
-  //       "You cannot cancel this booking within 24 hours of the service start time"
-  //     );
-  //   }
-  // }
+    if (diffHours < 24) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "You cannot cancel this booking within 24 hours of the service start time"
+      );
+    }
+  }
 
   const payment = booking.payment?.[0];
   if (!payment || !payment.payment_intent) {
@@ -1571,73 +1571,73 @@ const cancelPayStackBooking = async (
     );
   }
 
-  // // 24-hour cancel validation after booking
-  // let startDate: string | null = null;
-  // // hotel booking
-  // const existingHotelBooking = await prisma.hotel_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     bookedFromDate: true,
-  //   },
-  // });
-  // if (existingHotelBooking?.bookedFromDate) {
-  //   startDate = existingHotelBooking.bookedFromDate;
-  // }
+  // 24-hour cancel validation after booking
+  let startDate: string | null = null;
+  // hotel booking
+  const existingHotelBooking = await prisma.hotel_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      bookedFromDate: true,
+    },
+  });
+  if (existingHotelBooking?.bookedFromDate) {
+    startDate = existingHotelBooking.bookedFromDate;
+  }
 
-  // // security booking
-  // const existingSecurityBooking = await prisma.security_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     securityBookedFromDate: true,
-  //   },
-  // });
-  // if (existingSecurityBooking?.securityBookedFromDate) {
-  //   startDate = existingSecurityBooking.securityBookedFromDate;
-  // }
+  // security booking
+  const existingSecurityBooking = await prisma.security_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      securityBookedFromDate: true,
+    },
+  });
+  if (existingSecurityBooking?.securityBookedFromDate) {
+    startDate = existingSecurityBooking.securityBookedFromDate;
+  }
 
-  // // car booking
-  // const existingCarBooking = await prisma.car_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     carBookedFromDate: true,
-  //   },
-  // });
-  // if (existingCarBooking?.carBookedFromDate) {
-  //   startDate = existingCarBooking.carBookedFromDate;
-  // }
+  // car booking
+  const existingCarBooking = await prisma.car_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      carBookedFromDate: true,
+    },
+  });
+  if (existingCarBooking?.carBookedFromDate) {
+    startDate = existingCarBooking.carBookedFromDate;
+  }
 
-  // // attraction booking
-  // const existingAttractionBooking = await prisma.attraction_Booking.findUnique({
-  //   where: { id: booking.id },
-  //   select: {
-  //     date: true,
-  //   },
-  // });
-  // if (existingAttractionBooking?.date) {
-  //   startDate = existingAttractionBooking.date;
-  // }
+  // attraction booking
+  const existingAttractionBooking = await prisma.attraction_Booking.findUnique({
+    where: { id: booking.id },
+    select: {
+      date: true,
+    },
+  });
+  if (existingAttractionBooking?.date) {
+    startDate = existingAttractionBooking.date;
+  }
 
-  // if (!booking) {
-  //   throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
-  // }
+  if (!booking) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Booking not found");
+  }
 
-  // // 24-hour cancellation rule
-  // if (startDate) {
-  //   const now = new Date();
-  //   // normalize start date to start of the service day
-  //   const serviceDate = new Date(startDate);
-  //   serviceDate.setHours(0, 0, 0, 0);
+  // 24-hour cancellation rule
+  if (startDate) {
+    const now = new Date();
+    // normalize start date to start of the service day
+    const serviceDate = new Date(startDate);
+    serviceDate.setHours(0, 0, 0, 0);
 
-  //   const diffHours =
-  //     (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const diffHours =
+      (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-  //   if (diffHours < 24) {
-  //     throw new ApiError(
-  //       httpStatus.BAD_REQUEST,
-  //       "You cannot cancel this booking within 24 hours of the service start time"
-  //     );
-  //   }
-  // }
+    if (diffHours < 24) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "You cannot cancel this booking within 24 hours of the service start time"
+      );
+    }
+  }
 
   // paid pays-tack payment
   const payment = booking.payment
