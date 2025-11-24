@@ -250,6 +250,7 @@ const convertPrice = (
   toCurrency: string,
   rates: ExchangeRates
 ): number => {
+  // console.log(amount, fromCurrency, toCurrency, rates, "body")
   if (fromCurrency === toCurrency) return amount;
 
   if (!rates[fromCurrency] || !rates[toCurrency]) {
@@ -259,9 +260,11 @@ const convertPrice = (
 
   // convert to USD
   const amountInUSD = amount / rates[fromCurrency];
+  // console.log(amountInUSD, "amountInUSD")
 
   // convert to target currency
   const convertedAmount = amountInUSD * rates[toCurrency];
+  // console.log(convertedAmount, "convertedAmount")
 
   return Math.round(convertedAmount * 100) / 100;
 };
@@ -279,46 +282,31 @@ const convertPriceAsync = async (
 // currency symbol
 const getCurrencySymbol = (currency: string): string => {
   const symbols: Record<string, string> = {
-    BDT: "৳",
-    USD: "$",
-    AED: "د.إ",
-    EUR: "€",
-    GBP: "£",
-    NGN: "₦",
-    ZAR: "R",
-    KES: "KSh",
-    GHS: "₵",
-    EGP: "E£",
-    INR: "₹",
-    PKR: "₨",
-    SAR: "﷼",
-    QAR: "ر.ق",
-    OMR: "ر.ع.",
-    KWD: "د.ك",
+    // BDT: "৳",
+    // USD: "$",
+    // AED: "د.إ",
+    // EUR: "€",
+    // GBP: "£",
+    // NGN: "₦",
+    // ZAR: "R",
+    // KES: "KSh",
+    // GHS: "₵",
+    // EGP: "E£",
+    // INR: "₹",
+    // PKR: "₨",
+    // SAR: "﷼",
+    // QAR: "ر.ق",
+    // OMR: "ر.ع.",
+    // KWD: "د.ك",
   };
   return symbols[currency] || currency;
 };
 
 // supported currencies list
-const getSupportedCurrencies = () => [
-  { code: "USD", name: "US Dollar", symbol: "$", flag: "🇺🇸" },
-  { code: "BDT", name: "Bangladeshi Taka", symbol: "৳", flag: "🇧🇩" },
-  { code: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪" },
-  { code: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺" },
-  { code: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧" },
-  { code: "NGN", name: "Nigerian Naira", symbol: "₦", flag: "🇳🇬" },
-  { code: "ZAR", name: "South African Rand", symbol: "R", flag: "🇿🇦" },
-  { code: "KES", name: "Kenyan Shilling", symbol: "KSh", flag: "🇰🇪" },
-  { code: "GHS", name: "Ghanaian Cedi", symbol: "₵", flag: "🇬🇭" },
-  { code: "EGP", name: "Egyptian Pound", symbol: "E£", flag: "🇪🇬" },
-  { code: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
-  { code: "SAR", name: "Saudi Riyal", symbol: "﷼", flag: "🇸🇦" },
-];
 
 export const CurrencyHelpers = {
   getExchangeRates,
   convertPrice,
   convertPriceAsync,
   getCurrencySymbol,
-  getSupportedCurrencies,
 };

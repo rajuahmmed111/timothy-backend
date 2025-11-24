@@ -96,6 +96,7 @@
 // };
 
 import axios from "axios";
+import { Request } from "express";
 
 interface UserLocation {
   country: string;
@@ -158,36 +159,56 @@ const getClientIP = (req: any): string => {
 };
 
 // user currency detect
-export const getUserCurrency = async (req: any): Promise<string> => {
+export const getUserCurrency = async (req: Request): Promise<string> => {
   try {
-    // 1. frontend sent currency
-    const headerCurrency = req.headers["x-user-currency"];
+    const headerCurrency = req.header("x-user-currency") as string;
     if (headerCurrency) {
-      return String(headerCurrency).toUpperCase();
+      // console.log("✔ Using currency from header:", headerCurrency);
+      return headerCurrency;
     }
 
-    // 2. IP from frontend
-    const userIP = req.headers["x-user-ip"];
+    // receive ip from frontend
+    const userIP = req.headers["x-user-ip"] as string;
     if (userIP) {
+      // console.log("🌍 Detecting currency using IP:", userIP);
+
       try {
-        const ipRes = await axios.get(`https://ipapi.co/${userIP}/json/`);
-        if (ipRes.data?.currency) {
-          return ipRes.data.currency;
+        // IP → country → currency API
+        const geoRes = await axios.get(`https://ipapi.co/${userIP}/json/`);
+
+        if (geoRes.data && geoRes.data.currency) {
+          const currency = geoRes.data.currency;
+          // console.log("✔ IP Based Currency:", currency);
+          return currency;
         }
-      } catch {}
+      } catch (err) {
+        console.warn("⚠ IP lookup failed, fallback to timezone / USD");
+      }
     }
 
-    // 3. fallback → backend detect IP
+    // timezone fallback (server timezone)
     try {
-      const res = await axios.get("https://ipapi.co/json/");
-      if (res.data?.currency) {
-        return res.data.currency;
-      }
-    } catch {}
+      const serverTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const currencyMap: Record<string, string> = {
+        "Asia/Dhaka": "BDT",
+        "Asia/Kolkata": "INR",
+        "Asia/Dubai": "AED",
+        "Europe/London": "GBP",
+        "Europe/Paris": "EUR",
+        "America/New_York": "USD",
+      };
 
-    // 4. final fallback
+      if (currencyMap[serverTZ]) {
+        // console.log("🕒 Timezone-based currency:", currencyMap[serverTZ]);
+        return currencyMap[serverTZ];
+      }
+    } catch (err) {
+      console.warn("⚠ Timezone currency detection failed");
+    }
+
     return "USD";
-  } catch {
+  } catch (error) {
+    console.error("❌ getUserCurrency error:", error);
     return "USD";
   }
 };

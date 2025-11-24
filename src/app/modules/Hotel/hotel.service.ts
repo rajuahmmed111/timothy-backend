@@ -563,8 +563,8 @@ const getAllHotels = async (
         averageReviewCount: Math.round(
           totalReviews / roomsWithConvertedPrices.length
         ),
-        displayCurrency: userCurrency,
-        currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+        // displayCurrency: userCurrency,
+        // currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
       };
     })
     .filter((hotel) => hotel !== null);
@@ -1158,7 +1158,7 @@ const getPopularHotels = async (
         averageRating: Number((totalRating / convertedRooms.length).toFixed(1)),
         averageReviewCount: Math.round(totalReviews / convertedRooms.length),
         displayCurrency: userCurrency,
-        currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+        // currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
       };
     });
 
