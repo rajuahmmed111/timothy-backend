@@ -57,15 +57,30 @@ const getAvailableRooms = catchAsync(async (req: Request, res: Response) => {
 });
 
 // get all hotels
+// const getAllHotels = catchAsync(async (req: Request, res: Response) => {
+//   const frontendIP = req.headers["x-user-ip"];
+//   // console.log("🌐 Frontend IP:", frontendIP);
+
+//   // Get Currency sent from frontend
+//   const userCurrencys = req.headers["x-user-currency"] || "USD";
+//   // console.log("💵 Currency from header:", userCurrencys);
+
+//   const userCurrency = await getUserCurrency(req);
+
+//   const filter = pick(req.query, filterField);
+//   const options = pick(req.query, paginationFields);
+//   const result = await HotelService.getAllHotels(filter, options, userCurrency);
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "Hotels fetched successfully",
+//     data: result,
+//   });
+// });
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
-  const frontendIP = req.headers["x-user-ip"];
-  // console.log("🌐 Frontend IP:", frontendIP);
-
-  // Get Currency sent from frontend
-  const userCurrencys = req.headers["x-user-currency"] || "USD";
-  // console.log("💵 Currency from header:", userCurrencys);
-
   const userCurrency = await getUserCurrency(req);
+  // console.log(`User currency detected: ${userCurrency}`);
 
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);

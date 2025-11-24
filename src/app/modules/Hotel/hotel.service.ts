@@ -346,6 +346,249 @@ const getAvailableRooms = async (
   };
 };
 
+// // get all hotels with search filtering and pagination
+// const getAllHotels = async (
+//   params: IHotelFilterRequest,
+//   options: IPaginationOptions,
+//   userCurrency: string = "USD"
+// ) => {
+//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+//   const {
+//     searchTerm,
+//     minPrice,
+//     maxPrice,
+//     fromDate,
+//     toDate,
+//     hotelRating,
+//     hotelNumberOfRooms,
+//     hotelNumAdults,
+//     hotelNumChildren,
+//     ...filterData
+//   } = params;
+
+//   const filters: Prisma.HotelWhereInput[] = [];
+
+//   // text search
+//   if (searchTerm) {
+//     filters.push({
+//       OR: searchableFields.map((field) => ({
+//         [field]: {
+//           contains: searchTerm,
+//           mode: "insensitive",
+//         },
+//       })),
+//     });
+//   }
+
+//   // convert string booleans to actual boolean
+//   const normalizedFilterData: any = {};
+//   Object.keys(filterData).forEach((key) => {
+//     const value = (filterData as any)[key];
+//     if (value === "true") normalizedFilterData[key] = true;
+//     else if (value === "false") normalizedFilterData[key] = false;
+//     else normalizedFilterData[key] = value;
+//   });
+
+//   // Exact search filter
+//   if (Object.keys(normalizedFilterData).length > 0) {
+//     filters.push({
+//       AND: Object.keys(normalizedFilterData).map((key) => ({
+//         [key]: { equals: normalizedFilterData[key] },
+//       })),
+//     });
+//   }
+
+//   const where: Prisma.HotelWhereInput = {
+//     AND: filters,
+//   };
+
+//   // room-level filters
+//   const roomWhere: Prisma.RoomWhereInput = {
+//     // room booking date block
+//     NOT: {
+//       hotel_bookings:
+//         fromDate && toDate
+//           ? {
+//               some: {
+//                 OR: [
+//                   {
+//                     bookedFromDate: { lte: toDate },
+//                     bookedToDate: { gte: fromDate },
+//                   },
+//                 ],
+//               },
+//             }
+//           : undefined,
+//     },
+
+//     // adults
+//     ...(hotelNumAdults
+//       ? { hotelNumAdults: { gte: Number(hotelNumAdults) } }
+//       : {}),
+
+//     // children
+//     ...(hotelNumChildren
+//       ? { hotelNumChildren: { gte: Number(hotelNumChildren) } }
+//       : {}),
+
+//     // min price
+//     ...(minPrice ? { hotelRoomPriceNight: { gte: Number(minPrice) } } : {}),
+
+//     // max price
+//     ...(maxPrice
+//       ? {
+//           hotelRoomPriceNight: {
+//             ...(minPrice ? { gte: Number(minPrice) } : {}),
+//             lte: Number(maxPrice),
+//           },
+//         }
+//       : {}),
+
+//     // rating
+//     ...(hotelRating ? { hotelRating: { gte: hotelRating } } : {}),
+//   };
+
+//   // fetch hotels
+//   const hotels = await prisma.hotel.findMany({
+//     where,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder && options.sortBy !== "price"
+//         ? { [options.sortBy]: options.sortOrder }
+//         : { createdAt: "desc" },
+
+//     include: {
+//       room: {
+//         where: roomWhere,
+//         // include: {
+//         //   review: true,
+//         // }
+//       },
+//     },
+//   });
+
+//   // total room count for each hotel
+//   const hotelRoomCounts = await prisma.room.groupBy({
+//     by: ["hotelId"],
+//     _count: { hotelId: true },
+//   });
+
+//   const hotelRoomCountMap = new Map(
+//     hotelRoomCounts.map((h) => [String(h.hotelId), h._count.hotelId])
+//   );
+
+//   // filter hotel based on roomCount + matching rooms
+//   let filteredHotels = hotels.filter((hotel) => {
+//     const totalRoomCount = hotelRoomCountMap.get(String(hotel.id)) || 0;
+
+//     // hotelNumberOfRooms diye filter
+//     if (hotelNumberOfRooms && totalRoomCount < Number(hotelNumberOfRooms)) {
+//       return false;
+//     }
+
+//     // jodi room array empty hoy → hotel skip
+//     if (hotel.room.length === 0) return false;
+
+//     return true;
+//   });
+
+//   // currency exchange
+//   const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+//   // Convert prices এবং filter
+//   let resultWithAverages = filteredHotels
+//     .map((hotel) => {
+//       if (hotel.room.length === 0) return null;
+
+//       // room price convert
+//       const roomsWithConvertedPrices = hotel.room.map((room) => {
+//         const roomCurrency = room.currency || "USD";
+
+//         const convertedPrice = CurrencyHelpers.convertPrice(
+//           room.hotelRoomPriceNight,
+//           roomCurrency,
+//           userCurrency,
+//           exchangeRates
+//         );
+
+//         const discountedPrice = CurrencyHelpers.convertPrice(
+//           room.discount,
+//           roomCurrency,
+//           userCurrency,
+//           exchangeRates
+//         );
+
+//         return {
+//           ...room,
+//           originalPrice: room.hotelRoomPriceNight,
+//           originalCurrency: roomCurrency,
+//           convertedPrice,
+//           discountedPrice,
+//           displayCurrency: userCurrency,
+//           exchangeRate:
+//             exchangeRates[userCurrency] / exchangeRates[roomCurrency],
+//         };
+//       });
+
+//       // if no room found
+//       if (roomsWithConvertedPrices.length === 0) return null;
+
+//       // averages calculate
+//       const totalPrice = roomsWithConvertedPrices.reduce(
+//         (sum, room) => sum + room.convertedPrice,
+//         0
+//       );
+
+//       const totalRating = roomsWithConvertedPrices.reduce(
+//         (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
+//         0
+//       );
+
+//       const totalReviews = roomsWithConvertedPrices.reduce(
+//         (sum, room) => sum + (room.hotelReviewCount || 0),
+//         0
+//       );
+
+//       return {
+//         ...hotel,
+//         room: roomsWithConvertedPrices,
+//         averagePrice: Number(
+//           (totalPrice / roomsWithConvertedPrices.length).toFixed(2)
+//         ),
+//         averageRating: Number(
+//           (totalRating / roomsWithConvertedPrices.length).toFixed(1)
+//         ),
+//         averageReviewCount: Math.round(
+//           totalReviews / roomsWithConvertedPrices.length
+//         ),
+//         // displayCurrency: userCurrency,
+//         // currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+//       };
+//     })
+//     .filter((hotel) => hotel !== null);
+
+//   // sort by averagePrice (low → high / high → low)
+//   if (options.sortBy === "price") {
+//     resultWithAverages = resultWithAverages.sort((a, b) =>
+//       options.sortOrder === "asc"
+//         ? a.averagePrice - b.averagePrice
+//         : b.averagePrice - a.averagePrice
+//     );
+//   }
+
+//   const total = resultWithAverages.length;
+
+//   return {
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//     },
+//     data: resultWithAverages,
+//   };
+// };
 // get all hotels with search filtering and pagination
 const getAllHotels = async (
   params: IHotelFilterRequest,
@@ -563,8 +806,8 @@ const getAllHotels = async (
         averageReviewCount: Math.round(
           totalReviews / roomsWithConvertedPrices.length
         ),
-        // displayCurrency: userCurrency,
-        // currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+        displayCurrency: userCurrency,
+        currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
       };
     })
     .filter((hotel) => hotel !== null);
