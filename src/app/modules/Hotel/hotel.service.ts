@@ -745,9 +745,12 @@ const getAllHotels = async (
         0
       );
 
+      const roomCurrency = hotel.room[0].currency;
+
       return {
         ...hotel,
         room: hotel.room,
+        roomCurrency,
         averagePrice: Number((totalPrice / hotel.room.length).toFixed(2)),
         averageRating: Number((totalRating / hotel.room.length).toFixed(1)),
         averageReviewCount: Math.round(totalReviews / hotel.room.length),
@@ -1399,9 +1402,12 @@ const getPopularHotels = async (
         0
       );
 
+      const roomCurrency = hotel.room[0].currency;
+
       return {
         ...hotel,
         room: rooms,
+        roomCurrency,
         averagePrice: Number((totalPrice / rooms.length).toFixed(2)),
         averageRating: Number((totalRating / rooms.length).toFixed(1)),
         averageReviewCount: Math.round(totalReviews / rooms.length),
@@ -1415,7 +1421,6 @@ const getPopularHotels = async (
 
   return sortedHotels;
 };
-
 
 // add favorite hotel
 const toggleFavorite = async (userId: string, hotelId: string) => {

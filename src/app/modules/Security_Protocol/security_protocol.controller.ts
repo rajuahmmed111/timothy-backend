@@ -78,13 +78,13 @@ const getAllAvailableListingSecurityGuardsByPartnerId = catchAsync(
 // get all security protocols
 const getAllSecurityProtocols = catchAsync(
   async (req: Request, res: Response) => {
-    const userCurrency = await getUserCurrency(req);
+    // const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result = await Security_ProtocolService.getAllSecurityProtocols(
       filter,
       options,
-      userCurrency
+      // userCurrency
     );
 
     sendResponse(res, {
@@ -140,14 +140,14 @@ const getAllSecurityProtocolsGuardsBySecurityProtocolId = catchAsync(
 // get all security protocols security guard app
 const getAllSecurityProtocolsGuardsApp = catchAsync(
   async (req: Request, res: Response) => {
-    const userCurrency = await getUserCurrency(req);
+    // const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const options = pick(req.query, paginationFields);
     const result =
       await Security_ProtocolService.getAllSecurityProtocolsGuardsApp(
         filter,
         options,
-        userCurrency
+        // userCurrency
       );
 
     sendResponse(res, {
@@ -206,10 +206,10 @@ const getAllSecurityProtocolsForPartnerSecurityGuards = catchAsync(
 // get popular security protocols
 const getPopularSecurityProtocols = catchAsync(
   async (req: Request, res: Response) => {
-    const userCurrency = await getUserCurrency(req);
+    // const userCurrency = await getUserCurrency(req);
     const filter = pick(req.query, filterField);
     const result = await Security_ProtocolService.getPopularSecurityProtocols(
-      filter, userCurrency
+      filter
     );
 
     sendResponse(res, {
