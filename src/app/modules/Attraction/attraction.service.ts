@@ -403,10 +403,156 @@ const getAllAttractions = async (
 };
 
 // get all attractions appeals
+// const getAllAttractionsAppeals = async (
+//   params: IAttractionFilter,
+//   options: IPaginationOptions,
+//   userCurrency: string = "USD"
+// ) => {
+//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+//   const { searchTerm, ...filterData } = params;
+
+//   const filters: Prisma.AppealWhereInput[] = [];
+
+//   // text search
+//   if (params?.searchTerm) {
+//     filters.push({
+//       OR: searchableFields.map((field) => ({
+//         [field]: {
+//           contains: params.searchTerm,
+//           mode: "insensitive",
+//         },
+//       })),
+//     });
+//   }
+
+//   // Exact search filter
+//   if (Object.keys(filterData).length > 0) {
+//     filters.push({
+//       AND: Object.keys(filterData).map((key) => ({
+//         [key]: {
+//           equals: (filterData as any)[key],
+//         },
+//       })),
+//     });
+//   }
+
+//   // get only isBooked  AVAILABLE hotels
+//   // filters.push({
+//   //   isBooked: EveryServiceStatus.AVAILABLE,
+//   // });
+
+//   const where: Prisma.AppealWhereInput = { AND: filters };
+
+//   const result = await prisma.appeal.findMany({
+//     where,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : {
+//             createdAt: "desc",
+//           },
+//     include: {
+//       user: {
+//         select: {
+//           id: true,
+//           fullName: true,
+//           profileImage: true,
+//         },
+//       },
+//       review: true,
+//       attractionSchedule: {
+//         include: { slots: true },
+//       },
+//       attraction: {
+//         select: {
+//           id: true,
+//           attractionName: true,
+//           attractionBookingCondition: true,
+//           attractionCancelationPolicy: true,
+//         },
+//       },
+//     },
+//   });
+
+//   const total = await prisma.appeal.count({ where });
+
+//   // currency conversion
+//   const rates = await CurrencyHelpers.getExchangeRates();
+//   const displayCurrency = userCurrency.toUpperCase();
+//   const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
+
+//   const convertedAttractions = result.map((attraction) => {
+//     const baseCurrency = attraction.currency;
+//     const originalAdultPrice = attraction.attractionAdultPrice || 0;
+//     const originalChildPrice = attraction.attractionChildPrice || 0;
+
+//     const exchangeRate =
+//       rates[displayCurrency] && rates[baseCurrency]
+//         ? rates[displayCurrency] / rates[baseCurrency]
+//         : 1;
+
+//     const convertedAdultPrice = CurrencyHelpers.convertPrice(
+//       originalAdultPrice,
+//       baseCurrency,
+//       displayCurrency,
+//       rates
+//     );
+//     const convertedChildPrice = CurrencyHelpers.convertPrice(
+//       originalChildPrice,
+//       baseCurrency,
+//       displayCurrency,
+//       rates
+//     );
+
+//     const discount = convertedAdultPrice + convertedChildPrice;
+//     const discountedPrice = CurrencyHelpers.convertPrice(
+//       discount,
+//       baseCurrency,
+//       displayCurrency,
+//       rates
+//     );
+
+//     return {
+//       ...attraction,
+//       originalAdultPrice,
+//       originalChildPrice,
+//       convertedAdultPrice: Number(convertedAdultPrice.toFixed(2)),
+//       convertedChildPrice: Number(convertedChildPrice.toFixed(2)),
+//       originalCurrency: baseCurrency,
+//       discountedPrice,
+//       displayCurrency,
+//       exchangeRate: Number(exchangeRate.toFixed(2)),
+//       currencySymbol,
+//     };
+//   });
+
+//   // group by attractionCountry
+//   const grouped = convertedAttractions.reduce((acc, attraction) => {
+//     const country = attraction.attractionCountry || "Unknown";
+//     if (!acc[country]) {
+//       acc[country] = [];
+//     }
+//     acc[country].push(attraction);
+//     return acc;
+//   }, {} as Record<string, typeof convertedAttractions>);
+
+//   return {
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//     },
+//     data: grouped,
+//   };
+// };
+
+// get all attractions appeals
 const getAllAttractionsAppeals = async (
   params: IAttractionFilter,
-  options: IPaginationOptions,
-  userCurrency: string = "USD"
+  options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -479,65 +625,24 @@ const getAllAttractionsAppeals = async (
 
   const total = await prisma.appeal.count({ where });
 
-  // currency conversion
-  const rates = await CurrencyHelpers.getExchangeRates();
-  const displayCurrency = userCurrency.toUpperCase();
-  const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
-
-  const convertedAttractions = result.map((attraction) => {
-    const baseCurrency = attraction.currency;
-    const originalAdultPrice = attraction.attractionAdultPrice || 0;
-    const originalChildPrice = attraction.attractionChildPrice || 0;
-
-    const exchangeRate =
-      rates[displayCurrency] && rates[baseCurrency]
-        ? rates[displayCurrency] / rates[baseCurrency]
-        : 1;
-
-    const convertedAdultPrice = CurrencyHelpers.convertPrice(
-      originalAdultPrice,
-      baseCurrency,
-      displayCurrency,
-      rates
-    );
-    const convertedChildPrice = CurrencyHelpers.convertPrice(
-      originalChildPrice,
-      baseCurrency,
-      displayCurrency,
-      rates
-    );
-
-    const discount = convertedAdultPrice + convertedChildPrice;
-    const discountedPrice = CurrencyHelpers.convertPrice(
-      discount,
-      baseCurrency,
-      displayCurrency,
-      rates
-    );
-
+  // currency conversion removed
+  const cleanedAttractions = result.map((attraction) => {
     return {
       ...attraction,
-      originalAdultPrice,
-      originalChildPrice,
-      convertedAdultPrice: Number(convertedAdultPrice.toFixed(2)),
-      convertedChildPrice: Number(convertedChildPrice.toFixed(2)),
-      originalCurrency: baseCurrency,
-      discountedPrice,
-      displayCurrency,
-      exchangeRate: Number(exchangeRate.toFixed(2)),
-      currencySymbol,
+      originalAdultPrice: attraction.attractionAdultPrice || 0,
+      originalChildPrice: attraction.attractionChildPrice || 0,
     };
   });
 
   // group by attractionCountry
-  const grouped = convertedAttractions.reduce((acc, attraction) => {
+  const grouped = cleanedAttractions.reduce((acc, attraction) => {
     const country = attraction.attractionCountry || "Unknown";
     if (!acc[country]) {
       acc[country] = [];
     }
     acc[country].push(attraction);
     return acc;
-  }, {} as Record<string, typeof convertedAttractions>);
+  }, {} as Record<string, typeof cleanedAttractions>);
 
   return {
     meta: {
@@ -831,10 +936,91 @@ const getSingleAttraction = async (attractionId: string) => {
 };
 
 // get single attraction appeal
-const getSingleAttractionAppeal = async (
-  appealId: string,
-  userCurrency: string = "USD"
-) => {
+// const getSingleAttractionAppeal = async (
+//   appealId: string,
+//   userCurrency: string = "USD"
+// ) => {
+//   const result = await prisma.appeal.findUnique({
+//     where: { id: appealId },
+//     include: {
+//       attraction: {
+//         select: {
+//           id: true,
+//           attractionBookingCondition: true,
+//           attractionCancelationPolicy: true,
+//         },
+//       },
+//       user: {
+//         select: {
+//           id: true,
+//           fullName: true,
+//           email: true,
+//         },
+//       },
+//       attractionSchedule: {
+//         include: { slots: true },
+//       },
+//       review: true,
+//     },
+//   });
+
+//   if (!result) {
+//     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
+//   }
+
+//   // convert price
+//   const rates = await CurrencyHelpers.getExchangeRates();
+//   const displayCurrency = userCurrency.toUpperCase();
+//   const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
+
+//   const baseCurrency = result.currency;
+//   const originalAdultPrice = result.attractionAdultPrice || 0;
+//   const originalChildPrice = result.attractionChildPrice || 0;
+
+//   const convertedAdultPrice = CurrencyHelpers.convertPrice(
+//     originalAdultPrice,
+//     baseCurrency,
+//     displayCurrency,
+//     rates
+//   );
+
+//   const convertedChildPrice = CurrencyHelpers.convertPrice(
+//     originalChildPrice,
+//     baseCurrency,
+//     displayCurrency,
+//     rates
+//   );
+
+//   const discount = convertedAdultPrice + convertedChildPrice;
+
+//   const discountedPrice = CurrencyHelpers.convertPrice(
+//     discount,
+//     baseCurrency,
+//     displayCurrency,
+//     rates
+//   );
+
+//   const exchangeRate =
+//     rates[displayCurrency] && rates[baseCurrency]
+//       ? rates[displayCurrency] / rates[baseCurrency]
+//       : 1;
+
+//   return {
+//     ...result,
+//     originalAdultPrice,
+//     originalChildPrice,
+//     convertedAdultPrice: Number(convertedAdultPrice.toFixed(2)),
+//     convertedChildPrice: Number(convertedChildPrice.toFixed(2)),
+//     originalCurrency: baseCurrency,
+//     discountedPrice: Number(discountedPrice.toFixed(2)),
+//     displayCurrency,
+//     currencySymbol,
+//     exchangeRate: Number(exchangeRate.toFixed(2)),
+//   };
+// };
+
+// get single attraction appeal
+const getSingleAttractionAppeal = async (appealId: string) => {
   const result = await prisma.appeal.findUnique({
     where: { id: appealId },
     include: {
@@ -863,54 +1049,14 @@ const getSingleAttractionAppeal = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Attraction not found");
   }
 
-  // convert price
-  const rates = await CurrencyHelpers.getExchangeRates();
-  const displayCurrency = userCurrency.toUpperCase();
-  const currencySymbol = CurrencyHelpers.getCurrencySymbol(displayCurrency);
-
-  const baseCurrency = result.currency;
+  // convert price removed
   const originalAdultPrice = result.attractionAdultPrice || 0;
   const originalChildPrice = result.attractionChildPrice || 0;
-
-  const convertedAdultPrice = CurrencyHelpers.convertPrice(
-    originalAdultPrice,
-    baseCurrency,
-    displayCurrency,
-    rates
-  );
-
-  const convertedChildPrice = CurrencyHelpers.convertPrice(
-    originalChildPrice,
-    baseCurrency,
-    displayCurrency,
-    rates
-  );
-
-  const discount = convertedAdultPrice + convertedChildPrice;
-
-  const discountedPrice = CurrencyHelpers.convertPrice(
-    discount,
-    baseCurrency,
-    displayCurrency,
-    rates
-  );
-
-  const exchangeRate =
-    rates[displayCurrency] && rates[baseCurrency]
-      ? rates[displayCurrency] / rates[baseCurrency]
-      : 1;
 
   return {
     ...result,
     originalAdultPrice,
     originalChildPrice,
-    convertedAdultPrice: Number(convertedAdultPrice.toFixed(2)),
-    convertedChildPrice: Number(convertedChildPrice.toFixed(2)),
-    originalCurrency: baseCurrency,
-    discountedPrice: Number(discountedPrice.toFixed(2)),
-    displayCurrency,
-    currencySymbol,
-    exchangeRate: Number(exchangeRate.toFixed(2)),
   };
 };
 
