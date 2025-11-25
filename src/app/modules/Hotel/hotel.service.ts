@@ -592,8 +592,7 @@ const getAvailableRooms = async (
 // get all hotels with search filtering and pagination
 const getAllHotels = async (
   params: IHotelFilterRequest,
-  options: IPaginationOptions,
-  userCurrency: string = "USD"
+  options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
 
@@ -665,20 +664,16 @@ const getAllHotels = async (
           : undefined,
     },
 
-    // adults
     ...(hotelNumAdults
       ? { hotelNumAdults: { gte: Number(hotelNumAdults) } }
       : {}),
 
-    // children
     ...(hotelNumChildren
       ? { hotelNumChildren: { gte: Number(hotelNumChildren) } }
       : {}),
 
-    // min price
     ...(minPrice ? { hotelRoomPriceNight: { gte: Number(minPrice) } } : {}),
 
-    // max price
     ...(maxPrice
       ? {
           hotelRoomPriceNight: {
@@ -688,7 +683,6 @@ const getAllHotels = async (
         }
       : {}),
 
-    // rating
     ...(hotelRating ? { hotelRating: { gte: hotelRating } } : {}),
   };
 
@@ -701,13 +695,9 @@ const getAllHotels = async (
       options.sortBy && options.sortOrder && options.sortBy !== "price"
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
-
     include: {
       room: {
         where: roomWhere,
-        // include: {
-        //   review: true,
-        // }
       },
     },
   });
@@ -726,95 +716,48 @@ const getAllHotels = async (
   let filteredHotels = hotels.filter((hotel) => {
     const totalRoomCount = hotelRoomCountMap.get(String(hotel.id)) || 0;
 
-    // hotelNumberOfRooms diye filter
     if (hotelNumberOfRooms && totalRoomCount < Number(hotelNumberOfRooms)) {
       return false;
     }
 
-    // jodi room array empty hoy → hotel skip
     if (hotel.room.length === 0) return false;
 
     return true;
   });
 
-  // currency exchange
-  const exchangeRates = await CurrencyHelpers.getExchangeRates();
-
-  // Convert prices এবং filter
+  // build results without currency conversion
   let resultWithAverages = filteredHotels
     .map((hotel) => {
-      if (hotel.room.length === 0) return null;
+      if (!hotel.room.length) return null;
 
-      // room price convert
-      const roomsWithConvertedPrices = hotel.room.map((room) => {
-        const roomCurrency = room.currency || "USD";
-
-        const convertedPrice = CurrencyHelpers.convertPrice(
-          room.hotelRoomPriceNight,
-          roomCurrency,
-          userCurrency,
-          exchangeRates
-        );
-
-        const discountedPrice = CurrencyHelpers.convertPrice(
-          room.discount,
-          roomCurrency,
-          userCurrency,
-          exchangeRates
-        );
-
-        return {
-          ...room,
-          originalPrice: room.hotelRoomPriceNight,
-          originalCurrency: roomCurrency,
-          convertedPrice,
-          discountedPrice,
-          displayCurrency: userCurrency,
-          exchangeRate:
-            exchangeRates[userCurrency] / exchangeRates[roomCurrency],
-        };
-      });
-
-      // if no room found
-      if (roomsWithConvertedPrices.length === 0) return null;
-
-      // averages calculate
-      const totalPrice = roomsWithConvertedPrices.reduce(
-        (sum, room) => sum + room.convertedPrice,
+      const totalPrice = hotel.room.reduce(
+        (sum, room) => sum + room.hotelRoomPriceNight,
         0
       );
 
-      const totalRating = roomsWithConvertedPrices.reduce(
+      const totalRating = hotel.room.reduce(
         (sum, room) => sum + (parseFloat(room.hotelRating) || 0),
         0
       );
 
-      const totalReviews = roomsWithConvertedPrices.reduce(
+      const totalReviews = hotel.room.reduce(
         (sum, room) => sum + (room.hotelReviewCount || 0),
         0
       );
 
       return {
         ...hotel,
-        room: roomsWithConvertedPrices,
-        averagePrice: Number(
-          (totalPrice / roomsWithConvertedPrices.length).toFixed(2)
-        ),
-        averageRating: Number(
-          (totalRating / roomsWithConvertedPrices.length).toFixed(1)
-        ),
-        averageReviewCount: Math.round(
-          totalReviews / roomsWithConvertedPrices.length
-        ),
-        displayCurrency: userCurrency,
-        currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+        room: hotel.room,
+        averagePrice: Number((totalPrice / hotel.room.length).toFixed(2)),
+        averageRating: Number((totalRating / hotel.room.length).toFixed(1)),
+        averageReviewCount: Math.round(totalReviews / hotel.room.length),
       };
     })
-    .filter((hotel) => hotel !== null);
+    .filter(Boolean);
 
-  // sort by averagePrice (low → high / high → low)
+  // price sorting – using original price
   if (options.sortBy === "price") {
-    resultWithAverages = resultWithAverages.sort((a, b) =>
+    resultWithAverages = resultWithAverages.sort((a: any, b: any) =>
       options.sortOrder === "asc"
         ? a.averagePrice - b.averagePrice
         : b.averagePrice - a.averagePrice

@@ -79,12 +79,12 @@ const getAvailableRooms = catchAsync(async (req: Request, res: Response) => {
 //   });
 // });
 const getAllHotels = catchAsync(async (req: Request, res: Response) => {
-  const userCurrency = await getUserCurrency(req);
+  // const userCurrency = await getUserCurrency(req);
   // console.log(`User currency detected: ${userCurrency}`);
 
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);
-  const result = await HotelService.getAllHotels(filter, options, userCurrency);
+  const result = await HotelService.getAllHotels(filter, options);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
