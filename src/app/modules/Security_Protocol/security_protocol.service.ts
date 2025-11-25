@@ -743,22 +743,14 @@ const getAllSecurityProtocols = async (
         0
       );
 
-      const averagePrice = Number(
-        (totalPrice / guards.length).toFixed(2)
-      );
-      const averageRating = Number(
-        (totalRating / guards.length).toFixed(1)
-      );
-      const averageReviewCount = Math.round(
-        totalReviews / guards.length
-      );
-
-      const securityCurrency = protocols
-      const userCurrency = "USD";
+      const averagePrice = Number((totalPrice / guards.length).toFixed(2));
+      const averageRating = Number((totalRating / guards.length).toFixed(1));
+      const averageReviewCount = Math.round(totalReviews / guards.length);
 
       return {
         ...security,
         security_Guard: guards,
+        securityurrency: guards[0]?.currency || "USD",
         averagePrice,
         averageRating,
         averageReviewCount,
@@ -780,7 +772,6 @@ const getAllSecurityProtocols = async (
     data: resultWithAverages,
   };
 };
-
 
 const getAllSecurityProtocolsGuards = async (
   params: ISecurityFilterRequest,
@@ -960,13 +951,180 @@ const getAllSecurityProtocolsGuardsBySecurityProtocolId = async (
 };
 
 // get all security protocols security guard app
+// const getAllSecurityProtocolsGuardsApp = async (
+//   params: ISecurityFilterRequest,
+//   options: IPaginationOptions,
+//   userCurrency: string = "USD"
+// ) => {
+//   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
+
+//   const { searchTerm, ...filterData } = params;
+
+//   const filters: Prisma.Security_GuardWhereInput[] = [];
+
+//   // get all security protocols
+//   const getAllSecurityProtocol = await prisma.security_Protocol.findMany({
+//     select: {
+//       id: true,
+//       securityProtocolType: true,
+//     },
+//   });
+
+//   // text search
+//   filters.push({
+//     OR: searchableFields.map((field) => {
+//       if (field === "securityName") {
+//         // search inside related security protocol
+//         return {
+//           security: {
+//             securityName: {
+//               contains: params.searchTerm,
+//               mode: "insensitive",
+//             },
+//           },
+//         };
+//       }
+//       return {
+//         [field]: {
+//           contains: params.searchTerm,
+//           mode: "insensitive",
+//         },
+//       };
+//     }),
+//   });
+
+//   // // Exact search filter
+//   // if (Object.keys(filterData).length > 0) {
+//   //   filters.push({
+//   //     AND: Object.keys(filterData).map((key) => ({
+//   //       [key]: {
+//   //         equals: (filterData as any)[key],
+//   //       },
+//   //     })),
+//   //   });
+//   // }
+
+//   // Exact filter for securityProtocolType (relation)
+//   if (params.securityProtocolType) {
+//     filters.push({
+//       security: {
+//         securityProtocolType: {
+//           equals: params.securityProtocolType,
+//           mode: "insensitive",
+//         },
+//       },
+//     });
+//   }
+
+//   // fromDate - toDate booking exclude
+//   if (filterData.fromDate && filterData.toDate) {
+//     filters.push({
+//       security_Booking: {
+//         none: {
+//           AND: [
+//             {
+//               securityBookedFromDate: { lte: filterData.toDate },
+//             },
+//             {
+//               securityBookedToDate: { gte: filterData.fromDate },
+//             },
+//             {
+//               bookingStatus: { not: BookingStatus.COMPLETED },
+//             },
+//           ],
+//         },
+//       },
+//     });
+//   }
+
+//   // get only isBooked  AVAILABLE hotels
+//   // filters.push({
+//   //   isBooked: EveryServiceStatus.AVAILABLE,
+//   // });
+
+//   const where: Prisma.Security_GuardWhereInput = { AND: filters };
+
+//   const result = await prisma.security_Guard.findMany({
+//     where,
+//     skip,
+//     take: limit,
+//     orderBy:
+//       options.sortBy && options.sortOrder
+//         ? { [options.sortBy]: options.sortOrder }
+//         : {
+//             createdAt: "desc",
+//           },
+//     include: {
+//       user: {
+//         select: {
+//           id: true,
+//           fullName: true,
+//           profileImage: true,
+//         },
+//       },
+//       security: {
+//         select: {
+//           id: true,
+//           securityName: true,
+//           securityProtocolType: true,
+//         },
+//       },
+//       review: true,
+//     },
+//   });
+
+//   const total = await prisma.security_Guard.count({
+//     where,
+//   });
+
+//   // ----------- Currency conversion logic -----------
+//   const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+//   const convertedGuards = result.map((guard) => {
+//     const baseCurrency = guard.currency || "USD";
+
+//     const convertedPrice = CurrencyHelpers.convertPrice(
+//       guard.securityPriceDay,
+//       baseCurrency,
+//       userCurrency,
+//       exchangeRates
+//     );
+
+//     const discountedPrice = CurrencyHelpers.convertPrice(
+//       guard.discount || 0,
+//       baseCurrency,
+//       userCurrency,
+//       exchangeRates
+//     );
+
+//     return {
+//       ...guard,
+//       originalPrice: guard.securityPriceDay,
+//       originalCurrency: baseCurrency,
+//       convertedPrice,
+//       discountedPrice,
+//       displayCurrency: userCurrency,
+//       exchangeRate: exchangeRates[userCurrency] / exchangeRates[baseCurrency],
+//     };
+//   });
+
+//   return {
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//     },
+//     data: convertedGuards,
+//   };
+// };
+
+// get all security protocols security guard app
+// get all security protocols security guard app
 const getAllSecurityProtocolsGuardsApp = async (
   params: ISecurityFilterRequest,
-  options: IPaginationOptions,
-  userCurrency: string = "USD"
+  options: IPaginationOptions
 ) => {
   const { limit, page, skip } = paginationHelpers.calculatedPagination(options);
-
   const { searchTerm, ...filterData } = params;
 
   const filters: Prisma.Security_GuardWhereInput[] = [];
@@ -983,7 +1141,6 @@ const getAllSecurityProtocolsGuardsApp = async (
   filters.push({
     OR: searchableFields.map((field) => {
       if (field === "securityName") {
-        // search inside related security protocol
         return {
           security: {
             securityName: {
@@ -1002,18 +1159,7 @@ const getAllSecurityProtocolsGuardsApp = async (
     }),
   });
 
-  // // Exact search filter
-  // if (Object.keys(filterData).length > 0) {
-  //   filters.push({
-  //     AND: Object.keys(filterData).map((key) => ({
-  //       [key]: {
-  //         equals: (filterData as any)[key],
-  //       },
-  //     })),
-  //   });
-  // }
-
-  // Exact filter for securityProtocolType (relation)
+  // Exact filter for protocol type
   if (params.securityProtocolType) {
     filters.push({
       security: {
@@ -1031,25 +1177,14 @@ const getAllSecurityProtocolsGuardsApp = async (
       security_Booking: {
         none: {
           AND: [
-            {
-              securityBookedFromDate: { lte: filterData.toDate },
-            },
-            {
-              securityBookedToDate: { gte: filterData.fromDate },
-            },
-            {
-              bookingStatus: { not: BookingStatus.COMPLETED },
-            },
+            { securityBookedFromDate: { lte: filterData.toDate } },
+            { securityBookedToDate: { gte: filterData.fromDate } },
+            { bookingStatus: { not: BookingStatus.COMPLETED } },
           ],
         },
       },
     });
   }
-
-  // get only isBooked  AVAILABLE hotels
-  // filters.push({
-  //   isBooked: EveryServiceStatus.AVAILABLE,
-  // });
 
   const where: Prisma.Security_GuardWhereInput = { AND: filters };
 
@@ -1060,9 +1195,7 @@ const getAllSecurityProtocolsGuardsApp = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
-        : {
-            createdAt: "desc",
-          },
+        : { createdAt: "desc" },
     include: {
       user: {
         select: {
@@ -1082,40 +1215,46 @@ const getAllSecurityProtocolsGuardsApp = async (
     },
   });
 
-  const total = await prisma.security_Guard.count({
-    where,
-  });
+  const total = await prisma.security_Guard.count({ where });
 
-  // ----------- Currency conversion logic -----------
-  const exchangeRates = await CurrencyHelpers.getExchangeRates();
+  // =====================================================
+  //   AVERAGE CALCULATION (NO CURRENCY CONVERSION)
+  // =====================================================
+  const guards = result;
 
-  const convertedGuards = result.map((guard) => {
-    const baseCurrency = guard.currency || "USD";
+  const totalPrice = guards.reduce(
+    (sum, guard) => sum + (guard.securityPriceDay || 0),
+    0
+  );
 
-    const convertedPrice = CurrencyHelpers.convertPrice(
-      guard.securityPriceDay,
-      baseCurrency,
-      userCurrency,
-      exchangeRates
-    );
+  const totalRating = guards.reduce(
+    (sum, guard) => sum + (parseFloat(guard.securityRating) || 0),
+    0
+  );
 
-    const discountedPrice = CurrencyHelpers.convertPrice(
-      guard.discount || 0,
-      baseCurrency,
-      userCurrency,
-      exchangeRates
-    );
+  const totalReviews = guards.reduce(
+    (sum, guard) => sum + (guard.securityReviewCount || 0),
+    0
+  );
 
-    return {
-      ...guard,
-      originalPrice: guard.securityPriceDay,
-      originalCurrency: baseCurrency,
-      convertedPrice,
-      discountedPrice,
-      displayCurrency: userCurrency,
-      exchangeRate: exchangeRates[userCurrency] / exchangeRates[baseCurrency],
-    };
-  });
+  const averagePrice = guards.length
+    ? Number((totalPrice / guards.length).toFixed(2))
+    : 0;
+
+  const averageRating = guards.length
+    ? Number((totalRating / guards.length).toFixed(1))
+    : 0;
+
+  const averageReviewCount = guards.length
+    ? Math.round(totalReviews / guards.length)
+    : 0;
+
+  // ========== Clean data ==========
+  const cleanedGuards = guards.map((guard) => ({
+    ...guard,
+    originalPrice: guard.securityPriceDay,
+    originalCurrency: guard.currency || "USD",
+  }));
 
   return {
     meta: {
@@ -1123,14 +1262,108 @@ const getAllSecurityProtocolsGuardsApp = async (
       page,
       limit,
     },
-    data: convertedGuards,
+    averages: {
+      averagePrice,
+      averageRating,
+      averageReviewCount,
+    },
+    data: cleanedGuards,
   };
 };
 
 // get popular security protocols
+// const getPopularSecurityProtocols = async (
+//   params: ISecurityFilterRequest,
+//   userCurrency: string = "USD"
+// ) => {
+//   const { searchTerm, ...filterData } = params;
+
+//   const filters: Prisma.Security_GuardWhereInput[] = [];
+
+//   // text search
+//   if (searchTerm) {
+//     filters.push({
+//       OR: searchableFields.map((field) => ({
+//         [field]: {
+//           contains: searchTerm,
+//           mode: "insensitive",
+//         },
+//       })),
+//     });
+//   }
+
+//   // exact field match filters
+//   if (Object.keys(filterData).length > 0) {
+//     filters.push({
+//       AND: Object.keys(filterData).map((key) => ({
+//         [key]: {
+//           equals: (filterData as any)[key],
+//         },
+//       })),
+//     });
+//   }
+
+//   const where: Prisma.Security_GuardWhereInput = {
+//     AND: filters,
+//     // hotelRating: {
+//     //   not: null,
+//     // },
+//   };
+
+//   // get only isBooked  AVAILABLE hotels
+//   // filters.push({
+//   //   isBooked: EveryServiceStatus.AVAILABLE,
+//   // });
+
+//   const result = await prisma.security_Guard.findMany({
+//     where,
+//     orderBy: {
+//       securityRating: "desc",
+//     },
+//     take: 10,
+//   });
+
+//   // get exchange rates
+//   const exchangeRates = await CurrencyHelpers.getExchangeRates();
+
+//   // convert price country-wise
+//   const convertedResult = result.map((guard) => {
+//     const guardCurrency = guard.currency || "USD";
+
+//     // main hourly price convert
+//     const convertedPrice = CurrencyHelpers.convertPrice(
+//       guard.securityPriceDay,
+//       guardCurrency,
+//       userCurrency,
+//       exchangeRates
+//     );
+
+//     // discount (if available)
+//     const discountedPrice = CurrencyHelpers.convertPrice(
+//       guard.discount || 0,
+//       guardCurrency,
+//       userCurrency,
+//       exchangeRates
+//     );
+
+//     return {
+//       ...guard,
+//       originalPrice: guard.securityPriceDay,
+//       originalCurrency: guardCurrency,
+//       convertedPrice,
+//       discountedPrice,
+//       displayCurrency: userCurrency,
+//       exchangeRate: exchangeRates[userCurrency] / exchangeRates[guardCurrency],
+//       currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
+//     };
+//   });
+
+//   return convertedResult;
+// };
+
+// get popular security protocols
 const getPopularSecurityProtocols = async (
   params: ISecurityFilterRequest,
-  userCurrency: string = "USD"
 ) => {
   const { searchTerm, ...filterData } = params;
 
@@ -1177,44 +1410,28 @@ const getPopularSecurityProtocols = async (
       securityRating: "desc",
     },
     take: 10,
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          profileImage: true,
+        },
+      },
+      security: {
+        select: {
+          id: true,
+          securityName: true,
+          securityProtocolType: true,
+        },
+      },
+      review: true,
+    },
   });
 
-  // get exchange rates
-  const exchangeRates = await CurrencyHelpers.getExchangeRates();
+  // ---- (currency conversion removed completely) ----
 
-  // convert price country-wise
-  const convertedResult = result.map((guard) => {
-    const guardCurrency = guard.currency || "USD";
-
-    // main hourly price convert
-    const convertedPrice = CurrencyHelpers.convertPrice(
-      guard.securityPriceDay,
-      guardCurrency,
-      userCurrency,
-      exchangeRates
-    );
-
-    // discount (if available)
-    const discountedPrice = CurrencyHelpers.convertPrice(
-      guard.discount || 0,
-      guardCurrency,
-      userCurrency,
-      exchangeRates
-    );
-
-    return {
-      ...guard,
-      originalPrice: guard.securityPriceDay,
-      originalCurrency: guardCurrency,
-      convertedPrice,
-      discountedPrice,
-      displayCurrency: userCurrency,
-      exchangeRate: exchangeRates[userCurrency] / exchangeRates[guardCurrency],
-      currencySymbol: CurrencyHelpers.getCurrencySymbol(userCurrency),
-    };
-  });
-
-  return convertedResult;
+  return result;
 };
 
 // get single security protocol security guard
