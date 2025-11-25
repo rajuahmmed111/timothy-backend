@@ -83,13 +83,13 @@ const getAllCarRentals = catchAsync(async (req: Request, res: Response) => {
 
 // get all car rentals cars
 const getAllCarRentalsCars = catchAsync(async (req: Request, res: Response) => {
-  const userCurrency = await getUserCurrency(req);
+  // const userCurrency = await getUserCurrency(req);
   const filter = pick(req.query, filterField);
   const options = pick(req.query, paginationFields);
   const result = await CarRentalService.getAllCarRentalsCars(
     filter,
     options,
-    userCurrency
+    // userCurrency
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -173,9 +173,9 @@ const getSingleCarRental = catchAsync(async (req: Request, res: Response) => {
 
 // get single car
 const getSingleCar = catchAsync(async (req: Request, res: Response) => {
-  const userCurrency = await getUserCurrency(req);
+  // const userCurrency = await getUserCurrency(req);
   const carId = req.params.carId;
-  const result = await CarRentalService.getSingleCar(carId, userCurrency);
+  const result = await CarRentalService.getSingleCar(carId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
