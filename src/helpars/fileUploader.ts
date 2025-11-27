@@ -88,8 +88,11 @@ const storage = multer.diskStorage({
   },
 });
 
-// Multer middleware
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+});
 
 const profileImage = upload.single("profileImage");
 
