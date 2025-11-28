@@ -19,7 +19,14 @@ const app: Application = express();
 
 app.set("trust proxy", true);
 
-const allowedOrigins = ["https://fasifys.com", "https://dashboard.fasifys.com"];
+const allowedOrigins = [
+  "https://fasifys.com",
+  "https://www.fasifys.com",
+  "https://dashboard.fasifys.com",
+  "http://localhost:5173",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
 
 const corsOptions = {
   origin: function (origin: any, callback: any) {
