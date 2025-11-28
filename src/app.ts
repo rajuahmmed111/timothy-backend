@@ -37,10 +37,6 @@ export const corsOptions = {
   credentials: true,
 };
 
-// Middleware setup
-app.use(cors(corsOptions));
-app.use(cookieParser());
-
 app.use(
   bodyParser.json({
     verify: function (
@@ -53,7 +49,12 @@ app.use(
   })
 );
 
-// app.use(express.json());
+// Middleware setup
+app.use(cors(corsOptions));
+app.use(cookieParser());
+
+app.use(express.json());
+// app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
