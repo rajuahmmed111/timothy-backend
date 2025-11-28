@@ -17,65 +17,51 @@ declare global {
 
 const app: Application = express();
 
-// AWS / Reverse Proxy setup
 app.set("trust proxy", true);
 
-export const corsOptions = {
+const corsOptions = {
   origin: [
     "https://fasifys.com",
     "https://www.fasifys.com",
     "https://dashboard.fasifys.com",
-    "https://api.fasifys.com",
   ],
-  // origin: "*",
+  credentials: true,
   allowedHeaders: [
     "Content-Type",
     "Authorization",
     "X-User-IP",
     "X-User-Currency",
   ],
-  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 };
 
 app.use(
   bodyParser.json({
-    verify: function (
-      req: express.Request,
-      res: express.Response,
-      buf: Buffer
-    ) {
+    verify: (req: Request, res: Response, buf: Buffer) => {
       req.rawBody = buf;
     },
   })
 );
 
-// Middleware setup
-app.options("*", cors(corsOptions)); 
+// Handle preflight requests for all routes
+app.options("*", cors(corsOptions));
+
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
 app.use(express.json());
-// app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// Route handler for the root endpoint
 app.get("/", (req: Request, res: Response) => {
-  res.send({
-    message: "How's Project API",
-  });
+  res.send({ message: "How's Project API" });
 });
 
-// app.use("/uploads", express.static(path.join("/var/www/uploads")));
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); // Serve static files from the "uploads" directory
-
-// Setup API routes
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/v1", router);
 
-// Error handling middleware
 app.use(GlobalErrorHandler);
 
-// 404 Not Found handler
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(httpStatus.NOT_FOUND).json({
     success: false,
