@@ -1837,7 +1837,7 @@ const createStripeCheckoutSessionWebsite = async (
     );
   }
 
-  // amount (convert USD → cents)
+  // amount (multiply by 100)
   const amount = Math.round(totalPrice * 100);
 
   // add 5% vat
@@ -1846,7 +1846,6 @@ const createStripeCheckoutSessionWebsite = async (
 
   // total amount with 5% vat
   const totalWithVAT = amount + vatAmount;
-  // console.log("totalWithVAT", totalWithVAT);
 
   // 15% admin commission
   const adminCommissionPercentage = 15;
@@ -1856,14 +1855,15 @@ const createStripeCheckoutSessionWebsite = async (
 
   // total admin earnings
   const adminFee = Math.round(adminCommission + vatAmount);
-const adminFeeFinal = Math.min(adminFee, totalWithVAT);
 
-  // console.log("adminFee", adminFee);
+  // 🔥 FIXED: application_fee_amount always must be <= unit_amount
+  // তাই adminFeeFinal ব্যবহার করা হচ্ছে
+  const adminFeeFinal = Math.min(adminFee, totalWithVAT);
 
-  // service fee (partner earnings)
-  const serviceFee = totalWithVAT - adminFee;
+  // ❌ WRONG BEFORE: serviceFee = totalWithVAT - adminFee
+  // ✅ CORRECT NOW: serviceFee = totalWithVAT - adminFeeFinal
+  const serviceFee = totalWithVAT - adminFeeFinal; // <-- ***CHANGE DONE HERE***
 
-  // currency support added
   const currency = booking.displayCurrency?.toLowerCase() || "usd";
 
   // create Stripe checkout session
@@ -1887,7 +1887,9 @@ const adminFeeFinal = Math.min(adminFee, totalWithVAT);
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
       application_fee_amount: adminFeeFinal, // goes to Admin
-      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
+      transfer_data: {
+        destination: partner.stripeAccountId,
+      }, // goes to Partner
       description,
     },
     metadata: {
@@ -1925,6 +1927,7 @@ const adminFeeFinal = Math.min(adminFee, totalWithVAT);
       break;
   }
 
+  // save payment info
   await prisma.payment.create({
     data: {
       amount: totalWithVAT / 100,
@@ -1938,7 +1941,7 @@ const adminFeeFinal = Math.min(adminFee, totalWithVAT);
       payable_email: partner.email,
       country: partner.country ?? "",
       admin_commission: adminCommission / 100,
-      service_fee: serviceFee / 100,
+      service_fee: serviceFee / 100, // <-- using updated correct value
       vat_amount: vatAmount / 100,
       serviceType,
       partnerId,
