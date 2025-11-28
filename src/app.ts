@@ -30,7 +30,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin: any, callback: any) {
-    if (!origin) return callback(null, true); // Postman বা server-side request
+    if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true); // Origin match → allow
     } else {
