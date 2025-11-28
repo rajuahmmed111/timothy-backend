@@ -21,13 +21,13 @@ const app: Application = express();
 app.set("trust proxy", true);
 
 export const corsOptions = {
-  // origin: [
-  //   "http://localhost:5173",
-  //   "http://localhost:3000",
-  //   "https://timothy-dashboard.netlify.app",
-  //   "https://temothy-dashboard.vercel.app",
-  // ],
-  origin: "*",
+  origin: [
+    "https://fasifys.com",
+    "https://www.fasifys.com",
+    "https://dashboard.fasifys.com",
+    "https://api.fasifys.com",
+  ],
+  // origin: "*",
   allowedHeaders: [
     "Content-Type",
     "Authorization",
@@ -36,6 +36,10 @@ export const corsOptions = {
   ],
   credentials: true,
 };
+
+// Middleware setup
+app.use(cors(corsOptions));
+app.use(cookieParser());
 
 app.use(
   bodyParser.json({
@@ -49,14 +53,7 @@ app.use(
   })
 );
 
-// app.use(bodyParser.json());
-
-// Middleware setup
-app.use(cors(corsOptions));
-app.use(cookieParser());
-
-app.use(express.json());
-// app.use(bodyParser.json());
+// app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
