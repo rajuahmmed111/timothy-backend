@@ -1,6 +1,6 @@
+import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import bodyParser from "body-parser";
@@ -43,10 +43,10 @@ app.use(
   })
 );
 
+app.use(cors(corsOptions));
 // Handle preflight requests for all routes
 app.options("*", cors(corsOptions));
 
-app.use(cors(corsOptions));
 app.use(cookieParser());
 
 app.use(express.json());
