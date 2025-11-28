@@ -19,16 +19,17 @@ const app: Application = express();
 
 app.set("trust proxy", true);
 
+const allowedOrigins = ["https://fasifys.com", "https://dashboard.fasifys.com"];
+
 const corsOptions = {
-  origin: [
-    "https://fasifys.com",
-    "https://www.fasifys.com",
-    "https://dashboard.fasifys.com",
-    "http://localhost:5173",
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ],
-  // origin: true,
+  origin: function (origin: any, callback: any) {
+    if (!origin) return callback(null, true); // Postman বা server-side request
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true); // Origin match → allow
+    } else {
+      callback(new Error("CORS policy: Origin not allowed"));
+    }
+  },
   credentials: true,
   allowedHeaders: [
     "Content-Type",
