@@ -50,6 +50,7 @@ app.use(
 );
 
 // Middleware setup
+app.options("*", cors(corsOptions)); 
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
