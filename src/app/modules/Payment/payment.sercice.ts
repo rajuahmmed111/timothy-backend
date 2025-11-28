@@ -1855,7 +1855,9 @@ const createStripeCheckoutSessionWebsite = async (
   );
 
   // total admin earnings
-  const adminFee = adminCommission + vatAmount;
+  const adminFee = Math.round(adminCommission + vatAmount);
+const adminFeeFinal = Math.min(adminFee, totalWithVAT);
+
   // console.log("adminFee", adminFee);
 
   // service fee (partner earnings)
@@ -1884,7 +1886,7 @@ const createStripeCheckoutSessionWebsite = async (
     success_url: `${config.stripe.checkout_success_url}`,
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
-      application_fee_amount: adminFee, // goes to Admin
+      application_fee_amount: adminFeeFinal, // goes to Admin
       transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
       description,
     },
