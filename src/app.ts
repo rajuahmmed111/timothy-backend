@@ -49,7 +49,7 @@ app.use(
   })
 );
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
 // Middleware setup
 app.use(cors(corsOptions));
