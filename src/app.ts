@@ -26,6 +26,10 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5173",
   "http://localhost:3000",
+  "https://api.country.is",
+  "https://open.er-api.com/v6/latest/USD",
+  "https://open.er-api.com/v6/latest/USD",
+  "https://www.google.com/maps",
 ];
 
 const corsOptions = {

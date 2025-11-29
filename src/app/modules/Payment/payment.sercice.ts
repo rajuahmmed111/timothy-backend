@@ -1837,7 +1837,7 @@ const createStripeCheckoutSessionWebsite = async (
     );
   }
 
-  // amount (multiply by 100)
+  // amount (convert USD → cents)
   const amount = Math.round(totalPrice * 100);
 
   // add 5% vat
@@ -1846,6 +1846,7 @@ const createStripeCheckoutSessionWebsite = async (
 
   // total amount with 5% vat
   const totalWithVAT = amount + vatAmount;
+  // console.log("totalWithVAT", totalWithVAT);
 
   // 15% admin commission
   const adminCommissionPercentage = 15;
@@ -1855,16 +1856,24 @@ const createStripeCheckoutSessionWebsite = async (
 
   // total admin earnings
   const adminFee = Math.round(adminCommission + vatAmount);
-
-  // 🔥 FIXED: application_fee_amount always must be <= unit_amount
-  // তাই adminFeeFinal ব্যবহার করা হচ্ছে
   const adminFeeFinal = Math.min(adminFee, totalWithVAT);
+  console.log("adminFeeFinal", adminFeeFinal);
 
-  // ❌ WRONG BEFORE: serviceFee = totalWithVAT - adminFee
-  // ✅ CORRECT NOW: serviceFee = totalWithVAT - adminFeeFinal
-  const serviceFee = totalWithVAT - adminFeeFinal; // <-- ***CHANGE DONE HERE***
+  // console.log("adminFee", adminFee);
 
+  // service fee (partner earnings)
+  const serviceFee = totalWithVAT - adminFee;
+
+  // currency support added
   const currency = booking.displayCurrency?.toLowerCase() || "usd";
+
+  console.log({
+    totalWithVAT,
+    adminFeeFinal,
+    unit_amount: totalWithVAT,
+    currency,
+    partnerStripeId: partner.stripeAccountId,
+  });
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -1887,9 +1896,7 @@ const createStripeCheckoutSessionWebsite = async (
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
       application_fee_amount: adminFeeFinal, // goes to Admin
-      transfer_data: {
-        destination: partner.stripeAccountId,
-      }, // goes to Partner
+      transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
       description,
     },
     metadata: {
@@ -1927,7 +1934,6 @@ const createStripeCheckoutSessionWebsite = async (
       break;
   }
 
-  // save payment info
   await prisma.payment.create({
     data: {
       amount: totalWithVAT / 100,
@@ -1941,7 +1947,7 @@ const createStripeCheckoutSessionWebsite = async (
       payable_email: partner.email,
       country: partner.country ?? "",
       admin_commission: adminCommission / 100,
-      service_fee: serviceFee / 100, // <-- using updated correct value
+      service_fee: serviceFee / 100,
       vat_amount: vatAmount / 100,
       serviceType,
       partnerId,
