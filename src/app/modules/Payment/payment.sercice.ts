@@ -1855,10 +1855,7 @@ const createStripeCheckoutSessionWebsite = async (
   );
 
   // total admin earnings
-  const adminFee = Math.round(adminCommission + vatAmount);
-  const adminFeeFinal = Math.min(adminFee, totalWithVAT);
-  console.log("adminFeeFinal", adminFeeFinal);
-
+  const adminFee = adminCommission + vatAmount;
   // console.log("adminFee", adminFee);
 
   // service fee (partner earnings)
@@ -1866,14 +1863,6 @@ const createStripeCheckoutSessionWebsite = async (
 
   // currency support added
   const currency = booking.displayCurrency?.toLowerCase() || "usd";
-
-  console.log({
-    totalWithVAT,
-    adminFeeFinal,
-    unit_amount: totalWithVAT,
-    currency,
-    partnerStripeId: partner.stripeAccountId,
-  });
 
   // create Stripe checkout session
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -1895,7 +1884,7 @@ const createStripeCheckoutSessionWebsite = async (
     success_url: `${config.stripe.checkout_success_url}`,
     cancel_url: `${config.stripe.checkout_cancel_url}`,
     payment_intent_data: {
-      application_fee_amount: adminFeeFinal, // goes to Admin
+      application_fee_amount: adminFee, // goes to Admin
       transfer_data: { destination: partner.stripeAccountId }, // goes to Partner
       description,
     },
