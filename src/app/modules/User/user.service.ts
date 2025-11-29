@@ -24,6 +24,32 @@ import config from "../../../config";
 import { Secret } from "jsonwebtoken";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
 
+// create user for web partner
+const createUserForWebPartner = async (payload: any) => {
+  // check if email exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "User already exists");
+  }
+
+  // hash password
+  const hashedPassword = await bcrypt.hash(payload.password, 12);
+
+  // create user with inactive status
+  const userData = await prisma.user.create({
+    data: {
+      ...payload,
+      password: hashedPassword,
+      status: UserStatus.INACTIVE,
+    },
+  });
+
+  return userData;
+};
+
 // create user for web
 const createUserForWeb = async (payload: any) => {
   // check if email exists
@@ -1036,6 +1062,7 @@ const updateAdminAccess = async (id: string, data: any) => {
 };
 
 export const UserService = {
+  createUserForWebPartner,
   createUserForWeb,
   createUser,
   createRoleSupperAdmin,

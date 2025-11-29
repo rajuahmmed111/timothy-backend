@@ -64,11 +64,15 @@ router.get(
 // get user only partner
 router.get(
   "/inactive-partner/:id",
-  auth(
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-  ),
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   UserController.getPartnerById
+);
+
+// create user for web partner
+router.post(
+  "/web-partner",
+  validateRequest(userValidation.createUserZodSchema),
+  UserController.createUserForWebPartner
 );
 
 // create user for web

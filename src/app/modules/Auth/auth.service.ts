@@ -79,6 +79,11 @@ const loginUser = async (payload: ILoginRequest): Promise<ILoginResponse> => {
     accessToken,
     refreshToken,
     user: {
+      id: userData.id,
+      fullName: userData.fullName,
+      email: userData.email,
+      contactNo: userData.contactNumber,
+      address: userData.country,
       fcmToken: updatedFcmToken.fcmToken,
       isHotel: updatedFcmToken.isHotel,
       isSecurity: updatedFcmToken.isSecurity,

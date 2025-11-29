@@ -11,6 +11,21 @@ import { isValidObjectId } from "../../../utils/validateObjectId";
 import { IUploadedFile } from "../../../interfaces/file";
 import config from "../../../config";
 
+// create user for web partner
+const createUserForWebPartner = catchAsync(
+  async (req: Request, res: Response) => {
+    const userData = req.body;
+    const result = await UserService.createUserForWebPartner(userData);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User created successfully",
+      data: result,
+    });
+  }
+);
+
 // create user for web
 const createUserForWeb = catchAsync(async (req: Request, res: Response) => {
   const userData = req.body;
@@ -336,6 +351,7 @@ const updateAdminAccess = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const UserController = {
+  createUserForWebPartner,
   createUserForWeb,
   createUser,
   createRoleSupperAdmin,
