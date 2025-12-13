@@ -70,7 +70,7 @@ router.get(
 
 // create user for web partner
 router.post(
-  "/web-partner",
+  "/partner",
   validateRequest(userValidation.createUserZodSchema),
   UserController.createUserForWebPartner
 );
