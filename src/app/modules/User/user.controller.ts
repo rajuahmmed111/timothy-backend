@@ -96,6 +96,21 @@ const verifyOtpAndCreateUser = catchAsync(
   }
 );
 
+// verify partner
+const verifyOtpAndCreatePartner = catchAsync(
+  async (req: Request, res: Response) => {
+    const { email, otp } = req.body;
+    const result = await UserService.verifyOtpAndCreatePartner(email, otp);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Partner verified successfully",
+      data: result,
+    });
+  }
+);
+
 // get all users
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, filterField);
@@ -356,6 +371,7 @@ export const UserController = {
   createUser,
   createRoleSupperAdmin,
   verifyOtpAndCreateUser,
+  verifyOtpAndCreatePartner,
   getAllUsers,
   getAllAdmins,
   updateAdminStatusInActiveToActive,

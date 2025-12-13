@@ -282,6 +282,43 @@ const verifyOtpAndCreateUser = async (email: string, otp: string) => {
   return result;
 };
 
+// verify otp and create partner
+const verifyOtpAndCreatePartner = async (email: string, otp: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email, role: UserRole.BUSINESS_PARTNER },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  if (user.otp !== otp) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP");
+  }
+
+  // OTP expired check
+  if (!user.otpExpiry || user.otpExpiry < new Date()) {
+    // delete user if expired
+    await prisma.user.delete({ where: { id: user.id } });
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "OTP has expired, please register again"
+    );
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      status: UserStatus.INACTIVE,
+      isEmailVerified: true,
+      otp: null,
+      otpExpiry: null,
+    },
+  });
+
+  return updatedUser;
+};
+
 // get all users
 const getAllUsers = async (
   params: IFilterRequest,
@@ -1067,6 +1104,7 @@ export const UserService = {
   createUser,
   createRoleSupperAdmin,
   verifyOtpAndCreateUser,
+  verifyOtpAndCreatePartner,
   getAllUsers,
   getAllAdmins,
   updateAdminStatusInActiveToActive,

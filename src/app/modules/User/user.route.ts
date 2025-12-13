@@ -100,6 +100,9 @@ router.post(
 // verify user
 router.post("/verify-user", UserController.verifyOtpAndCreateUser);
 
+// verify partner
+router.post("/verify-partner", UserController.verifyOtpAndCreatePartner);
+
 // update partner status (inactive to active)
 router.patch(
   "/update-partner-status-active/:id",
