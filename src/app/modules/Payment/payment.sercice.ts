@@ -768,23 +768,400 @@ const stripeHandleWebhook = async (event: Stripe.Event) => {
         });
 
         if (user?.email) {
+          let html = "";
           const subject = `🎉 Your ${payment.serviceType} booking is confirmed!`;
-          const html = `
-            <div style="font-family: Arial; padding: 20px;">
-              <h2>Hi ${user.fullName || "User"},</h2>
-              <p>Your <strong>${
-                payment.serviceType
-              }</strong> booking has been confirmed successfully.</p>
-              <p><b>Payment ID:</b> ${payment.id}</p>
-              <p><b>Total Paid:</b> ${payment.amount} ${
-            booking.displayCurrency || "USD"
-          }</p>
-              <p><b>Status:</b> Confirmed ✅</p>
-              <br/>
-              <p>Thanks for booking with us!</p>
-              <p>– Team Tim</p>
-            </div>
-          `;
+
+          // Get detailed booking information based on service type
+          if (payment.serviceType === "HOTEL") {
+            const hotelBooking = await prisma.hotel_Booking.findUnique({
+              where: { id: bookingId },
+              include: {
+                hotel: {
+                  select: {
+                    hotelName: true,
+                    hotelAddress: true,
+                    hotelCity: true,
+                    hotelCountry: true,
+                    hotelPhone: true,
+                    hotelEmail: true,
+                  },
+                },
+                room: {
+                  select: {
+                    hotelRoomCapacity: true,
+                  },
+                },
+              },
+            });
+
+            html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🏨 Hotel Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your hotel booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🏨 Hotel Information</h3>
+                  <p><strong>Hotel Name:</strong> ${
+                    hotelBooking?.hotel?.hotelName || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    hotelBooking?.hotel?.hotelAddress || "N/A"
+                  }, ${hotelBooking?.hotel?.hotelCity || "N/A"}, ${
+              hotelBooking?.hotel?.hotelCountry || "N/A"
+            }</p>
+                  <p><strong>Hotel Phone:</strong> ${
+                    hotelBooking?.hotel?.hotelPhone || "N/A"
+                  }</p>
+                  <p><strong>Hotel Email:</strong> ${
+                    hotelBooking?.hotel?.hotelEmail || "N/A"
+                  }</p>
+                  <p><strong>hotel Room Capacity:</strong> ${
+                    hotelBooking?.room?.hotelRoomCapacity || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Booking Details</h3>
+                  <p><strong>Check-in Date:</strong> ${
+                    hotelBooking?.bookedFromDate || "N/A"
+                  }</p>
+                  <p><strong>Check-out Date:</strong> ${
+                    hotelBooking?.bookedToDate || "N/A"
+                  }</p>
+                  <p><strong>Number of Rooms:</strong> ${
+                    hotelBooking?.rooms || "N/A"
+                  }</p>
+                  <p><strong>Adults:</strong> ${
+                    hotelBooking?.adults || "N/A"
+                  }</p>
+                  <p><strong>Children:</strong> ${
+                    hotelBooking?.children || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Guest Information</h3>
+                  <p><strong>Name:</strong> ${
+                    hotelBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    hotelBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${hotelBooking?.phone || "N/A"}</p>
+                  <p><strong>Address:</strong> ${
+                    hotelBooking?.address || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+              booking.displayCurrency || "USD"
+            }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Have a wonderful stay. 🎉</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+          } else if (payment.serviceType === "SECURITY") {
+            const securityBooking = await prisma.security_Booking.findUnique({
+              where: { id: bookingId },
+              include: {
+                security: {
+                  select: {
+                    securityName: true,
+                    securityPhone: true,
+                    securityEmail: true,
+                  },
+                },
+                security_Guard: {
+                  select: {
+                    securityAddress: true,
+                    securityCity: true,
+                    securityCountry: true,
+                  },
+                },
+              },
+            });
+
+            html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🛡️ Security Service Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your security service booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🛡️ Security Service Information</h3>
+            
+                  <p><strong>Security Guard Name:</strong> ${
+                    securityBooking?.security?.securityName || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    securityBooking?.security_Guard?.securityAddress || "N/A"
+                  }, ${
+              securityBooking?.security_Guard?.securityCity || "N/A"
+            }, ${securityBooking?.security_Guard?.securityCountry || "N/A"}</p>
+                  <p><strong>Phone:</strong> ${
+                    securityBooking?.security?.securityPhone || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    securityBooking?.security?.securityEmail || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Booking Details</h3>
+                  <p><strong>Service From Date:</strong> ${
+                    securityBooking?.securityBookedFromDate || "N/A"
+                  }</p>
+                  <p><strong>Service To Date:</strong> ${
+                    securityBooking?.securityBookedToDate || "N/A"
+                  }</p>
+                  <p><strong>Number of Security Guards:</strong> ${
+                    securityBooking?.number_of_security || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Client Information</h3>
+                  <p><strong>Name:</strong> ${
+                    securityBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    securityBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${
+                    securityBooking?.phone || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    securityBooking?.address || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+              booking.displayCurrency || "USD"
+            }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Stay safe. 🛡️</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+          } else if (payment.serviceType === "CAR") {
+            const carBooking = await prisma.car_Booking.findUnique({
+              where: { id: bookingId },
+              include: {
+                car_Rental: {
+                  select: {
+                    carName: true,
+                    carPhone: true,
+                    carEmail: true,
+                  },
+                },
+                car: {
+                  select: {
+                    carAddress: true,
+                    carCity: true,
+                    carCountry: true,
+                  },
+                },
+              },
+            });
+
+            html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🚗 Car Rental Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your car rental booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🚗 Car Information</h3>
+                  <p><strong>Car Name:</strong> ${
+                    carBooking?.car_Rental?.carName || "N/A"
+                  }</p>
+                  <p><strong>Provider Address:</strong> ${
+                    carBooking?.car?.carAddress || "N/A"
+                  }, ${carBooking?.car?.carCity || "N/A"}, ${
+              carBooking?.car?.carCountry || "N/A"
+            }</p>
+                  <p><strong>Provider Phone:</strong> ${
+                    carBooking?.car_Rental?.carPhone || "N/A"
+                  }</p>
+                  <p><strong>Provider Email:</strong> ${
+                    carBooking?.car_Rental?.carEmail || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Rental Details</h3>
+                  <p><strong>Pick-up Date:</strong> ${
+                    carBooking?.carBookedFromDate || "N/A"
+                  }</p>
+                  <p><strong>Drop-off Date:</strong> ${
+                    carBooking?.carBookedToDate || "N/A"
+                  }</p>
+                  <p><strong>Number of Cars:</strong> 1</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Renter Information</h3>
+                  <p><strong>Name:</strong> ${
+                    carBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    carBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${carBooking?.phone || "N/A"}</p>
+                  <p><strong>Address:</strong> ${
+                    carBooking?.address || "N/A"
+                  }</p>
+                                  </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+              booking.displayCurrency || "USD"
+            }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Enjoy your ride! 🚗</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+          } else if (payment.serviceType === "ATTRACTION") {
+            const attractionBooking =
+              await prisma.attraction_Booking.findUnique({
+                where: { id: bookingId },
+                include: {
+                  attraction: {
+                    select: {
+                      attractionName: true,
+                      attractionPhone: true,
+                      attractionEmail: true,
+                    },
+                  },
+                  appeal: {
+                    select: {
+                      attractionAddress: true,
+                      attractionCity: true,
+                      attractionCountry: true,
+                    },
+                  },
+                },
+              });
+
+            html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🎢 Attraction Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your attraction booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🎢 Attraction Information</h3>
+                  <p><strong>Attraction Name:</strong> ${
+                    attractionBooking?.attraction?.attractionName || "N/A"
+                  }</p>
+               
+              
+                  <p><strong>Address:</strong> ${
+                    attractionBooking?.appeal?.attractionCity || "N/A"
+                  }, 
+                  <p><strong>city:</strong> ${
+                    attractionBooking?.appeal?.attractionCity || "N/A"
+                  }, 
+                  ${attractionBooking?.appeal?.attractionCountry || "N/A"}</p>
+                  <p><strong>Phone:</strong> ${
+                    attractionBooking?.attraction?.attractionPhone || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    attractionBooking?.attraction?.attractionEmail || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Booking Details</h3>
+                  <p><strong>Visit Date:</strong> ${
+                    attractionBooking?.date || "N/A"
+                  }</p>
+                  <p><strong>Number of Tickets:</strong> ${
+                    (attractionBooking?.adults || 0) +
+                    (attractionBooking?.children || 0)
+                  }</p>
+                  <p><strong>Adults:</strong> ${
+                    attractionBooking?.adults || "N/A"
+                  }</p>
+                  <p><strong>Children:</strong> ${
+                    attractionBooking?.children || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Visitor Information</h3>
+                  <p><strong>Name:</strong> ${
+                    attractionBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    attractionBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${
+                    attractionBooking?.phone || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    attractionBooking?.address || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+              booking.displayCurrency || "USD"
+            }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Have a wonderful time! 🎉</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+          } else {
+            // Fallback for other service types
+            html = `
+              <div style="font-family: Arial; padding: 20px;">
+                <h2>Hi ${user.fullName || "User"},</h2>
+                <p>Your <strong>${
+                  payment.serviceType
+                }</strong> booking has been confirmed successfully.</p>
+                <p><b>Payment ID:</b> ${payment.id}</p>
+                <p><b>Total Paid:</b> ${payment.amount} ${
+              booking.displayCurrency || "USD"
+            }</p>
+                <p><b>Status:</b> Confirmed ✅</p>
+                <br/>
+                <p>Thanks for booking with us!</p>
+                <p>– Team Tim</p>
+              </div>
+            `;
+          }
+
           await emailSender(subject, user.email, html);
         }
       } catch (error) {
@@ -1467,23 +1844,399 @@ const payStackHandleWebhook = async (req: any) => {
       });
 
       if (user?.email) {
+        let html = "";
         const subject = `🎉 Your ${payment.serviceType} booking is confirmed!`;
-        const html = `
-            <div style="font-family: Arial; padding: 20px;">
-              <h2>Hi ${user.fullName || "User"},</h2>
-              <p>Your <strong>${
-                payment.serviceType
-              }</strong> booking has been confirmed successfully.</p>
-              <p><b>Payment ID:</b> ${payment.id}</p>
-              <p><b>Total Paid:</b> ${payment.amount} ${
-          booking.displayCurrency || "USD"
-        }</p>
-              <p><b>Status:</b> Confirmed ✅</p>
-              <br/>
-              <p>Thanks for booking with us!</p>
-              <p>– Team Tim</p>
-            </div>
-          `;
+
+        // Get detailed booking information based on service type
+        if (payment.serviceType === "HOTEL") {
+          const hotelBooking = await prisma.hotel_Booking.findUnique({
+            where: { id: bookingId },
+            include: {
+              hotel: {
+                select: {
+                  hotelName: true,
+                  hotelAddress: true,
+                  hotelCity: true,
+                  hotelCountry: true,
+                  hotelPhone: true,
+                  hotelEmail: true,
+                },
+              },
+              room: {
+                select: {
+                  hotelRoomCapacity: true,
+                },
+              },
+            },
+          });
+
+          html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🏨 Hotel Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your hotel booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🏨 Hotel Information</h3>
+                  <p><strong>Hotel Name:</strong> ${
+                    hotelBooking?.hotel?.hotelName || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    hotelBooking?.hotel?.hotelAddress || "N/A"
+                  }, ${hotelBooking?.hotel?.hotelCity || "N/A"}, ${
+            hotelBooking?.hotel?.hotelCountry || "N/A"
+          }</p>
+                  <p><strong>Hotel Phone:</strong> ${
+                    hotelBooking?.hotel?.hotelPhone || "N/A"
+                  }</p>
+                  <p><strong>Hotel Email:</strong> ${
+                    hotelBooking?.hotel?.hotelEmail || "N/A"
+                  }</p>
+                  <p><strong>hotel Room Capacity:</strong> ${
+                    hotelBooking?.room?.hotelRoomCapacity || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Booking Details</h3>
+                  <p><strong>Check-in Date:</strong> ${
+                    hotelBooking?.bookedFromDate || "N/A"
+                  }</p>
+                  <p><strong>Check-out Date:</strong> ${
+                    hotelBooking?.bookedToDate || "N/A"
+                  }</p>
+                  <p><strong>Number of Rooms:</strong> ${
+                    hotelBooking?.rooms || "N/A"
+                  }</p>
+                  <p><strong>Adults:</strong> ${
+                    hotelBooking?.adults || "N/A"
+                  }</p>
+                  <p><strong>Children:</strong> ${
+                    hotelBooking?.children || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Guest Information</h3>
+                  <p><strong>Name:</strong> ${
+                    hotelBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    hotelBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${hotelBooking?.phone || "N/A"}</p>
+                  <p><strong>Address:</strong> ${
+                    hotelBooking?.address || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+            booking.displayCurrency || "USD"
+          }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Have a wonderful stay. 🎉</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+        } else if (payment.serviceType === "SECURITY") {
+          const securityBooking = await prisma.security_Booking.findUnique({
+            where: { id: bookingId },
+            include: {
+              security: {
+                select: {
+                  securityName: true,
+                  securityPhone: true,
+                  securityEmail: true,
+                },
+              },
+              security_Guard: {
+                select: {
+                  securityAddress: true,
+                  securityCity: true,
+                  securityCountry: true,
+                },
+              },
+            },
+          });
+
+          html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🛡️ Security Service Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your security service booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🛡️ Security Service Information</h3>
+            
+                  <p><strong>Security Guard Name:</strong> ${
+                    securityBooking?.security?.securityName || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    securityBooking?.security_Guard?.securityAddress || "N/A"
+                  }, ${
+            securityBooking?.security_Guard?.securityCity || "N/A"
+          }, ${securityBooking?.security_Guard?.securityCountry || "N/A"}</p>
+                  <p><strong>Phone:</strong> ${
+                    securityBooking?.security?.securityPhone || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    securityBooking?.security?.securityEmail || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Booking Details</h3>
+                  <p><strong>Service From Date:</strong> ${
+                    securityBooking?.securityBookedFromDate || "N/A"
+                  }</p>
+                  <p><strong>Service To Date:</strong> ${
+                    securityBooking?.securityBookedToDate || "N/A"
+                  }</p>
+                  <p><strong>Number of Security Guards:</strong> ${
+                    securityBooking?.number_of_security || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Client Information</h3>
+                  <p><strong>Name:</strong> ${
+                    securityBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    securityBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${
+                    securityBooking?.phone || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    securityBooking?.address || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+            booking.displayCurrency || "USD"
+          }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Stay safe. 🛡️</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+        } else if (payment.serviceType === "CAR") {
+          const carBooking = await prisma.car_Booking.findUnique({
+            where: { id: bookingId },
+            include: {
+              car_Rental: {
+                select: {
+                  carName: true,
+                  carPhone: true,
+                  carEmail: true,
+                },
+              },
+              car: {
+                select: {
+                  carAddress: true,
+                  carCity: true,
+                  carCountry: true,
+                },
+              },
+            },
+          });
+
+          html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🚗 Car Rental Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your car rental booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🚗 Car Information</h3>
+                  <p><strong>Car Name:</strong> ${
+                    carBooking?.car_Rental?.carName || "N/A"
+                  }</p>
+                  <p><strong>Provider Address:</strong> ${
+                    carBooking?.car?.carAddress || "N/A"
+                  }, ${carBooking?.car?.carCity || "N/A"}, ${
+            carBooking?.car?.carCountry || "N/A"
+          }</p>
+                  <p><strong>Provider Phone:</strong> ${
+                    carBooking?.car_Rental?.carPhone || "N/A"
+                  }</p>
+                  <p><strong>Provider Email:</strong> ${
+                    carBooking?.car_Rental?.carEmail || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Rental Details</h3>
+                  <p><strong>Pick-up Date:</strong> ${
+                    carBooking?.carBookedFromDate || "N/A"
+                  }</p>
+                  <p><strong>Drop-off Date:</strong> ${
+                    carBooking?.carBookedToDate || "N/A"
+                  }</p>
+                  <p><strong>Number of Cars:</strong> 1</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Renter Information</h3>
+                  <p><strong>Name:</strong> ${
+                    carBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    carBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${carBooking?.phone || "N/A"}</p>
+                  <p><strong>Address:</strong> ${
+                    carBooking?.address || "N/A"
+                  }</p>
+                                  </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+            booking.displayCurrency || "USD"
+          }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Enjoy your ride! 🚗</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+        } else if (payment.serviceType === "ATTRACTION") {
+          const attractionBooking = await prisma.attraction_Booking.findUnique({
+            where: { id: bookingId },
+            include: {
+              attraction: {
+                select: {
+                  attractionName: true,
+                  attractionPhone: true,
+                  attractionEmail: true,
+                },
+              },
+              appeal: {
+                select: {
+                  attractionAddress: true,
+                  attractionCity: true,
+                  attractionCountry: true,
+                },
+              },
+            },
+          });
+
+          html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; text-align: center;">🎢 Attraction Booking Confirmed!</h2>
+                <p style="font-size: 16px;">Hi ${user.fullName || "User"},</p>
+                <p>Your attraction booking has been confirmed successfully. Here are your booking details:</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #2c3e50; margin-top: 0;">🎢 Attraction Information</h3>
+                  <p><strong>Attraction Name:</strong> ${
+                    attractionBooking?.attraction?.attractionName || "N/A"
+                  }</p>
+               
+              
+                  <p><strong>Address:</strong> ${
+                    attractionBooking?.appeal?.attractionCity || "N/A"
+                  }, 
+                  <p><strong>city:</strong> ${
+                    attractionBooking?.appeal?.attractionCity || "N/A"
+                  }, 
+                  ${attractionBooking?.appeal?.attractionCountry || "N/A"}</p>
+                  <p><strong>Phone:</strong> ${
+                    attractionBooking?.attraction?.attractionPhone || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    attractionBooking?.attraction?.attractionEmail || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #27ae60; margin-top: 0;">📅 Booking Details</h3>
+                  <p><strong>Visit Date:</strong> ${
+                    attractionBooking?.date || "N/A"
+                  }</p>
+                  <p><strong>Number of Tickets:</strong> ${
+                    (attractionBooking?.adults || 0) +
+                    (attractionBooking?.children || 0)
+                  }</p>
+                  <p><strong>Adults:</strong> ${
+                    attractionBooking?.adults || "N/A"
+                  }</p>
+                  <p><strong>Children:</strong> ${
+                    attractionBooking?.children || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #856404; margin-top: 0;">👤 Visitor Information</h3>
+                  <p><strong>Name:</strong> ${
+                    attractionBooking?.name || user.fullName || "N/A"
+                  }</p>
+                  <p><strong>Email:</strong> ${
+                    attractionBooking?.email || user.email || "N/A"
+                  }</p>
+                  <p><strong>Phone:</strong> ${
+                    attractionBooking?.phone || "N/A"
+                  }</p>
+                  <p><strong>Address:</strong> ${
+                    attractionBooking?.address || "N/A"
+                  }</p>
+                </div>
+
+                <div style="background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <h3 style="color: #0c5460; margin-top: 0;">💳 Payment Information</h3>
+                  <p><strong>Payment ID:</strong> ${payment.id}</p>
+                  <p><strong>Total Amount Paid:</strong> ${payment.amount} ${
+            booking.displayCurrency || "USD"
+          }</p>
+                  <p><strong>Payment Status:</strong> Confirmed ✅</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="color: #6c757d;">Thank you for booking with us! Have a wonderful time! 🎉</p>
+                  <p style="color: #6c757d;">– Team Tim</p>
+                </div>
+              </div>
+            `;
+        } else {
+          // Fallback for other service types
+          html = `
+              <div style="font-family: Arial; padding: 20px;">
+                <h2>Hi ${user.fullName || "User"},</h2>
+                <p>Your <strong>${
+                  payment.serviceType
+                }</strong> booking has been confirmed successfully.</p>
+                <p><b>Payment ID:</b> ${payment.id}</p>
+                <p><b>Total Paid:</b> ${payment.amount} ${
+            booking.displayCurrency || "USD"
+          }</p>
+                <p><b>Status:</b> Confirmed ✅</p>
+                <br/>
+                <p>Thanks for booking with us!</p>
+                <p>– Team Tim</p>
+              </div>
+            `;
+        }
+
         await emailSender(subject, user.email, html);
       }
     } catch (error) {
