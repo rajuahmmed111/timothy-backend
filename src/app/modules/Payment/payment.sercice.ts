@@ -2386,10 +2386,11 @@ const cancelPayStackBooking = async (
       (serviceDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
     if (diffHours < 24) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        "You cannot cancel this booking within 24 hours of the service start time"
-      );
+      return {
+        status: false,
+        message:
+          " You can cancel this booking within 24 hours of the start date.",
+      };
     }
   }
 
