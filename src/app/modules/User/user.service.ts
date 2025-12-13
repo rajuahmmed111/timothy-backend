@@ -26,7 +26,14 @@ import { jwtHelpers } from "../../../helpars/jwtHelpers";
 
 // create user for web partner
 const createUserForWebPartner = async (payload: any) => {
- // check if email exists
+  if (payload.role !== UserRole.BUSINESS_PARTNER) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "Only BUSINESS_PARTNER registration is allowed"
+    );
+  }
+
+  // check if email exists
   const existingUser = await prisma.user.findUnique({
     where: { email: payload.email },
   });
@@ -135,6 +142,13 @@ const createUserForWeb = async (payload: any) => {
 
 // create user
 const createUser = async (payload: any) => {
+  if (payload.role === UserRole.BUSINESS_PARTNER) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "Business Partner registration is not allowed"
+    );
+  }
+
   // check if email exists
   const existingUser = await prisma.user.findUnique({
     where: { email: payload.email },
