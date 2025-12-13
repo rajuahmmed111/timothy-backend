@@ -776,14 +776,19 @@ const getAllNeededApprovedPartners = async (
 
 // update partner status (inactive to active)
 const updatePartnerStatusInActiveToActive = async (id: string) => {
-  // find partner
-  const partner = await prisma.user.findUnique({
-    where: { id, status: UserStatus.INACTIVE },
+  // find partner (only inactive)
+  const partner = await prisma.user.findFirst({
+    where: {
+      id,
+      status: UserStatus.INACTIVE,
+    },
   });
+
   if (!partner) {
     throw new ApiError(httpStatus.NOT_FOUND, "Partner not found");
   }
 
+  // update status to ACTIVE
   const result = await prisma.user.update({
     where: { id },
     data: {
@@ -804,6 +809,32 @@ const updatePartnerStatusInActiveToActive = async (id: string) => {
       updatedAt: true,
     },
   });
+
+  // confirmation email HTML (inline)
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <h2>Hello ${result.fullName},</h2>
+      <p>
+        We are pleased to inform you that your
+        <strong>Partner Account</strong> has been
+        <strong>successfully activated</strong>.
+      </p>
+      <p>
+        You can now log in and start managing your hotels and bookings.
+      </p>
+      <br />
+      <p>Best regards,</p>
+      <p><strong>Fasifys Team</strong></p>
+    </div>
+  `;
+
+  // send confirmation email
+  await emailSender(
+    "Your Partner Account is Now Active 🎉",
+    result.email,
+    html
+  );
+
   return result;
 };
 
@@ -836,9 +867,32 @@ const updatePartnerStatusRejected = async (id: string) => {
       updatedAt: true,
     },
   });
+
+  // block confirmation email HTML (inline)
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <h2>Hello ${result.fullName},</h2>
+      <p>
+        Thank you for your interest in becoming a partner with us.
+      </p>
+      <p>
+        After reviewing your application, we regret to inform you that
+        your <strong>partner request has been rejected</strong> at this time.
+      </p>
+      <p>
+        You are welcome to apply again in the future with updated information.
+      </p>
+      <br />
+      <p>Best regards,</p>
+      <p><strong>Fasifys Team</strong></p>
+    </div>
+  `;
+
+  // send block confirmation email
+  await emailSender("Partner Application Update", result.email, html);
+
   return result;
 };
-
 // get user by id
 const getUserById = async (id: string): Promise<SafeUser> => {
   const user = await prisma.user.findUnique({
