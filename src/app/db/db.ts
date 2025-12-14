@@ -6,7 +6,7 @@ export const initiateSuperAdmin = async () => {
   const payload = {
     fullName: "Super Admin",
     userName: "superAdmin",
-    email: "superadmin@gmail10p.com",
+    email: "timfasanya14@gmail.com",
     password: "123456",
     role: UserRole.SUPER_ADMIN,
   };
