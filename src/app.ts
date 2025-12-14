@@ -24,7 +24,7 @@ const allowedOrigins = [
   "https://www.fasifys.com",
   "https://dashboard.fasifys.com",
   "http://localhost:5173",
-  "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:3000",
   "https://api.country.is",
   "https://open.er-api.com/v6/latest/USD",
@@ -60,7 +60,7 @@ app.use(
 
 app.use(cors(corsOptions));
 // Handle preflight requests for all routes
-app.options("*", cors(corsOptions));
+// app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
 
