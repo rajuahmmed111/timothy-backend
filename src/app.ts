@@ -59,7 +59,13 @@ app.use(
   })
 );
 
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+
 // Handle preflight requests for all routes
 // app.options("*", cors(corsOptions));
 
