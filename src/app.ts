@@ -19,37 +19,36 @@ const app: Application = express();
 
 // app.set("trust proxy", true);
 
-// const allowedOrigins = [
-//   "https://fasifys.com",
-//   "https://www.fasifys.com",
-//   "https://dashboard.fasifys.com",
-//   "http://localhost:5173",
-//   "http://localhost:5174",
-//   "http://localhost:3000",
-//   "https://api.country.is",
-//   "https://open.er-api.com/v6/latest/USD",
-//   "https://www.google.com/maps",
-// ];
+const allowedOrigins = [
+  "https://fasifys.com",
+  "https://www.fasifys.com",
+  "https://dashboard.fasifys.com",
+  "http://localhost:5173",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://api.country.is",
+  "https://open.er-api.com/v6/latest/USD",
+  "https://www.google.com/maps",
+];
 
-// const corsOptions = {
-//   // origin: function (origin: any, callback: any) {
-//   //   if (!origin) return callback(null, true);
-//   //   if (allowedOrigins.indexOf(origin) !== -1) {
-//   //     callback(null, true); // Origin match → allow
-//   //   } else {
-//   //     callback(new Error("CORS policy: Origin not allowed"));
-//   //   }
-//   // },
-//   origin: "*",
-//   credentials: true,
-//   allowedHeaders: [
-//     "Content-Type",
-//     "Authorization",
-//     // "X-User-IP",
-//     // "X-User-Currency",
-//   ],
-//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-// };
+const corsOptions = {
+  origin: function (origin: any, callback: any) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true); // Origin match → allow
+    } else {
+      callback(new Error("CORS policy: Origin not allowed"));
+    }
+  },
+  credentials: true,
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    // "X-User-IP",
+    // "X-User-Currency",
+  ],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+};
 
 app.use(
   bodyParser.json({
@@ -59,15 +58,9 @@ app.use(
   })
 );
 
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
-
+app.use(cors(corsOptions));
 // Handle preflight requests for all routes
-// app.options("*", cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
 
