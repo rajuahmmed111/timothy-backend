@@ -31,25 +31,25 @@ const app: Application = express();
 //   "https://www.google.com/maps",
 // ];
 
-const corsOptions = {
-  // origin: function (origin: any, callback: any) {
-  //   if (!origin) return callback(null, true);
-  //   if (allowedOrigins.indexOf(origin) !== -1) {
-  //     callback(null, true); // Origin match → allow
-  //   } else {
-  //     callback(new Error("CORS policy: Origin not allowed"));
-  //   }
-  // },
-  origin: "*",
-  credentials: true,
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    // "X-User-IP",
-    // "X-User-Currency",
-  ],
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-};
+// const corsOptions = {
+//   // origin: function (origin: any, callback: any) {
+//   //   if (!origin) return callback(null, true);
+//   //   if (allowedOrigins.indexOf(origin) !== -1) {
+//   //     callback(null, true); // Origin match → allow
+//   //   } else {
+//   //     callback(new Error("CORS policy: Origin not allowed"));
+//   //   }
+//   // },
+//   origin: "*",
+//   credentials: true,
+//   allowedHeaders: [
+//     "Content-Type",
+//     "Authorization",
+//     // "X-User-IP",
+//     // "X-User-Currency",
+//   ],
+//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+// };
 
 app.use(
   bodyParser.json({
@@ -59,9 +59,9 @@ app.use(
   })
 );
 
-app.use(cors(corsOptions));
+app.use(cors());
 // Handle preflight requests for all routes
-app.options("*", cors(corsOptions));
+// app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
 
