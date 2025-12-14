@@ -19,17 +19,17 @@ const app: Application = express();
 
 // app.set("trust proxy", true);
 
-const allowedOrigins = [
-  "https://fasifys.com",
-  "https://www.fasifys.com",
-  "https://dashboard.fasifys.com",
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:3000",
-  "https://api.country.is",
-  "https://open.er-api.com/v6/latest/USD",
-  "https://www.google.com/maps",
-];
+// const allowedOrigins = [
+//   "https://fasifys.com",
+//   "https://www.fasifys.com",
+//   "https://dashboard.fasifys.com",
+//   "http://localhost:5173",
+//   "http://localhost:5174",
+//   "http://localhost:3000",
+//   "https://api.country.is",
+//   "https://open.er-api.com/v6/latest/USD",
+//   "https://www.google.com/maps",
+// ];
 
 const corsOptions = {
   origin: function (origin: any, callback: any) {
@@ -58,15 +58,20 @@ app.use(
   })
 );
 
-app.use(cors(corsOptions));
-// Handle preflight requests for all routes
-// app.options("*", cors(corsOptions));
-
 app.use(cookieParser());
-
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+// app.use(cors(corsOptions));
+// // Handle preflight requests for all routes
+// // app.options("*", cors(corsOptions));
+
+// app.use(cookieParser());
+
+// app.use(express.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(express.static("public"));
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "How's Project API" });
