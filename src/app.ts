@@ -40,7 +40,7 @@ const corsOptions = {
   //     callback(new Error("CORS policy: Origin not allowed"));
   //   }
   // },
-  origin: true,
+  origin: "*",
   credentials: true,
   allowedHeaders: [
     "Content-Type",
