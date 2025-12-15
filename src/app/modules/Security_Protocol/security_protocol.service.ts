@@ -1362,9 +1362,7 @@ const getAllSecurityProtocolsGuardsApp = async (
 // };
 
 // get popular security protocols
-const getPopularSecurityProtocols = async (
-  params: ISecurityFilterRequest,
-) => {
+const getPopularSecurityProtocols = async (params: ISecurityFilterRequest) => {
   const { searchTerm, ...filterData } = params;
 
   const filters: Prisma.Security_GuardWhereInput[] = [];
@@ -1719,7 +1717,7 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
       securityBookingAbleDays:
         securityBookingAbleDay || existingGuard.securityBookingAbleDays,
       securityImages: securityImageUrls,
-      currency: currency.toUpperCase(),
+      currency: currency.toUpperCase() || existingGuard.currency,
     },
   });
 
