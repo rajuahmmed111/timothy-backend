@@ -253,9 +253,6 @@ const getAllCarBookings = async (partnerId: string) => {
       },
     },
   });
-  if (result.length === 0) {
-    throw new ApiError(httpStatus.NOT_FOUND, "No bookings found");
-  }
 
   return result;
 };
@@ -290,7 +287,7 @@ const getSingleCarBooking = async (id: string) => {
     },
   });
   if (!result) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Security Booking not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Car Booking not found");
   }
 
   return result;
@@ -348,9 +345,6 @@ const getAllMyCarBookings = async (userId: string) => {
       },
     },
   });
-  if (result.length === 0) {
-    throw new ApiError(httpStatus.NOT_FOUND, "No bookings found");
-  }
 
   return result;
 };
