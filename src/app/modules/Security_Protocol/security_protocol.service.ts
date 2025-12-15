@@ -1701,14 +1701,14 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
       securityServicesOffered:
         parsedServices || existingGuard.securityServicesOffered,
       experience: experience ? parseInt(experience) : existingGuard.experience,
-      availability: availability || existingGuard.availability,
+      availability: availability ?? existingGuard.availability,
       languages: language || existingGuard.languages,
-      certification: certification || existingGuard.certification,
+      certification: certification ?? existingGuard.certification,
       securityRating: securityRating || existingGuard.securityRating,
       securityPriceDay: securityPriceDay
         ? parseFloat(securityPriceDay)
         : existingGuard.securityPriceDay,
-      category: category || existingGuard.category,
+      category: category ?? existingGuard.category,
       discount: discount ? parseFloat(discount) : existingGuard.discount,
       securityReviewCount: securityReviewCount
         ? parseInt(securityReviewCount)
@@ -1717,7 +1717,7 @@ const updateSecurityProtocolGuardType = async (req: Request) => {
       securityBookingAbleDays:
         securityBookingAbleDay || existingGuard.securityBookingAbleDays,
       securityImages: securityImageUrls,
-      currency: currency.toUpperCase() || existingGuard.currency,
+      currency: currency ? currency.toUpperCase() : existingGuard.currency,
     },
   });
 
