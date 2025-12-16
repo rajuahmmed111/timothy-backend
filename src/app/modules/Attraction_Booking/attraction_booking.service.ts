@@ -159,7 +159,7 @@ const getAllAttractionBookings = async (partnerId: string) => {
   }
 
   const result = await prisma.attraction_Booking.findMany({
-    where: { userId: partner.id },
+    where: { partnerId: partnerId },
     include: {
       appeal: {
         select: {
@@ -246,7 +246,7 @@ const getAllMyAttractionBookings = async (userId: string) => {
   }
 
   const result = await prisma.attraction_Booking.findMany({
-    where: { userId: findUser.id, bookingStatus: BookingStatus.CONFIRMED },
+    where: { userId: userId, bookingStatus: BookingStatus.CONFIRMED },
     include: {
       appeal: {
         select: {

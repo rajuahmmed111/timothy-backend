@@ -208,7 +208,7 @@ const getAllHotelBookings = async (partnerId: string) => {
   }
 
   const result = await prisma.hotel_Booking.findMany({
-    where: { id: partner.id },
+    where: { partnerId: partnerId },
     include: {
       room: {
         select: {
