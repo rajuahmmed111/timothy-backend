@@ -1218,24 +1218,60 @@ const updateAttractionAppeal = async (req: Request) => {
           attractionPostalCode,
           attractionDistrict,
           attractionCountry,
+
           attractionImages: newAttractionImages.length
             ? newAttractionImages
             : appealExists.attractionImages,
+
           attractionServicesOffered: Array.isArray(attractionServicesOffered)
             ? attractionServicesOffered
             : attractionServicesOffered?.split(","),
-          attractionFreeWifi: Boolean(attractionFreeWifi),
-          attractionFreeParking: Boolean(attractionFreeParking),
-          attractionKitchen: Boolean(attractionKitchen),
-          attractionTv: Boolean(attractionTv),
-          attractionAirConditioning: Boolean(attractionAirConditioning),
-          attractionPool: Boolean(attractionPool),
-          attractionRating,
-          attractionAdultPrice: parseFloat(attractionAdultPrice),
-          attractionChildPrice: parseFloat(attractionChildPrice),
-          category,
-          discount: parseFloat(discount),
-          currency: currency.toUpperCase(),
+
+          attractionFreeWifi:
+            attractionFreeWifi !== undefined
+              ? Boolean(attractionFreeWifi)
+              : appealExists.attractionFreeWifi,
+
+          attractionFreeParking:
+            attractionFreeParking !== undefined
+              ? Boolean(attractionFreeParking)
+              : appealExists.attractionFreeParking,
+
+          attractionKitchen:
+            attractionKitchen !== undefined
+              ? Boolean(attractionKitchen)
+              : appealExists.attractionKitchen,
+
+          attractionTv:
+            attractionTv !== undefined
+              ? Boolean(attractionTv)
+              : appealExists.attractionTv,
+
+          attractionAirConditioning:
+            attractionAirConditioning !== undefined
+              ? Boolean(attractionAirConditioning)
+              : appealExists.attractionAirConditioning,
+
+          attractionPool:
+            attractionPool !== undefined
+              ? Boolean(attractionPool)
+              : appealExists.attractionPool,
+
+          attractionRating: attractionRating ?? appealExists.attractionRating,
+
+          attractionAdultPrice: attractionAdultPrice
+            ? parseFloat(attractionAdultPrice)
+            : appealExists.attractionAdultPrice,
+
+          attractionChildPrice: attractionChildPrice
+            ? parseFloat(attractionChildPrice)
+            : appealExists.attractionChildPrice,
+
+          category: category ?? appealExists.category,
+
+          discount: discount ? parseFloat(discount) : appealExists.discount,
+
+          currency: currency ? currency.toUpperCase() : appealExists.currency,
         },
       });
 

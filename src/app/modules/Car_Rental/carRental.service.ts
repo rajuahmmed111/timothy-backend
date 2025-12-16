@@ -1074,10 +1074,13 @@ const updateCar = async (req: Request) => {
       carCity,
       carCountry,
       carDescription,
+
       carImages: carImageUrls,
+
       carServicesOffered: Array.isArray(carServicesOffered)
         ? carServicesOffered
-        : carServicesOffered?.split(",") || [],
+        : carServicesOffered?.split(",") ?? carExists.carServicesOffered,
+
       carType,
       carSeats,
       carOilType,
@@ -1091,15 +1094,26 @@ const updateCar = async (req: Request) => {
       carColor,
       fuelType,
       gearType,
-      carRating,
-      carPriceDay: carPriceDay ? parseFloat(carPriceDay) : 0,
+
+      carRating: carRating ?? carExists.carRating,
+
+      carPriceDay: carPriceDay
+        ? parseFloat(carPriceDay)
+        : carExists.carPriceDay,
+
       carBookingAbleDays: Array.isArray(carBookingAbleDays)
         ? carBookingAbleDays
-        : carBookingAbleDays?.split(",") || [],
-      category,
-      discount: discount ? parseFloat(discount) : 0,
-      carReviewCount: carReviewCount ? parseInt(carReviewCount) : 0,
-      currency: currency.toUpperCase(),
+        : carBookingAbleDays?.split(",") ?? carExists.carBookingAbleDays,
+
+      category: category ?? carExists.category,
+
+      discount: discount ? parseFloat(discount) : carExists.discount,
+
+      carReviewCount: carReviewCount
+        ? parseInt(carReviewCount)
+        : carExists.carReviewCount,
+
+      currency: currency ? currency.toUpperCase() : carExists.currency,
     },
   });
 };
