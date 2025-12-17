@@ -6,7 +6,6 @@ import { HotelService } from "./hotel.service";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
 import { filterField } from "./hotel.constant";
-import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create hotel
 const createHotel = catchAsync(async (req: Request, res: Response) => {
@@ -202,7 +201,7 @@ const getPopularHotels = catchAsync(async (req: Request, res: Response) => {
   const options = pick(req.query, paginationFields);
   const result = await HotelService.getPopularHotels(
     filter,
-    options,
+    options
     // userCurrency
   );
 

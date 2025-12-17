@@ -8,7 +8,6 @@ import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import { BookingStatus, EveryServiceStatus, Prisma } from "@prisma/client";
 import { searchableFields } from "./carRental.constant";
-import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create Car Rental
 const createCarRental = async (req: Request) => {

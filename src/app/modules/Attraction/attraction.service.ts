@@ -8,7 +8,6 @@ import { searchableFields } from "./attraction.constant";
 import { IAttractionFilter, ISlot } from "./attraction.interface";
 import { IPaginationOptions } from "../../../interfaces/paginations";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
-import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create attraction without schedules
 const createAttraction = async (req: Request) => {

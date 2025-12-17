@@ -6,7 +6,6 @@ import httpStatus from "http-status";
 import { pick } from "../../../shared/pick";
 import { paginationFields } from "../../../constants/pagination";
 import { filterField } from "./security_protocol.constant";
-import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create security protocol
 const createSecurityProtocol = catchAsync(
@@ -83,7 +82,7 @@ const getAllSecurityProtocols = catchAsync(
     const options = pick(req.query, paginationFields);
     const result = await Security_ProtocolService.getAllSecurityProtocols(
       filter,
-      options,
+      options
       // userCurrency
     );
 
@@ -146,7 +145,7 @@ const getAllSecurityProtocolsGuardsApp = catchAsync(
     const result =
       await Security_ProtocolService.getAllSecurityProtocolsGuardsApp(
         filter,
-        options,
+        options
         // userCurrency
       );
 

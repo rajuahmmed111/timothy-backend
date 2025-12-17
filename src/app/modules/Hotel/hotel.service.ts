@@ -19,7 +19,6 @@ import {
   searchableFieldsHotel,
 } from "./hotel.constant";
 import { uploadFile } from "../../../helpars/fileUploader";
-import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create hotels
 const createHotel = async (req: Request) => {

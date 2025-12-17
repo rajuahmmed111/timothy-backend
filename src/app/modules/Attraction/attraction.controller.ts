@@ -6,7 +6,6 @@ import httpStatus from "http-status";
 import { pick } from "../../../shared/pick";
 import { filterField } from "./attraction.constant";
 import { paginationFields } from "../../../constants/pagination";
-import { getUserCurrency } from "../../../helpars/detectionLocality";
 
 // create attraction
 const createAttraction = catchAsync(async (req: Request, res: Response) => {

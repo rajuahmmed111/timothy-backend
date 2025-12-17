@@ -20,7 +20,6 @@ import {
   protocolSearchFields,
   searchableFields,
 } from "./security_protocol.constant";
-import { CurrencyHelpers } from "../../../helpars/currency";
 
 // create security protocol
 const createSecurityProtocol = async (req: Request) => {
