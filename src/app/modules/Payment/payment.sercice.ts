@@ -1599,8 +1599,12 @@ const createCheckoutSessionPayStack = async (
   // find partner
   const partnerId = (service as any).partnerId;
   const partner = await prisma.user.findUnique({ where: { id: partnerId } });
-  if (!partner)
-    throw new ApiError(httpStatus.BAD_REQUEST, "Provider not found");
+  if (!partner || !partner?.payStackSubAccountId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Provider not onboarded with Pay-Stack"
+    );
+  }
 
   // amount (convert USD → cents)
   const amount = Math.round(booking.totalPrice * 100);
@@ -1632,7 +1636,7 @@ const createCheckoutSessionPayStack = async (
     `${payStackBaseUrl}/transaction/initialize`,
     {
       email: user.email,
-      amount,
+      amount: totalWithVAT,
       subaccount: partner.payStackSubAccountId,
       metadata: {
         bookingId,
